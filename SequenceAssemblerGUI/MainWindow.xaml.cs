@@ -1,5 +1,10 @@
 ﻿using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Legends;
+using OxyPlot.Series;
+using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +28,7 @@ namespace SequenceAssemblerGUI
 {
     public partial class MainWindow : Window
     {
+        NovorParser novorParser;
         public MainWindow()
         {
             InitializeComponent();
@@ -30,24 +36,70 @@ namespace SequenceAssemblerGUI
 
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
-            Ookii.Dialogs.Wpf.VistaFolderBrowserDialog folderBrowserDialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+            VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = false;
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(folderBrowserDialog.SelectedPaths[0]);
-                Console.WriteLine(folderBrowserDialog.SelectedPaths[0]);
-            }
 
-            string[] csvFiles = Directory.GetFiles(folderBrowserDialog.SelectedPath, "*.csv");
-            foreach (string file in csvFiles)
-            {
-                Console.WriteLine(file);
-                // Perform some action with the CSV file, such as opening it in a new window
+                novorParser = new ();
+                novorParser.LoadNovorUniversal(new DirectoryInfo(folderBrowserDialog.SelectedPaths[0]));
 
+                int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
+                int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
+
+                Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
+                Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
+
+                LabelPSMCount.Content = totalPsmRegistries;
+                LabelDeNovoCount.Content = totalDenovoRegistries;
+
+                TabControlMain.IsEnabled = true;
+                UpdatePlot();
+                
             }
+            
+           
         }
+        private void UpdatePlot()
+        {
+            PlotModel plotModel1 = new()
+            {
+                Title = "Sequences"
+            };
+            BarSeries bsPSM = new() { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
+            BarSeries bsDeNovo = new() { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
+       
+
+            var categoryAxis1 = new CategoryAxis() { Key="y"};
+            var linearAxis = new LinearAxis() { Key = "x" };
+
+            foreach (var kvp in novorParser.DictDenovo)
+            {
+                categoryAxis1.ActualLabels.Add(kvp.Key);
+                categoryAxis1.Labels.Add(kvp.Key);
+                bsPSM.Items.Add(new BarItem(kvp.Value.Select(a => a.Peptide).Distinct().Count()));
+                bsDeNovo.Items.Add(new BarItem(novorParser.DictDenovo[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+            }
+            plotModel1.Series.Add(bsPSM);
+            plotModel1.Series.Add(bsDeNovo);
+            plotModel1.Axes.Add(linearAxis);
+            plotModel1.Axes.Add(categoryAxis1);
+            PlotViewEnzymeEfficiency.Model = plotModel1;
+            
     }
+
+        private void ButtonProcess_Click(object sender, RoutedEventArgs e)
+        {
+            TabItemResults.IsEnabled = true;
+
+            TabControlMain.SelectedItem = TabItemResults;
+           
+        }
+       
+
+    }
+
 }
         
         

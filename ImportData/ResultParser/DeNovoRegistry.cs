@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImportData
+namespace SequenceAssemblerLogic.ResultParser
 {
     public class DeNovoRegistry
     {
@@ -19,5 +19,5 @@ namespace ImportData
         public List<int> AaScore { get; set; }
 
     }
-    
+
 }

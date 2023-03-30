@@ -1,26 +1,19 @@
-﻿using ImportData;
+﻿using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Text.RegularExpressions;
 using static System.Formats.Asn1.AsnWriter;
 
-class Program
+namespace SequenceAssemblerLogic
 {
-
-    static void Main(string[] args)
+    class Program
     {
-        var denovoFile = @"C:\Users\Celso Vitor\OneDrive\Documentos\Projeto Mestrado\BSA\F_2 - 20200710_BSA_HCD\20200710_BSA_HCD.raw.denovo.csv";
+        static void Main(string[] args)
+        {
+            var denovoFile = @"C:\Users\Celso Vitor\OneDrive\Documentos\Projeto Mestrado\BSA\F_2 - 20200710_BSA_HCD\20200710_BSA_HCD.raw.denovo.csv";
 
-        SequenceAssembler sequenceAssembler = new SequenceAssembler();
+            NovorParser sequenceAssembler = new ();
 
-        sequenceAssembler.LoadDeNovoRegistries(denovoFile);
-
-        Console.WriteLine("DeNovoRestries: " + sequenceAssembler.MyDeNovoRegistries.Count);
-
-        var psmFile = @"C:\Users\Celso Vitor\OneDrive\Documentos\Projeto Mestrado\BSA\F_2 - 20200710_BSA_HCD\20200710_BSA_HCD.raw.psms.csv";
-
-        sequenceAssembler.LoadPsmRegistries(psmFile);
-
-        Console.WriteLine("PsmRestries: " + sequenceAssembler.MyPsmRegistries.Count);
-
+            var psmFile = @"C:\Users\Celso Vitor\OneDrive\Documentos\Projeto Mestrado\BSA\F_2 - 20200710_BSA_HCD\20200710_BSA_HCD.raw.psms.csv";
+        }
     }
 }

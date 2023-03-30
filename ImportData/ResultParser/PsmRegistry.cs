@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImportData
+namespace SequenceAssemblerLogic.ResultParser
 {
     public class PsmRegistry
     {
-      
+
         public int ScanNumber { get; set; }
         public double RT { get; set; }
         public double Mz { get; set; }
@@ -19,6 +19,6 @@ namespace ImportData
         public string Peptide { get; set; }
         public List<int> AaScore { get; set; }
 
-        
+
     }
 }

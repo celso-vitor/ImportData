@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SequenceAssemblerGUI"
+        xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5" xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Title="Sequence Assembler" Height="600" Width="800">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -17,6 +18,45 @@
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
             </MenuItem>
         </Menu>
+        <WrapPanel Background ="Bisque" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="1">
+            <Label Content="PSMs: "/>
+            <Label x:Name="LabelPSMCount" Content="?"/>
+            <Label Content="DeNovo: "/>
+            <Label x:Name="LabelDeNovoCount" Content="?"/>
+        </WrapPanel>
+
+        <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
+            <TabItem Header="Assembler">
+                <StackPanel>
+                    
+                    <GroupBox Header="Novor">
+                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <Label Content="PSM Score"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="85" Minimum="10" Maximum="100"/>
+                            <Label Content="PSM Length"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMLength" Value="5" Minimum="3"/>
+                            <Label Content="DeNovo Score"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="50" Maximum="100"/>
+                            <Label Content="DeNovo Length"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoLength" Value="5" Minimum="3"/>
+                        </WrapPanel>
+                    </GroupBox>
+                   
+
+                    <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
+
+                    <GroupBox>
+                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250"/>
+
+                    </GroupBox>
+                </StackPanel>
+                
+            </TabItem>
+            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled ="False">
+
+            </TabItem>
+        </TabControl>
+
 
     </Grid>
 </Window>
