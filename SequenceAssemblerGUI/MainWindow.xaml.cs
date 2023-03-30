@@ -74,13 +74,13 @@ namespace SequenceAssemblerGUI
             var categoryAxis1 = new CategoryAxis() { Key="y"};
             var linearAxis = new LinearAxis() { Key = "x" };
 
-            foreach (var kvp in novorParser.DictDenovo)
+            foreach (KeyValuePair<string, List<DeNovoRegistry>> kvp in novorParser.DictDenovo)
             {
-                categoryAxis1.ActualLabels.Add(kvp.Key);
                 categoryAxis1.Labels.Add(kvp.Key);
-                bsPSM.Items.Add(new BarItem(kvp.Value.Select(a => a.Peptide).Distinct().Count()));
+                bsPSM.Items.Add(new BarItem(novorParser.DictPsm[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
                 bsDeNovo.Items.Add(new BarItem(novorParser.DictDenovo[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
             }
+
             plotModel1.Series.Add(bsPSM);
             plotModel1.Series.Add(bsDeNovo);
             plotModel1.Axes.Add(linearAxis);
