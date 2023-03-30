@@ -59,47 +59,46 @@ namespace SequenceAssemblerLogic.ResultParser
 
             }
 
-            List<string> GetSubsequences(string peptide, List<int> aaConfidence, int cutoff)
+
+        }
+
+        
+
+        public static List<string> GetSubSequences2 (string peptide, List<int> scores,  int cutoff, int minSize) 
+        {
+
+            if (scores.Count != peptide.Length)
             {
-                List<string> subsequences = new List<string>();
-                int startIndex = -1;
-                int endIndex = -1;
-                for (int i = 0; i < aaConfidence.Count; i++)
-                {
-                    if (aaConfidence[i] > cutoff)
-                    {
-                        if (startIndex == -1)
-                        {
-                            startIndex = i;
-                        }
-                        endIndex = i;
-                    }
-                    else
-                    {
-                        if (startIndex != -1)
-                        {
-                            string subsequence = peptide.Substring(startIndex, endIndex - startIndex + 1);
-                            subsequences.Add(subsequence);
-                            startIndex = -1;
-                            endIndex = -1;
-                        }
-                    }
-                }
-                if (startIndex != -1)
-                {
-                    string subsequence = peptide.Substring(startIndex, endIndex - startIndex + 1);
-                    subsequences.Add(subsequence);
-                }
-                return subsequences;
+                throw new Exception("Peptide and scores should have the same length");
             }
 
-            string peptide = "MAGFATVLFQY";
-            List<int> aaConfidence = new List<int> { 35, 28, 12, 40, 45, 38, 25, 15, 32, 31, 29 };
-            int cutoff = 31;
-            Console.WriteLine(peptide);
-            List<string> subsequences = GetSubsequences(peptide, aaConfidence, cutoff);
-            Console.WriteLine(subsequences);
+            List<string> results = new();
+            StringBuilder subSequence = new StringBuilder();
 
+            for (int i = 0; i < scores.Count; i++)
+            {
+                if (scores[i] >= cutoff) 
+                {
+                    subSequence.Append(peptide[i]);
+
+                    if (i == scores.Count - 1)
+                    {
+                        results.Add(subSequence.ToString());
+                    }
+                }
+                else if (scores[i] < cutoff || i == scores.Count - 1) 
+                {
+                    if (subSequence.Length > minSize)
+                    {
+                        results.Add(subSequence.ToString());         
+                    }
+
+                    subSequence.Clear();
+                }           
+
+            }
+
+            return results;
         }
 
         private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName)
