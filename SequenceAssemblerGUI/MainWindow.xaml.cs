@@ -99,7 +99,7 @@ namespace SequenceAssemblerGUI
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
-            
+            UpdatePlot();
         }
     }
 
