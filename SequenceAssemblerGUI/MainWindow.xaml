@@ -28,7 +28,7 @@
         <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
             <TabItem Header="Assembler">
                 <StackPanel>
-                    
+
                     <GroupBox Header="Novor">
                         <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top">
                             <Label Content="PSM Score"/>
@@ -37,11 +37,12 @@
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMLength" Value="5" Minimum="3"/>
                             <Label Content="DeNovo Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="50" Maximum="100"/>
-                            <Label Content="DeNovo Length"/>
+                            <Label Content="DeNovo Length" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoLength" Value="5" Minimum="3"/>
+                            <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                         </WrapPanel>
                     </GroupBox>
-                   
+
 
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
 

@@ -96,8 +96,11 @@ namespace SequenceAssemblerGUI
             TabControlMain.SelectedItem = TabItemResults;
            
         }
-       
 
+        private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            
+        }
     }
 
 }
