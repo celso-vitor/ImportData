@@ -47,8 +47,10 @@
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
 
                     <GroupBox>
-                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250"/>
-
+                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250" Visibility="Collapsed"/>
+                    </GroupBox>
+                    <GroupBox>
+                        <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke"/>
                     </GroupBox>
                 </StackPanel>
                 

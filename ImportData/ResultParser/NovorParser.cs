@@ -19,6 +19,31 @@ namespace SequenceAssemblerLogic.ResultParser
             DictDenovo = new();
             DictPsm = new();
         }
+
+        public Dictionary<string, List<DeNovoRegistry>> FilterDictDeNovo(int peptideLength)
+        {
+            Dictionary<string, List<DeNovoRegistry>> dictDenovoTmp = new();
+
+            foreach (var kvp in DictDenovo)
+            {
+                dictDenovoTmp.Add(kvp.Key, kvp.Value.Where(a => CleanPeptide(a.Peptide).Length >= peptideLength).ToList());
+            }
+            return dictDenovoTmp;
+        }
+        public Dictionary<string, List<PsmRegistry>> FilterDictPSM(int peptideLength)
+        {
+            Dictionary<string, List<PsmRegistry>> dictPSMTmp = new();
+
+            foreach (var kvp in DictPsm)
+            {
+                dictPSMTmp.Add(kvp.Key, kvp.Value.Where(a => CleanPeptide(a.Peptide).Length >= peptideLength).ToList());
+            }
+            return dictPSMTmp;
+        }
+        private string CleanPeptide(string peptide)
+        {
+            return Regex.Replace(peptide, @"\([^)]*\)", "");
+        }
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 

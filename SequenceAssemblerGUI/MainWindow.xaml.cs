@@ -29,6 +29,8 @@ namespace SequenceAssemblerGUI
     public partial class MainWindow : Window
     {
         NovorParser novorParser;
+        Dictionary<string, List<PsmRegistry>> psmDictTemp;
+        Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
         public MainWindow()
         {
             InitializeComponent();
@@ -55,7 +57,7 @@ namespace SequenceAssemblerGUI
                 LabelDeNovoCount.Content = totalDenovoRegistries;
 
                 TabControlMain.IsEnabled = true;
-                UpdatePlot();
+                UpdateGeneral();
                 
             }
             
@@ -63,6 +65,7 @@ namespace SequenceAssemblerGUI
         }
         private void UpdatePlot()
         {
+
             PlotModel plotModel1 = new()
             {
                 Title = "Sequences"
@@ -78,7 +81,7 @@ namespace SequenceAssemblerGUI
             {
                 categoryAxis1.Labels.Add(kvp.Key);
                 bsPSM.Items.Add(new BarItem(novorParser.DictPsm[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
-                bsDeNovo.Items.Add(new BarItem(novorParser.DictDenovo[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+                bsDeNovo.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide). Distinct().Count()));
             }
 
             plotModel1.Series.Add(bsPSM);
@@ -88,7 +91,15 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
             
     }
+        private void UpdateGeneral()
+        {
+            int denovoSequeceLength = (int)IntegerUpDownDeNovoLength.Value;
+            deNovoDictTemp = novorParser.FilterDictDeNovo(denovoSequeceLength);
 
+            int psmSequenceLength = (int)IntegerUpDownPSMLength.Value;
+            psmDictTemp = novorParser.FilterDictPSM(psmSequenceLength);
+            UpdatePlot();
+        }
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             TabItemResults.IsEnabled = true;
@@ -99,7 +110,8 @@ namespace SequenceAssemblerGUI
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
-            UpdatePlot();
+            UpdateGeneral();
+            PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
         }
     }
 
