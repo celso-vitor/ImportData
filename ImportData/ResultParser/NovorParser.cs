@@ -26,7 +26,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
             foreach (var kvp in DictDenovo)
             {
-                dictDenovoTmp.Add(kvp.Key, kvp.Value.Where(a => CleanPeptide(a.Peptide).Length >= peptideLength).ToList());
+                dictDenovoTmp.Add(kvp.Key, kvp.Value.Where(a => a.CleanPeptide.Length >= peptideLength).ToList());
             }
             return dictDenovoTmp;
         }
@@ -36,13 +36,9 @@ namespace SequenceAssemblerLogic.ResultParser
 
             foreach (var kvp in DictPsm)
             {
-                dictPSMTmp.Add(kvp.Key, kvp.Value.Where(a => CleanPeptide(a.Peptide).Length >= peptideLength).ToList());
+                dictPSMTmp.Add(kvp.Key, kvp.Value.Where(a => a.CleanPeptide.Length >= peptideLength).ToList());
             }
             return dictPSMTmp;
-        }
-        private string CleanPeptide(string peptide)
-        {
-            return Regex.Replace(peptide, @"\([^)]*\)", "");
         }
         public void LoadNovorUniversal(DirectoryInfo di)
         {

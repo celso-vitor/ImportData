@@ -80,8 +80,8 @@ namespace SequenceAssemblerGUI
             foreach (KeyValuePair<string, List<DeNovoRegistry>> kvp in novorParser.DictDenovo)
             {
                 categoryAxis1.Labels.Add(kvp.Key);
-                bsPSM.Items.Add(new BarItem(novorParser.DictPsm[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
-                bsDeNovo.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide). Distinct().Count()));
+                bsPSM.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide). Distinct().Count()));
             }
 
             plotModel1.Series.Add(bsPSM);
@@ -98,6 +98,16 @@ namespace SequenceAssemblerGUI
 
             int psmSequenceLength = (int)IntegerUpDownPSMLength.Value;
             psmDictTemp = novorParser.FilterDictPSM(psmSequenceLength);
+
+
+            var r = (from v in psmDictTemp.Values
+                     from rr in v
+                     select Math.Floor(rr.Score)).Distinct().ToList();
+
+            r.Sort();
+
+
+
             UpdatePlot();
         }
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
