@@ -99,15 +99,6 @@ namespace SequenceAssemblerGUI
             int psmSequenceLength = (int)IntegerUpDownPSMLength.Value;
             psmDictTemp = novorParser.FilterDictPSM(psmSequenceLength);
 
-
-            var r = (from v in psmDictTemp.Values
-                     from rr in v
-                     select Math.Floor(rr.Score)).Distinct().ToList();
-
-            r.Sort();
-
-
-
             UpdatePlot();
         }
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
