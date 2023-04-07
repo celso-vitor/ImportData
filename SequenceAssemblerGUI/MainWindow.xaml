@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5" xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
-        Title="Sequence Assembler" Height="600" Width="800">
+        Title="Sequence Assembler" Height="700" Width="950">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -29,20 +29,24 @@
             <TabItem Header="Assembler">
                 <StackPanel>
 
-                    <GroupBox Header="Novor">
-                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Top">
+                    <GroupBox Header="Novor" Width="914"> 
+                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="906">
                             <Label Content="PSM Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="20" Minimum="1" Maximum="100"/>
-                            <Label Content="PSM Length"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMLength" Value="5" Minimum="3"/>
+                            <Label Content="PSM MinLength"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMLength" Value="5" Minimum="3" Maximum="20"/>
+                            <Label Content="PSM MaxLength" />
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="5" Minimum="3" Maximum="80"/>
                             <Label Content="DeNovo Score"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="50" Maximum="100"/>
-                            <Label Content="DeNovo Length" />
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoLength" Value="5" Minimum="3"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="5" Minimum="50" Maximum="100"/>
+                            <Label Content="DeNovo MinLength" />
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoLength" Value="5" Minimum="3" Maximum="20"/>
+                            <Label Content="DeNovo MaxLength" />
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="5" Minimum="3" Maximum="80"/>
                             <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                         </WrapPanel>
                     </GroupBox>
-
+                   
 
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
 

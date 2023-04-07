@@ -91,14 +91,22 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
             
     }
+
         private void UpdateGeneral()
         {
             int denovoSequeceLength = (int)IntegerUpDownDeNovoLength.Value;
             deNovoDictTemp = novorParser.FilterDictDeNovo(denovoSequeceLength);
 
+            int deNovoScore = (int)IntegerUpDownDeNovoScore.Value;
+            var filteredDeNovo = novorParser.FilterDeNovoByScore(deNovoDictTemp, deNovoScore);
+            LabelDeNovoCount.Content = filteredDeNovo.Values.Sum(list => list.Count);
+
             int psmSequenceLength = (int)IntegerUpDownPSMLength.Value;
             psmDictTemp = novorParser.FilterDictPSM(psmSequenceLength);
 
+            int psmScore = (int)IntegerUpDownPSMScore.Value;
+            var filteredPsm = novorParser.FilterPSMByScore(psmDictTemp, psmScore);
+            LabelPSMCount.Content = filteredPsm.Values.Sum(list => list.Count);
             UpdatePlot();
         }
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
