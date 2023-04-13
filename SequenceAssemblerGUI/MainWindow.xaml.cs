@@ -84,6 +84,15 @@ namespace SequenceAssemblerGUI
                 bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide). Distinct().Count()));
             }
 
+            foreach (KeyValuePair<string, List<PsmRegistry>> kvp in novorParser.DictPsm)
+            {
+                categoryAxis1.Labels.Add(kvp.Key);
+                bsPSM.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+            }
+
+
+
             plotModel1.Series.Add(bsPSM);
             plotModel1.Series.Add(bsDeNovo);
             plotModel1.Axes.Add(linearAxis);
@@ -109,21 +118,54 @@ namespace SequenceAssemblerGUI
             }
             //---------------------------------------------------------
 
+            // Create a temporary dictionary to store the filtered data
+            Dictionary<string, List<DeNovoRegistry>> deNovoFiltered = new Dictionary<string, List<DeNovoRegistry>>();
+            Dictionary<string, List<PsmRegistry>> psmFiltered = new Dictionary<string, List<PsmRegistry>>();
 
+            // Copy the data from the original dictionaries to the filtered dictionaries
+            foreach (var kvp in deNovoDictTemp)
+            {
+                deNovoFiltered.Add(kvp.Key, kvp.Value.ToList());
+            }
+
+            foreach (var kvp in psmDictTemp)
+            {
+                psmFiltered.Add(kvp.Key, kvp.Value.ToList());
+            }
+
+            // Apply filters to the filtered dictionaries
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
-            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
+            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoFiltered);
 
-            int deNovoScore = (int)IntegerUpDownDeNovoScore.Value;
-            var filteredDeNovo = novorParser.FilterDeNovoByScore(deNovoDictTemp, deNovoScore);
-            LabelDeNovoCount.Content = filteredDeNovo.Values.Sum(list => list.Count);
+            int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
+            NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoFiltered);
 
-            int psmSequenceMinLength = (int)IntegerUpDownPSMMinLength.Value;
-            psmDictTemp = novorParser.FilterDictPSM(psmSequenceMinLength);
+            int filterDeNovoScore = (int)IntegerUpDownDeNovoScore.Value;
+            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoFiltered);
 
-            int psmScore = (int)IntegerUpDownPSMScore.Value;
-            var filteredPsm = novorParser.FilterPSMByScore(psmDictTemp, psmScore);
-            LabelPSMCount.Content = filteredPsm.Values.Sum(list => list.Count);
+            int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
+            NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmFiltered);
+
+            int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
+            NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmFiltered);
+
+            int filterPsmScore = (int)IntegerUpDownPSMScore.Value;
+            NovorParser.FilterPSMScore(filterPsmScore, psmFiltered);
+
+            // Merge the filtered data with the original dictionaries
+            foreach (var kvp in deNovoFiltered)
+            {
+                deNovoDictTemp[kvp.Key] = kvp.Value.ToList();
+            }
+
+            foreach (var kvp in psmFiltered)
+            {
+                psmDictTemp[kvp.Key] = kvp.Value.ToList();
+            }
+
+            // Update the plot with the filtered data
             UpdatePlot();
+
         }
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
@@ -136,6 +178,7 @@ namespace SequenceAssemblerGUI
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
+            UpdatePlot(); 
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
         }
     }

@@ -37,12 +37,11 @@
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
                             <Label Content="PSM MaxLength" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                            
                             <Label Content="DeNovo Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="7" Minimum="50" Maximum="100"/>
-                            
                             <Label Content="DeNovo MinLength" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
-                            
                             <Label Content="DeNovo MaxLength" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
                             <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>

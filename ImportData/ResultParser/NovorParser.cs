@@ -28,15 +28,43 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
-        public Dictionary<string, List<PsmRegistry>> FilterDictPSM(int peptideLength)
+        public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
-            Dictionary<string, List<PsmRegistry>> dictPSMTmp = new();
-
-            foreach (var kvp in DictPsm)
+            foreach (var kvp in theDict)
             {
-                dictPSMTmp.Add(kvp.Key, kvp.Value.Where(a => a.CleanPeptide.Length >= peptideLength).ToList());
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
             }
-            return dictPSMTmp;
+        }
+
+        public static void FilterDeNovoScore(int peptidescore, Dictionary<string, List<DeNovoRegistry>> theDict)
+        {
+            foreach (var kvp in theDict)
+            {
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptidescore);
+            }
+        }
+        public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
+        {
+            foreach (var kvp in theDict)
+            {
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length <= peptideLength);
+            }
+        }
+
+        public static void FilterDictMaxLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
+        {
+            foreach (var kvp in theDict)
+            {
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
+            }
+        }
+
+        public static void FilterPSMScore(int peptidescore, Dictionary<string, List<PsmRegistry>> theDict)
+        {
+            foreach (var kvp in theDict)
+            {
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptidescore);
+            }
         }
         public void LoadNovorUniversal(DirectoryInfo di)
         {
@@ -80,32 +108,6 @@ namespace SequenceAssemblerLogic.ResultParser
 
 
         }
-
-        public Dictionary<string, List<DeNovoRegistry>> FilterDeNovoByScore(Dictionary<string, List<DeNovoRegistry>> DictDenovo, int deNovoScore)
-        {
-
-            Dictionary<string, List<DeNovoRegistry>> filteredDeNovoDict = new Dictionary<string, List<DeNovoRegistry>>();
-            foreach (KeyValuePair<string, List<DeNovoRegistry>> kvp in DictDenovo)
-            {
-                List<DeNovoRegistry> filteredList = kvp.Value.Where(denovo => denovo.Score >= deNovoScore).ToList();
-                filteredDeNovoDict.Add(kvp.Key, filteredList);
-            }
-            return filteredDeNovoDict;
-        }
-
-        public Dictionary<string, List<PsmRegistry>> FilterPSMByScore(Dictionary<string, List<PsmRegistry>> DictPsm, int psmScore) 
-        {
-
-            Dictionary<string, List<PsmRegistry>> filteredPSMDict = new Dictionary<string, List<PsmRegistry>>();
-            foreach (KeyValuePair<string, List<PsmRegistry>> kvp in DictPsm)
-            {
-                List<PsmRegistry> filteredList = kvp.Value.Where(denovo => denovo.Score >= psmScore).ToList();
-                filteredPSMDict.Add(kvp.Key, filteredList);
-            }
-            return filteredPSMDict;
-        }
-
-
 
         public static List<string> GetSubSequences2 (string peptide, List<int> scores,  int cutoff, int minSize) 
         {
@@ -192,5 +194,6 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
+       
     }
 }
