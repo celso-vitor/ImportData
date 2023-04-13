@@ -20,16 +20,14 @@ namespace SequenceAssemblerLogic.ResultParser
             DictPsm = new();
         }
 
-        public Dictionary<string, List<DeNovoRegistry>> FilterDictDeNovo(int peptideLength)
+        public static void FilterDictMinLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
-            Dictionary<string, List<DeNovoRegistry>> dictDenovoTmp = new();
-
-            foreach (var kvp in DictDenovo)
+            foreach (var kvp in theDict)
             {
-                dictDenovoTmp.Add(kvp.Key, kvp.Value.Where(a => a.CleanPeptide.Length >= peptideLength).ToList());
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length <= peptideLength);
             }
-            return dictDenovoTmp;
         }
+
         public Dictionary<string, List<PsmRegistry>> FilterDictPSM(int peptideLength)
         {
             Dictionary<string, List<PsmRegistry>> dictPSMTmp = new();

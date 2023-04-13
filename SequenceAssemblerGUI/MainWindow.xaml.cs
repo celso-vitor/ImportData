@@ -94,15 +94,31 @@ namespace SequenceAssemblerGUI
 
         private void UpdateGeneral()
         {
-            int denovoSequeceLength = (int)IntegerUpDownDeNovoLength.Value;
-            deNovoDictTemp = novorParser.FilterDictDeNovo(denovoSequeceLength);
+            //Reset the temporary Dictionary
+            deNovoDictTemp = new Dictionary<string, List<DeNovoRegistry>>();
+            psmDictTemp = new Dictionary<string, List<PsmRegistry>>();
+
+            foreach (var kvp in novorParser.DictDenovo)
+            {
+                deNovoDictTemp.Add(kvp.Key, kvp.Value);
+            }
+
+            foreach (var kvp in novorParser.DictPsm)
+            {
+                psmDictTemp.Add( kvp.Key, kvp.Value );
+            }
+            //---------------------------------------------------------
+
+
+            int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
+            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
 
             int deNovoScore = (int)IntegerUpDownDeNovoScore.Value;
             var filteredDeNovo = novorParser.FilterDeNovoByScore(deNovoDictTemp, deNovoScore);
             LabelDeNovoCount.Content = filteredDeNovo.Values.Sum(list => list.Count);
 
-            int psmSequenceLength = (int)IntegerUpDownPSMLength.Value;
-            psmDictTemp = novorParser.FilterDictPSM(psmSequenceLength);
+            int psmSequenceMinLength = (int)IntegerUpDownPSMMinLength.Value;
+            psmDictTemp = novorParser.FilterDictPSM(psmSequenceMinLength);
 
             int psmScore = (int)IntegerUpDownPSMScore.Value;
             var filteredPsm = novorParser.FilterPSMByScore(psmDictTemp, psmScore);
