@@ -118,50 +118,25 @@ namespace SequenceAssemblerGUI
             }
             //---------------------------------------------------------
 
-            // Create a temporary dictionary to store the filtered data
-            Dictionary<string, List<DeNovoRegistry>> deNovoFiltered = new Dictionary<string, List<DeNovoRegistry>>();
-            Dictionary<string, List<PsmRegistry>> psmFiltered = new Dictionary<string, List<PsmRegistry>>();
-
-            // Copy the data from the original dictionaries to the filtered dictionaries
-            foreach (var kvp in deNovoDictTemp)
-            {
-                deNovoFiltered.Add(kvp.Key, kvp.Value.ToList());
-            }
-
-            foreach (var kvp in psmDictTemp)
-            {
-                psmFiltered.Add(kvp.Key, kvp.Value.ToList());
-            }
-
             // Apply filters to the filtered dictionaries
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
-            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoFiltered);
+            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
-            NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoFiltered);
+            NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
             int filterDeNovoScore = (int)IntegerUpDownDeNovoScore.Value;
-            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoFiltered);
+            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
-            NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmFiltered);
+            NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
 
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
-            NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmFiltered);
+            NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
             int filterPsmScore = (int)IntegerUpDownPSMScore.Value;
-            NovorParser.FilterPSMScore(filterPsmScore, psmFiltered);
+            NovorParser.FilterPSMScore(filterPsmScore, psmDictTemp);
 
-            // Merge the filtered data with the original dictionaries
-            foreach (var kvp in deNovoFiltered)
-            {
-                deNovoDictTemp[kvp.Key] = kvp.Value.ToList();
-            }
-
-            foreach (var kvp in psmFiltered)
-            {
-                psmDictTemp[kvp.Key] = kvp.Value.ToList();
-            }
 
             // Update the plot with the filtered data
             UpdatePlot();
