@@ -12,13 +12,13 @@ namespace SequenceAssemblerLogic.ResultParser
 
         public Dictionary<string, List<DeNovoRegistry>> DictDenovo { get; private set; }
         public Dictionary<string, List<PsmRegistry>> DictPsm { get; private set; }
-        
 
         public NovorParser()
         {
             DictDenovo = new();
             DictPsm = new();
         }
+
 
         public static void FilterDictMinLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
@@ -35,14 +35,15 @@ namespace SequenceAssemblerLogic.ResultParser
                 kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
             }
         }
-
-        public static void FilterDeNovoScore(int peptidescore, Dictionary<string, List<DeNovoRegistry>> theDict)
+        public static void FilterSequencesByScoreDeNovo(int minScore, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptidescore);
+                kvp.Value.RemoveAll(seq => seq.Score < minScore);
             }
+            
         }
+    
         public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
         {
             foreach (var kvp in theDict)
@@ -59,13 +60,15 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
-        public static void FilterPSMScore(int peptidescore, Dictionary<string, List<PsmRegistry>> theDict)
+        public static void FilterSequencesByScorePSM(int minScore, Dictionary<string, List<PsmRegistry>> theDict)
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptidescore);
+                kvp.Value.RemoveAll(seq => seq.Score < minScore);
             }
+
         }
+       
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 

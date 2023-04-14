@@ -1,27 +1,14 @@
-﻿using Microsoft.Win32;
-using Ookii.Dialogs.Wpf;
+﻿using Ookii.Dialogs.Wpf;
 using OxyPlot;
 using OxyPlot.Axes;
-using OxyPlot.Legends;
 using OxyPlot.Series;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static System.Windows.Forms.LinkLabel;
+
 
 
 namespace SequenceAssemblerGUI
@@ -100,7 +87,6 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
             
     }
-
         private void UpdateGeneral()
         {
             //Reset the temporary Dictionary
@@ -125,8 +111,8 @@ namespace SequenceAssemblerGUI
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
             NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
-            int filterDeNovoScore = (int)IntegerUpDownDeNovoScore.Value;
-            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoDictTemp); //vc quer acima de um determinado score, e nao abaixo.  Quanto maior o score, maior a qualidade, e outra coisa, vc esta filtrando o length com o score, nao faz sentido nenhum
+            int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
+            NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
             NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
@@ -134,9 +120,8 @@ namespace SequenceAssemblerGUI
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
             NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
-            int filterPsmScore = (int)IntegerUpDownPSMScore.Value;
-            NovorParser.FilterPSMScore(filterPsmScore, psmDictTemp);
-
+            int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
+            NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
             // Update the plot with the filtered data
             UpdatePlot();
@@ -153,7 +138,6 @@ namespace SequenceAssemblerGUI
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
-            UpdatePlot(); 
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
         }
     }
