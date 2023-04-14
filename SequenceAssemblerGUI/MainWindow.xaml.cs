@@ -126,7 +126,7 @@ namespace SequenceAssemblerGUI
             NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
             int filterDeNovoScore = (int)IntegerUpDownDeNovoScore.Value;
-            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoDictTemp);
+            NovorParser.FilterDeNovoScore(filterDeNovoScore, deNovoDictTemp); //vc quer acima de um determinado score, e nao abaixo.  Quanto maior o score, maior a qualidade, e outra coisa, vc esta filtrando o length com o score, nao faz sentido nenhum
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
             NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
