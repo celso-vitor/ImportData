@@ -191,6 +191,10 @@ namespace SequenceAssemblerLogic.ResultParser
 
         public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
         {
+            //Digamos que temos a sequencia ABCDEFGHIJ
+            //Os score são:                 1345114445
+            //Score min 3
+            //metodo vai te retornar: List<string>() {BCD, GHIJ}  
             Console.WriteLine("To be implemented");
         }
     }
