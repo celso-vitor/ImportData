@@ -35,14 +35,6 @@ namespace SequenceAssemblerLogic.ResultParser
                 kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
             }
         }
-        public static void FilterSequencesByScoreDeNovo(int minScore, Dictionary<string, List<DeNovoRegistry>> theDict)
-        {
-            foreach (var kvp in theDict)
-            {
-                kvp.Value.RemoveAll(seq => seq.Score < minScore);
-            }
-            
-        }
     
         public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
         {
@@ -197,6 +189,9 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-       
+        public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
+        {
+            Console.WriteLine("To be implemented");
+        }
     }
 }

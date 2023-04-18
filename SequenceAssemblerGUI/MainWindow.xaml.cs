@@ -89,18 +89,20 @@ namespace SequenceAssemblerGUI
     }
         private void UpdateGeneral()
         {
+            PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
+
             //Reset the temporary Dictionary
             deNovoDictTemp = new Dictionary<string, List<DeNovoRegistry>>();
             psmDictTemp = new Dictionary<string, List<PsmRegistry>>();
 
             foreach (var kvp in novorParser.DictDenovo)
             {
-                deNovoDictTemp.Add(kvp.Key, kvp.Value);
+                deNovoDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
             }
 
             foreach (var kvp in novorParser.DictPsm)
             {
-                psmDictTemp.Add( kvp.Key, kvp.Value );
+                psmDictTemp.Add( kvp.Key, kvp.Value.Select(a => a).ToList());
             }
             //---------------------------------------------------------
 
@@ -138,7 +140,6 @@ namespace SequenceAssemblerGUI
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
-            PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
         }
     }
 
