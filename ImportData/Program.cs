@@ -16,8 +16,19 @@ namespace SequenceAssemblerLogic
 
             var results = NovorParser.GetSubSequences2("PAULOCOSTACARVALHO", new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 7, 8, 7, 6 }, 5, 3);
 
+            string peptide = "ABCDEFGHIJKLMN";
+            List<int> scores = new List<int>() { 1, 2, 3, 4, 5, 1, 2, 4, 4, 4, 1, 6, 6, 6 };
+            int minscore = 3;
+
+            List<string> subPeptides = ExtractPeptides(peptide, scores, minscore);
+
 
             Console.WriteLine("Done");
+        }
+
+        private static List<string> ExtractPeptides(string peptide, List<int> scores, int minscore)
+        {
+            throw new NotImplementedException();
         }
     }
 }
