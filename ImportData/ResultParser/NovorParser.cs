@@ -24,7 +24,7 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length <= peptideLength);
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length < peptideLength);
             }
         }
 
@@ -32,7 +32,7 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length > peptideLength);
             }
         }
     
@@ -40,7 +40,7 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length <= peptideLength);
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length < peptideLength);
             }
         }
 
@@ -48,7 +48,7 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             foreach (var kvp in theDict)
             {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length >= peptideLength);
+                kvp.Value.RemoveAll(a => a.CleanPeptide.Length > peptideLength);
             }
         }
 

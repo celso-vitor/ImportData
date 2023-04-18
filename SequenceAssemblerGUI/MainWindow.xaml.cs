@@ -107,14 +107,15 @@ namespace SequenceAssemblerGUI
             //---------------------------------------------------------
 
             // Apply filters to the filtered dictionaries
+
+            int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
+            NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
+
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
             NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
-
-            int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
-            NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
             NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
