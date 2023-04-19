@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace SequenceAssemblerLogic.ResultParser
 {
@@ -35,7 +37,7 @@ namespace SequenceAssemblerLogic.ResultParser
                 kvp.Value.RemoveAll(a => a.CleanPeptide.Length > peptideLength);
             }
         }
-    
+
         public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
         {
             foreach (var kvp in theDict)
@@ -60,7 +62,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
 
         }
-       
+
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 
@@ -101,10 +103,9 @@ namespace SequenceAssemblerLogic.ResultParser
 
             }
 
-
         }
 
-        public static List<string> GetSubSequences2 (string peptide, List<int> scores,  int cutoff, int minSize) 
+        public static List<string> GetSubSequences2(string peptide, List<int> scores, int cutoff, int minSize)
         {
 
             if (scores.Count != peptide.Length)
@@ -117,7 +118,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
             for (int i = 0; i < scores.Count; i++)
             {
-                if (scores[i] >= cutoff) 
+                if (scores[i] >= cutoff)
                 {
                     subSequence.Append(peptide[i]);
 
@@ -126,20 +127,23 @@ namespace SequenceAssemblerLogic.ResultParser
                         results.Add(subSequence.ToString());
                     }
                 }
-                else if (scores[i] < cutoff || i == scores.Count - 1) 
+                else if (scores[i] < cutoff || i == scores.Count - 1)
                 {
                     if (subSequence.Length > minSize)
                     {
-                        results.Add(subSequence.ToString());         
+                        results.Add(subSequence.ToString());
                     }
 
                     subSequence.Clear();
-                }           
+                }
 
             }
 
             return results;
         }
+       
+
+    
 
         private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName)
         {
@@ -189,6 +193,11 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
+        public static void FindPeptides (string peptide, List<int> score, int minscore)
+        {
+            Console.WriteLine("Teste");
+        }
+           
         public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
         {
             //Digamos que temos a sequencia ABCDEFGHIJ
@@ -196,6 +205,7 @@ namespace SequenceAssemblerLogic.ResultParser
             //Score min 3
             //metodo vai te retornar: List<string>() {BCD, GHIJ}  
             Console.WriteLine("To be implemented");
+            Console.WriteLine("Teste");
         }
     }
 }

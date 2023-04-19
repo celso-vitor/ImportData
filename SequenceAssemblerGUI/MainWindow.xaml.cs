@@ -31,7 +31,7 @@ namespace SequenceAssemblerGUI
             if ((bool)folderBrowserDialog.ShowDialog())
             {
 
-                novorParser = new ();
+                novorParser = new();
                 novorParser.LoadNovorUniversal(new DirectoryInfo(folderBrowserDialog.SelectedPaths[0]));
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
@@ -45,10 +45,10 @@ namespace SequenceAssemblerGUI
 
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
-                
+
             }
-            
-           
+
+
         }
         private void UpdatePlot()
         {
@@ -59,16 +59,16 @@ namespace SequenceAssemblerGUI
             };
             BarSeries bsPSM = new() { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
             BarSeries bsDeNovo = new() { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
-       
 
-            var categoryAxis1 = new CategoryAxis() { Key="y"};
+
+            var categoryAxis1 = new CategoryAxis() { Key = "y" };
             var linearAxis = new LinearAxis() { Key = "x" };
 
             foreach (KeyValuePair<string, List<DeNovoRegistry>> kvp in novorParser.DictDenovo)
             {
                 categoryAxis1.Labels.Add(kvp.Key);
                 bsPSM.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
-                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide). Distinct().Count()));
+                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
             }
 
             foreach (KeyValuePair<string, List<PsmRegistry>> kvp in novorParser.DictPsm)
@@ -85,8 +85,8 @@ namespace SequenceAssemblerGUI
             plotModel1.Axes.Add(linearAxis);
             plotModel1.Axes.Add(categoryAxis1);
             PlotViewEnzymeEfficiency.Model = plotModel1;
-            
-    }
+
+        }
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
@@ -102,7 +102,7 @@ namespace SequenceAssemblerGUI
 
             foreach (var kvp in novorParser.DictPsm)
             {
-                psmDictTemp.Add( kvp.Key, kvp.Value.Select(a => a).ToList());
+                psmDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
             }
             //---------------------------------------------------------
 
@@ -135,7 +135,7 @@ namespace SequenceAssemblerGUI
             TabItemResults.IsEnabled = true;
 
             TabControlMain.SelectedItem = TabItemResults;
-           
+
         }
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
