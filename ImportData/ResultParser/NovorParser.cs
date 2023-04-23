@@ -193,19 +193,48 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-        public static void FindPeptides (string peptide, List<int> score, int minscore)
+        //Method for finding valid peptides sequences
+        public static List<string> FindValidPeptides(string sequence, List<int> scores, int minScore)
         {
-            Console.WriteLine("Teste");
+
+            List<string> validPeptides = new List<string>();
+            string currentPeptide = "";
+
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                if (scores[i] >= minScore)
+                {
+                    currentPeptide += sequence[i];
+                }
+                else
+                {
+                    if (currentPeptide.Length > 0)
+                    {
+                        validPeptides.Add(currentPeptide);
+                        currentPeptide = "";
+                    }
+                }
+            }
+
+            if (currentPeptide.Length > 0)
+            {
+                validPeptides.Add(currentPeptide);
+            }
+
+            return validPeptides;
+
         }
-           
-        public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
-        {
+
+
+
+
+       // public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
+       // {
             //Digamos que temos a sequencia ABCDEFGHIJ
             //Os score são:                 1345114445
             //Score min 3
             //metodo vai te retornar: List<string>() {BCD, GHIJ}  
-            Console.WriteLine("To be implemented");
-            Console.WriteLine("Teste");
-        }
+            //Console.WriteLine("To be implemented");
+       // }
     }
 }
