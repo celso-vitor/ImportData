@@ -5,11 +5,14 @@ using OxyPlot.Series;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
-
-
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace SequenceAssemblerGUI
 {
@@ -18,6 +21,7 @@ namespace SequenceAssemblerGUI
         NovorParser novorParser;
         Dictionary<string, List<PsmRegistry>> psmDictTemp;
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -108,8 +112,8 @@ namespace SequenceAssemblerGUI
 
             // Apply filters to the filtered dictionaries
 
-           // int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
-           // NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
+            // int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
+            // NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
 
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
@@ -125,11 +129,25 @@ namespace SequenceAssemblerGUI
 
             int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
+           
 
+            // chame o método FilterSequencesByPeptideDeNovo passando ambos os parâmetros
+            string peptide = "";
+            NovorParser.FilterSequencesByPeptideDeNovo(peptide, deNovoDictTemp);
+      
+
+            // obtenha a lista desejada do dicionário
+            List<DeNovoRegistry> listaAtualizada = deNovoDictTemp[peptide];
+
+
+            // atribua a lista como ItemsSource do DataGrid
+            DataGridDeNovo.ItemsSource = listaAtualizada;
             // Update the plot with the filtered data
             UpdatePlot();
 
         }
+
+
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             TabItemResults.IsEnabled = true;
@@ -142,8 +160,10 @@ namespace SequenceAssemblerGUI
         {
             UpdateGeneral();
         }
-    }
 
+        
+    }
+       
 }
         
         

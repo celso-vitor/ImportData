@@ -18,11 +18,11 @@ namespace SequenceAssemblerLogic.ResultParser
             var results = NovorParser.GetSubSequences2("PAULOCOSTACARVALHO", new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 7, 8, 7, 6 }, 5, 3);
 
             //peptides sequences
-            string sequence = "ABCDEFGHIJ";
-            List<int> scores = new List<int>() { 1, 3, 4, 5, 1, 1, 4, 4, 4, 5 };
-            int minScore = 3;
+            string sequence = "ABCDEFGHIJKLMN";
+            List<int> scores = new List<int>() { 1, 3, 4, 5, 1, 1, 4, 4, 4, 5, 1, 2, 6, 6 };
+            int minScore = 4;
 
-            List<string> validPeptides = NovorParser.FindValidPeptides(sequence, scores, minScore);
+            List<string> validPeptides = NovorParser.FindValidPeptides(sequence, scores, minScore).Where(a => a.Length >= 3).ToList();
 
             Console.WriteLine("Valid Peptides:");
             foreach (string peptide in validPeptides)

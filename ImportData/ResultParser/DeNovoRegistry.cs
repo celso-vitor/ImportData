@@ -9,6 +9,8 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class DeNovoRegistry
     {
+        public List<int> scores;
+
         public int ScanNumber { get; set; }
         public double RT { get; set; }
         public double Mz { get; set; }

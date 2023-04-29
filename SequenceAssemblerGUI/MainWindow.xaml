@@ -56,7 +56,11 @@
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250" Visibility="Collapsed"/>
                     </GroupBox>
                     <GroupBox>
-                        <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke"/>
+                        <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" AutoGenerateColumns="False" Height="96">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding Sequence}" Header="PeptideDeNovo"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </GroupBox>
                 </StackPanel>
                 

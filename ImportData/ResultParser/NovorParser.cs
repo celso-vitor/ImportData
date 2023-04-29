@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,7 +21,6 @@ namespace SequenceAssemblerLogic.ResultParser
             DictDenovo = new();
             DictPsm = new();
         }
-
 
         public static void FilterDictMinLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
@@ -63,6 +63,20 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
+       public static void FilterSequencesByPeptideDeNovo(string peptide, Dictionary<string, List<DeNovoRegistry>> theDict)
+        {
+            foreach (var kvp in theDict)
+            {
+                // itera sobre todas as listas do dicionário
+                foreach (var item in kvp.Value)
+                {
+                    // acessa o valor da propriedade Peptide para cada item da lista
+                    string sequence = item.Peptide;
+                    // faça algo com o valor do peptide, por exemplo, imprimir no console
+                    Console.WriteLine(sequence);
+                }
+            }
+        }
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 
@@ -104,6 +118,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
 
         }
+
 
         public static List<string> GetSubSequences2(string peptide, List<int> scores, int cutoff, int minSize)
         {
