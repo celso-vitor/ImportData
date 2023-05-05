@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -7,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic.ResultParser
 {
-    public class DeNovoRegistry
+    public class DeNovoRegistry 
     {
-        public List<int> scores;
 
         public int ScanNumber { get; set; }
         public double RT { get; set; }
@@ -20,7 +20,7 @@ namespace SequenceAssemblerLogic.ResultParser
         public double Score { get; set; }
         public string Peptide { get; set; }
         public List<int> AaScore { get; set; }
-
+     
         public string CleanPeptide
         {
             get
@@ -28,6 +28,7 @@ namespace SequenceAssemblerLogic.ResultParser
                 return Regex.Replace(Peptide, @"\([^)]*\)", "");
             }
         }
+     
 
     }
 

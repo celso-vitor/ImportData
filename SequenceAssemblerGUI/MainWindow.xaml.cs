@@ -5,12 +5,14 @@ using OxyPlot.Series;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
@@ -21,10 +23,15 @@ namespace SequenceAssemblerGUI
         NovorParser novorParser;
         Dictionary<string, List<PsmRegistry>> psmDictTemp;
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
+        private string peptide;
 
+        public ObservableCollection<DeNovoRegistry> SequencesDeNovo { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+
+            SequencesDeNovo = new ObservableCollection<DeNovoRegistry>();
+            DataGridDeNovo.ItemsSource = SequencesDeNovo;
         }
 
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
@@ -112,14 +119,11 @@ namespace SequenceAssemblerGUI
 
             // Apply filters to the filtered dictionaries
 
-            // int filterDeNovoSocore = (int)IntegerUpDownDeNovoScore.Value;
-            // NovorParser.FilterSequencesByScoreDeNovo(filterDeNovoSocore, deNovoDictTemp);
+           // int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
+           // NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
 
-            int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
-            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
-
-            int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
-            NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
+            //int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
+           // NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
             NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
@@ -129,24 +133,12 @@ namespace SequenceAssemblerGUI
 
             int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
-           
 
-            // chame o método FilterSequencesByPeptideDeNovo passando ambos os parâmetros
-            string peptide = "";
-            NovorParser.FilterSequencesByPeptideDeNovo(peptide, deNovoDictTemp);
-      
-
-            // obtenha a lista desejada do dicionário
-            List<DeNovoRegistry> listaAtualizada = deNovoDictTemp[peptide];
-
-
-            // atribua a lista como ItemsSource do DataGrid
-            DataGridDeNovo.ItemsSource = listaAtualizada;
+            
             // Update the plot with the filtered data
             UpdatePlot();
 
         }
-
 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {

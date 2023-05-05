@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
@@ -38,6 +39,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
+
         public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
         {
             foreach (var kvp in theDict)
@@ -62,21 +64,22 @@ namespace SequenceAssemblerLogic.ResultParser
             }
 
         }
-
+        
        public static void FilterSequencesByPeptideDeNovo(string peptide, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
             foreach (var kvp in theDict)
             {
-                // itera sobre todas as listas do dicionário
+                    //Iterates over all dictionary lists
                 foreach (var item in kvp.Value)
                 {
-                    // acessa o valor da propriedade Peptide para cada item da lista
+                    //Accesses the value of the Peptide property for each list item
                     string sequence = item.Peptide;
-                    // faça algo com o valor do peptide, por exemplo, imprimir no console
-                    Console.WriteLine(sequence);
+
+                    //Console.WriteLine(sequence);
                 }
             }
         }
+
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 
@@ -158,8 +161,6 @@ namespace SequenceAssemblerLogic.ResultParser
         }
        
 
-    
-
         private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName)
         {
             string[] lines = File.ReadAllLines(denovofileName);
@@ -191,7 +192,7 @@ namespace SequenceAssemblerLogic.ResultParser
             for (int i = 2; i < line.Length; i++)
             {
                 string[] columns = Regex.Split(line[i], ",");
-                PsmRegistry PSMRegistry = new PsmRegistry()
+                PsmRegistry psmRegistry = new PsmRegistry()
                 {
                     ScanNumber = int.Parse(columns[2]),
                     RT = double.Parse(columns[3]),
@@ -203,7 +204,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     Peptide = Regex.Replace(columns[14], " ", ""),
                     AaScore = Regex.Split(columns[16], "-").Select(b => int.Parse(b)).ToList()
                 };
-                myRegistries.Add(PSMRegistry);
+                myRegistries.Add(psmRegistry);
             }
             return myRegistries;
         }
@@ -240,16 +241,14 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
+        public static List<DeNovoRegistry> FilterSequencesByPeptideDeNovo(string peptide)
+        {
+            throw new NotImplementedException();
+        }
 
+     
 
+        // public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
 
-       // public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
-       // {
-            //Digamos que temos a sequencia ABCDEFGHIJ
-            //Os score são:                 1345114445
-            //Score min 3
-            //metodo vai te retornar: List<string>() {BCD, GHIJ}  
-            //Console.WriteLine("To be implemented");
-       // }
     }
 }
