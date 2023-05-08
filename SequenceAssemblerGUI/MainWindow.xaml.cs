@@ -46,8 +46,11 @@ namespace SequenceAssemblerGUI
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                DataTable dt = new DataTable();
-                dt.Columns.Add("Peptides", typeof(string));
+                DataTable dtDenovo = new DataTable();
+                dtDenovo.Columns.Add("Sequences Peptides DeNovo", typeof(string));
+
+                DataTable dtPsm = new DataTable();
+                dtPsm.Columns.Add("Sequences Peptides PSM", typeof(string)); // Adicione as colunas necessárias para os registros de Psm
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -56,14 +59,24 @@ namespace SequenceAssemblerGUI
 
                     foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
                     {
-                        DataRow row = dt.NewRow();
-                        row["Peptides"] = denovo.Peptide;
-                        dt.Rows.Add(row);
+                        DataRow row = dtDenovo.NewRow();
+                        row["Sequences Peptides DeNovo"] = denovo.Peptide;
+                        dtDenovo.Rows.Add(row);
+                    }
+
+                    foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
+                    {
+                        DataRow row = dtPsm.NewRow();
+                        row["Sequences Peptides PSM"] = psm.Peptide; // Preencha as colunas necessárias para os registros de Psm
+                        dtPsm.Rows.Add(row);
                     }
                 }
 
-                DataView dv = new DataView(dt);
-                DataGridDeNovo.ItemsSource = dv;
+                DataView dvDenovo = new DataView(dtDenovo);
+                DataGridDeNovo.ItemsSource = dvDenovo;
+
+                DataView dvPsm = new DataView(dtPsm);
+                DataGridPSM.ItemsSource = dvPsm;
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);

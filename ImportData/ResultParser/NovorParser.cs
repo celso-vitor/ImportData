@@ -64,7 +64,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
 
         }
-        
+       /* 
        public static void FilterSequencesByPeptideDeNovo(string peptide, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
             foreach (var kvp in theDict)
@@ -79,7 +79,7 @@ namespace SequenceAssemblerLogic.ResultParser
                 }
             }
         }
-
+       */
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 
