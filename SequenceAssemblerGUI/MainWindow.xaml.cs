@@ -24,26 +24,46 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<PsmRegistry>> psmDictTemp;
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
         private string peptide;
+       
 
-        public ObservableCollection<DeNovoRegistry> SequencesDeNovo { get; set; }
+        //public ObservableCollection<DeNovoRegistry> SequencesDeNovo { get; set; }
         public MainWindow()
         {
             InitializeComponent();
 
-            SequencesDeNovo = new ObservableCollection<DeNovoRegistry>();
-            DataGridDeNovo.ItemsSource = SequencesDeNovo;
+            //SequencesDeNovo = new ObservableCollection<DeNovoRegistry>();
+          
+            //Console.WriteLine(SequencesDeNovo);
+            //SequencesDeNovo.Add(new DeNovoRegistry() { Peptide = "" });
+            //DataGridDeNovo.ItemsSource = SequencesDeNovo;
         }
+
 
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
-            folderBrowserDialog.Multiselect = false;
+            folderBrowserDialog.Multiselect = true;
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
+                DataTable dt = new DataTable();
+                dt.Columns.Add("Peptides", typeof(string));
 
-                novorParser = new();
-                novorParser.LoadNovorUniversal(new DirectoryInfo(folderBrowserDialog.SelectedPaths[0]));
+                foreach (string folderPath in folderBrowserDialog.SelectedPaths)
+                {
+                    novorParser = new();
+                    novorParser.LoadNovorUniversal(new DirectoryInfo(folderPath));
+
+                    foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
+                    {
+                        DataRow row = dt.NewRow();
+                        row["Peptides"] = denovo.Peptide;
+                        dt.Rows.Add(row);
+                    }
+                }
+
+                DataView dv = new DataView(dt);
+                DataGridDeNovo.ItemsSource = dv;
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
@@ -56,11 +76,9 @@ namespace SequenceAssemblerGUI
 
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
-
             }
-
-
         }
+
         private void UpdatePlot()
         {
 
@@ -98,6 +116,9 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
 
         }
+
+  
+
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
@@ -134,7 +155,6 @@ namespace SequenceAssemblerGUI
             int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            
             // Update the plot with the filtered data
             UpdatePlot();
 

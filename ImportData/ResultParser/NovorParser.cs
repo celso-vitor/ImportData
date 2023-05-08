@@ -241,12 +241,8 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
-        public static List<DeNovoRegistry> FilterSequencesByPeptideDeNovo(string peptide)
-        {
-            throw new NotImplementedException();
-        }
 
-     
+
 
         // public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)
 

@@ -10,7 +10,7 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class DeNovoRegistry 
     {
-
+       
         public int ScanNumber { get; set; }
         public double RT { get; set; }
         public double Mz { get; set; }
