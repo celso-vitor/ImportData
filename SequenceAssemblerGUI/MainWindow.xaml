@@ -29,7 +29,7 @@
             <TabItem Header="Assembler">
                 <StackPanel>
 
-                    <GroupBox Header="Novor" Width="914"> 
+                    <GroupBox Header="Novor" Width="914">
                         <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="906">
                             <Label Content="PSM Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="3" Minimum="1" Maximum="100"/>
@@ -37,10 +37,10 @@
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
                             <Label Content="PSM MaxLength" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
-                            
+
                             <Label Content="DeNovo Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="7" Minimum="50" Maximum="100"/>
-                                    
+
                             <Label Content="DeNovo MinLength" />
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
                             <Label Content="DeNovo MaxLength" />
@@ -48,33 +48,29 @@
                             <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                         </WrapPanel>
                     </GroupBox>
-                   
-
+        
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
 
                     <GroupBox>
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250" Visibility="Collapsed"/>
                     </GroupBox>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <GroupBox Grid.Column="0">
+                    <TabControl Grid.Row="3">
+                        <TabItem Header="DeNovo">
                             <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260"/>
-                        </GroupBox>
-                        <GroupBox Grid.Column="1">
+                        </TabItem>
+                        <TabItem  Header="PSM">
                             <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260"/>
-                        </GroupBox>
-                    </Grid>
-                           
+                        </TabItem>
+                    </TabControl>
                 </StackPanel>
-                
+
             </TabItem>
+            
             <TabItem x:Name="TabItemResults" Header="Results" IsEnabled ="False">
 
             </TabItem>
         </TabControl>
+        
 
 
     </Grid>
