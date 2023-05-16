@@ -5,18 +5,10 @@ using OxyPlot.Series;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data;
-using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace SequenceAssemblerGUI
 {
@@ -27,17 +19,10 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
         private string peptide;
        
-
-        //public ObservableCollection<DeNovoRegistry> SequencesDeNovo { get; set; }
         public MainWindow()
         {
             InitializeComponent();
 
-            //SequencesDeNovo = new ObservableCollection<DeNovoRegistry>();
-          
-            //Console.WriteLine(SequencesDeNovo);
-            //SequencesDeNovo.Add(new DeNovoRegistry() { Peptide = "" });
-            //DataGridDeNovo.ItemsSource = SequencesDeNovo;
         }
 
 
@@ -51,15 +36,15 @@ namespace SequenceAssemblerGUI
             {
                 DataTable dtDenovo = new DataTable();
                 dtDenovo.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-                dtDenovo.Columns.Add("Sequences Peptides DeNovo", typeof(string));
-                dtDenovo.Columns.Add("Score Peptides DeNovo", typeof(double));
-                dtDenovo.Columns.Add("ScanNumber Peptides DeNovo", typeof(int));
+                dtDenovo.Columns.Add("Sequences", typeof(string));
+                dtDenovo.Columns.Add("Score", typeof(double));
+                dtDenovo.Columns.Add("ScanNumber", typeof(int));
 
                 DataTable dtPsm = new DataTable();
                 dtPsm.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-                dtPsm.Columns.Add("Sequences Peptides PSM", typeof(string));
-                dtPsm.Columns.Add("Score Peptides PSM", typeof(double));
-                dtPsm.Columns.Add("ScanNumber Peptides PSM", typeof(int));
+                dtPsm.Columns.Add("Sequences", typeof(string));
+                dtPsm.Columns.Add("Score", typeof(double));
+                dtPsm.Columns.Add("ScanNumber", typeof(int));
 
                 foreach(string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -78,9 +63,9 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtDenovo.NewRow();
                         row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
-                        row["Sequences Peptides DeNovo"] = denovo.Peptide;
-                        row["Score Peptides DeNovo"] = denovo.Score;
-                        row["ScanNumber Peptides DeNovo"] = denovo.ScanNumber;
+                        row["Sequences"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["ScanNumber"] = denovo.ScanNumber;
                         dtDenovo.Rows.Add(row);
                     }
 
@@ -88,9 +73,9 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtPsm.NewRow();
                         row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
-                        row["Sequences Peptides PSM"] = psm.Peptide;
-                        row["Score Peptides PSM"] = psm.Score;
-                        row["ScanNumber Peptides PSM"] = psm.ScanNumber;
+                        row["Sequences"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        row["ScanNumber"] = psm.ScanNumber;
                         dtPsm.Rows.Add(row);
                     }
                 }
@@ -170,9 +155,9 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dataTable.NewRow();
                         row["Folder"] = folderName;
-                        row["Sequences Peptides DeNovo"] = denovo.Peptide;
-                        row["Score Peptides DeNovo"] = denovo.Score;
-                        row["ScanNumber Peptides DeNovo"] = denovo.ScanNumber;
+                        row["Sequences"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["ScanNumber"] = denovo.ScanNumber;
                         dataTable.Rows.Add(row);
                     }
                 }
@@ -188,9 +173,9 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dataTable.NewRow();
                         row["Folder"] = folderName;
-                        row["Sequences Peptides PSM"] = psm.Peptide;
-                        row["Score Peptides PSM"] = psm.Score;
-                        row["ScanNumber Peptides PSM"] = psm.ScanNumber;
+                        row["Sequences"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        row["ScanNumber"] = psm.ScanNumber;
                         dataTable.Rows.Add(row);
                     }
                 }
