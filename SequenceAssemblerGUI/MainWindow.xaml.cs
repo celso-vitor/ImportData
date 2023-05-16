@@ -18,15 +18,35 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<PsmRegistry>> psmDictTemp;
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
         private string peptide;
-       
+
+        DataTable dtDenovo = new DataTable
+        {
+            Columns = 
+            {
+                new DataColumn("Folder", typeof(string)),
+                new DataColumn("Sequences", typeof(string)),
+                new DataColumn("Score", typeof(double)),
+                new DataColumn("ScanNumber", typeof(int)) 
+            }
+        };
+
+        DataTable dtPSM = new DataTable
+        {
+            Columns = 
+            {
+                new DataColumn("Folder", typeof(string)),
+                new DataColumn("Sequences", typeof(string)),
+                new DataColumn("Score", typeof(double)),
+                new DataColumn("ScanNumber", typeof(int)) 
+            }
+        };
+
+
         public MainWindow()
         {
             InitializeComponent();
 
         }
-
-
-
 
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
@@ -36,13 +56,8 @@ namespace SequenceAssemblerGUI
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                DataTable dtDenovo = CreateResultDataTable();
-
-                DataTable dtPsm = new DataTable();
-                dtPsm.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-                dtPsm.Columns.Add("Sequences", typeof(string));
-                dtPsm.Columns.Add("Score", typeof(double));
-                dtPsm.Columns.Add("ScanNumber", typeof(int));
+                dtDenovo.Clear();
+                dtPSM.Clear();
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -69,12 +84,12 @@ namespace SequenceAssemblerGUI
 
                     foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
                     {
-                        DataRow row = dtPsm.NewRow();
+                        DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
                         row["Sequences"] = psm.Peptide;
                         row["Score"] = psm.Score;
                         row["ScanNumber"] = psm.ScanNumber;
-                        dtPsm.Rows.Add(row);
+                        dtPSM.Rows.Add(row);
                     }
                 }
 
@@ -82,7 +97,7 @@ namespace SequenceAssemblerGUI
                 DataView dvDenovo = new DataView(dtDenovo);
                 DataGridDeNovo.ItemsSource = dvDenovo;
 
-                DataView dvPsm = new DataView(dtPsm);
+                DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
@@ -97,16 +112,6 @@ namespace SequenceAssemblerGUI
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
             }
-        }
-
-        private static DataTable CreateResultDataTable()
-        {
-            DataTable dtDenovo = new DataTable();
-            dtDenovo.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-            dtDenovo.Columns.Add("Sequences", typeof(string));
-            dtDenovo.Columns.Add("Score", typeof(double));
-            dtDenovo.Columns.Add("ScanNumber", typeof(int));
-            return dtDenovo;
         }
 
         private void UpdatePlot()
@@ -146,48 +151,54 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
 
         }
-        private void UpdateDataView(DataView dataView, Dictionary<string, List<DeNovoRegistry>> deNovoDict, Dictionary<string, List<PsmRegistry>> psmDict)
+        private void UpdateDataView()
         {
-            //if (dataView == null) return;
+            
+            dtDenovo.Clear();
 
-            //DataTable dataTable = dataView.Table;
-            //dataTable.Rows.Clear();
+            if (deNovoDictTemp != null)
+            {
+                foreach (var kvp in deNovoDictTemp)
+                {
+                    string folderName = kvp.Key;
 
-            //if (deNovoDict != null)
-            //{
-            //    foreach (var kvp in deNovoDict)
-            //    {
-            //        string folderName = kvp.Key;
+                    foreach (var denovo in kvp.Value)
+                    {
+                        DataRow row = dtDenovo.NewRow();
+                        row["Folder"] = folderName;
+                        row["Sequences"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["ScanNumber"] = denovo.ScanNumber;
+                        dtDenovo.Rows.Add(row);
+                    }
+                }
 
-            //        foreach (var denovo in kvp.Value)
-            //        {
-            //            DataRow row = dataTable.NewRow();
-            //            row["Folder"] = folderName;
-            //            row["Sequences"] = denovo.Peptide;
-            //            row["Score"] = denovo.Score;
-            //            row["ScanNumber"] = denovo.ScanNumber;
-            //            dataTable.Rows.Add(row);
-            //        }
-            //    }
-            //}
+                DataView dvDenovo = new DataView(dtDenovo);
+                DataGridDeNovo.ItemsSource = dvDenovo;
+            }
 
-            //if (psmDict != null)
-            //{
-            //    foreach (var kvp in psmDict)
-            //    {
-            //        string folderName = kvp.Key;
+            dtPSM.Clear();
+            if (psmDictTemp != null)
+            {
+                foreach (var kvp in psmDictTemp)
+                {
+                    string folderName = kvp.Key;
 
-            //        foreach (var psm in kvp.Value)
-            //        {
-            //            DataRow row = dataTable.NewRow();
-            //            row["Folder"] = folderName;
-            //            row["Sequences"] = psm.Peptide;
-            //            row["Score"] = psm.Score;
-            //            row["ScanNumber"] = psm.ScanNumber;
-            //            dataTable.Rows.Add(row);
-            //        }
-            //    }
-            //}
+                    foreach (var psm in kvp.Value)
+                    {
+                        DataRow row = dtPSM.NewRow();
+                        row["Folder"] = folderName;
+                        row["Sequences"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        row["ScanNumber"] = psm.ScanNumber;
+                        dtPSM.Rows.Add(row);
+                    }
+                }
+
+                DataView dvPSM = new DataView(dtPSM);
+                DataGridPSM.ItemsSource = dvPSM;
+            }
+
         }
 
 
@@ -224,11 +235,10 @@ namespace SequenceAssemblerGUI
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
             NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
-            int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
+            double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            UpdateDataView(DataGridDeNovo.ItemsSource as DataView, deNovoDictTemp, null);
-            UpdateDataView(DataGridPSM.ItemsSource as DataView, null, psmDictTemp);
+            UpdateDataView();
 
             // Update the plot with the filtered data
             UpdatePlot();
@@ -249,10 +259,17 @@ namespace SequenceAssemblerGUI
 
         }
 
-       
+        private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void DataGridPSM_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
     }
-       
+
 }
-        
-        
-      
+
+

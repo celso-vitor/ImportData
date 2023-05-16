@@ -27,10 +27,17 @@
 
         <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
             <TabItem Header="Assembler">
-                <StackPanel>
+                
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
 
-                    <GroupBox Header="Novor" Width="914">
-                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="906">
+                    <GroupBox Header="Novor" Grid.Row="0">
+                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Label Content="PSM Score"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="3" Minimum="1" Maximum="100"/>
                             <Label Content="PSM MinLength"/>
@@ -48,21 +55,23 @@
                             <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                         </WrapPanel>
                     </GroupBox>
-        
-                    <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click"/>
 
-                    <GroupBox>
-                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Height="250" Visibility="Collapsed"/>
+                    <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" Grid.Row="1"/>
+
+                    <GroupBox Grid.Row="2">
+                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
+                    
                     <TabControl Grid.Row="3">
                         <TabItem Header="DeNovo">
-                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260"/>
+                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridDeNovo_LoadingRow"/>
                         </TabItem>
                         <TabItem  Header="PSM">
-                            <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260"/>
+                            <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
                         </TabItem>
                     </TabControl>
-                </StackPanel>
+                    
+                </Grid>
 
             </TabItem>
             

@@ -48,7 +48,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
-        public static void FilterSequencesByScorePSM(int minScore, Dictionary<string, List<PsmRegistry>> theDict)
+        public static void FilterSequencesByScorePSM(double minScore, Dictionary<string, List<PsmRegistry>> theDict)
         {
             foreach (var kvp in theDict)
             {
@@ -56,22 +56,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
 
         }
-       /* 
-       public static void FilterSequencesByPeptideDeNovo(string peptide, Dictionary<string, List<DeNovoRegistry>> theDict)
-        {
-            foreach (var kvp in theDict)
-            {
-                    //Iterates over all dictionary lists
-                foreach (var item in kvp.Value)
-                {
-                    //Accesses the value of the Peptide property for each list item
-                    string sequence = item.Peptide;
 
-                    //Console.WriteLine(sequence);
-                }
-            }
-        }
-       */
         public void LoadNovorUniversal(DirectoryInfo di)
         {
 
