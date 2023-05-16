@@ -26,6 +26,8 @@ namespace SequenceAssemblerGUI
         }
 
 
+
+
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
 
@@ -34,11 +36,7 @@ namespace SequenceAssemblerGUI
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                DataTable dtDenovo = new DataTable();
-                dtDenovo.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-                dtDenovo.Columns.Add("Sequences", typeof(string));
-                dtDenovo.Columns.Add("Score", typeof(double));
-                dtDenovo.Columns.Add("ScanNumber", typeof(int));
+                DataTable dtDenovo = CreateResultDataTable();
 
                 DataTable dtPsm = new DataTable();
                 dtPsm.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
@@ -46,7 +44,7 @@ namespace SequenceAssemblerGUI
                 dtPsm.Columns.Add("Score", typeof(double));
                 dtPsm.Columns.Add("ScanNumber", typeof(int));
 
-                foreach(string folderPath in folderBrowserDialog.SelectedPaths)
+                foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
                     DirectoryInfo mainDir = new DirectoryInfo(folderPath);
                     string folderName = mainDir.Name; // Obter o nome da pasta selecionada
@@ -80,7 +78,7 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-         
+
                 DataView dvDenovo = new DataView(dtDenovo);
                 DataGridDeNovo.ItemsSource = dvDenovo;
 
@@ -99,6 +97,16 @@ namespace SequenceAssemblerGUI
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
             }
+        }
+
+        private static DataTable CreateResultDataTable()
+        {
+            DataTable dtDenovo = new DataTable();
+            dtDenovo.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
+            dtDenovo.Columns.Add("Sequences", typeof(string));
+            dtDenovo.Columns.Add("Score", typeof(double));
+            dtDenovo.Columns.Add("ScanNumber", typeof(int));
+            return dtDenovo;
         }
 
         private void UpdatePlot()
@@ -140,46 +148,46 @@ namespace SequenceAssemblerGUI
         }
         private void UpdateDataView(DataView dataView, Dictionary<string, List<DeNovoRegistry>> deNovoDict, Dictionary<string, List<PsmRegistry>> psmDict)
         {
-            if (dataView == null) return;
+            //if (dataView == null) return;
 
-            DataTable dataTable = dataView.Table;
-            dataTable.Rows.Clear();
+            //DataTable dataTable = dataView.Table;
+            //dataTable.Rows.Clear();
 
-            if (deNovoDict != null)
-            {
-                foreach (var kvp in deNovoDict)
-                {
-                    string folderName = kvp.Key;
+            //if (deNovoDict != null)
+            //{
+            //    foreach (var kvp in deNovoDict)
+            //    {
+            //        string folderName = kvp.Key;
 
-                    foreach (var denovo in kvp.Value)
-                    {
-                        DataRow row = dataTable.NewRow();
-                        row["Folder"] = folderName;
-                        row["Sequences"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
-                        row["ScanNumber"] = denovo.ScanNumber;
-                        dataTable.Rows.Add(row);
-                    }
-                }
-            }
+            //        foreach (var denovo in kvp.Value)
+            //        {
+            //            DataRow row = dataTable.NewRow();
+            //            row["Folder"] = folderName;
+            //            row["Sequences"] = denovo.Peptide;
+            //            row["Score"] = denovo.Score;
+            //            row["ScanNumber"] = denovo.ScanNumber;
+            //            dataTable.Rows.Add(row);
+            //        }
+            //    }
+            //}
 
-            if (psmDict != null)
-            {
-                foreach (var kvp in psmDict)
-                {
-                    string folderName = kvp.Key;
+            //if (psmDict != null)
+            //{
+            //    foreach (var kvp in psmDict)
+            //    {
+            //        string folderName = kvp.Key;
 
-                    foreach (var psm in kvp.Value)
-                    {
-                        DataRow row = dataTable.NewRow();
-                        row["Folder"] = folderName;
-                        row["Sequences"] = psm.Peptide;
-                        row["Score"] = psm.Score;
-                        row["ScanNumber"] = psm.ScanNumber;
-                        dataTable.Rows.Add(row);
-                    }
-                }
-            }
+            //        foreach (var psm in kvp.Value)
+            //        {
+            //            DataRow row = dataTable.NewRow();
+            //            row["Folder"] = folderName;
+            //            row["Sequences"] = psm.Peptide;
+            //            row["Score"] = psm.Score;
+            //            row["ScanNumber"] = psm.ScanNumber;
+            //            dataTable.Rows.Add(row);
+            //        }
+            //    }
+            //}
         }
 
 
