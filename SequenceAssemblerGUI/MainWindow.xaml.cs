@@ -21,10 +21,11 @@ namespace SequenceAssemblerGUI
 
         DataTable dtDenovo = new DataTable
         {
-            Columns = 
+            Columns =
             {
-                new DataColumn("Folder", typeof(string)),
-                new DataColumn("Sequences", typeof(string)),
+                new DataColumn("Folder"),
+                new DataColumn("File"),
+                new DataColumn("Sequences"),
                 new DataColumn("Score", typeof(double)),
                 new DataColumn("ScanNumber", typeof(int)) 
             }
@@ -34,8 +35,9 @@ namespace SequenceAssemblerGUI
         {
             Columns = 
             {
-                new DataColumn("Folder", typeof(string)),
-                new DataColumn("Sequences", typeof(string)),
+                new DataColumn("Folder"),
+                new DataColumn("File"),
+                new DataColumn("Sequences"),
                 new DataColumn("Score", typeof(double)),
                 new DataColumn("ScanNumber", typeof(int)) 
             }
@@ -76,6 +78,7 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtDenovo.NewRow();
                         row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
+                        row["File"] = "";
                         row["Sequences"] = denovo.Peptide;
                         row["Score"] = denovo.Score;
                         row["ScanNumber"] = denovo.ScanNumber;
@@ -86,6 +89,7 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
+                        row["File"] = "";
                         row["Sequences"] = psm.Peptide;
                         row["Score"] = psm.Score;
                         row["ScanNumber"] = psm.ScanNumber;
