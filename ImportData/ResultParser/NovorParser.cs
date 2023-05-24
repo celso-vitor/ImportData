@@ -59,10 +59,12 @@ namespace SequenceAssemblerLogic.ResultParser
 
         public void LoadNovorUniversal(DirectoryInfo di)
         {
+
             foreach (DirectoryInfo di2 in di.GetDirectories())
             {
                 string[] csvFiles = Directory.GetFiles(di2.FullName, "*.csv");
                 Console.WriteLine(di2.Name);
+
 
                 foreach (string fileName in csvFiles)
                 {
@@ -71,29 +73,32 @@ namespace SequenceAssemblerLogic.ResultParser
                     {
                         if (DictPsm.ContainsKey(di2.Name))
                         {
-                            DictPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName, di2.Name));
+                            DictPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName));
                         }
                         else
                         {
-                            DictPsm[di2.Name] = new List<PsmRegistry>(); // Inicializa a lista
-                            DictPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName, di2.Name));
+                            DictPsm.Add(di2.Name, LoadNovorPsmRegistries(fileName));
                         }
+
                     }
                     else
                     {
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
-                            DictDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName, di2.Name));
+                            DictDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName));
                         }
                         else
                         {
-                            DictDenovo[di2.Name] = new List<DeNovoRegistry>(); // Inicializa a lista
-                            DictDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName, di2.Name));
+                            DictDenovo.Add(di2.Name, LoadNovorDeNovoRegistries(fileName));
                         }
+
                     }
                 }
+
             }
+
         }
+
 
         public static List<string> GetSubSequences2(string peptide, List<int> scores, int cutoff, int minSize)
         {
@@ -131,12 +136,12 @@ namespace SequenceAssemblerLogic.ResultParser
 
             return results;
         }
+       
 
-
-        private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName, string fileName)
+        private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName)
         {
             string[] lines = File.ReadAllLines(denovofileName);
-            List<DeNovoRegistry> myRegistries = new List<DeNovoRegistry>();
+            List<DeNovoRegistry> myRegistries = new();
             for (int i = 22; i < lines.Length; i++)
             {
                 string[] cols = Regex.Split(lines[i], ",");
@@ -157,10 +162,10 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-        private List<PsmRegistry> LoadNovorPsmRegistries(string psmfileName, string fileName)
+        private List<PsmRegistry> LoadNovorPsmRegistries(string psmfileName)
         {
             string[] line = File.ReadAllLines(psmfileName);
-            List<PsmRegistry> myRegistries = new List<PsmRegistry>();
+            List<PsmRegistry> myRegistries = new();
             for (int i = 2; i < line.Length; i++)
             {
                 string[] columns = Regex.Split(line[i], ",");
@@ -212,6 +217,8 @@ namespace SequenceAssemblerLogic.ResultParser
             return validPeptides;
 
         }
+
+
 
 
         // public static void FilterSequencesByScoreDeNovo(int filterDeNovoSocore, Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp)

@@ -22,6 +22,7 @@ namespace SequenceAssemblerLogic.ResultParser
                 return Regex.Replace(Peptide, @"\([^)]*\)", "");
             }
         }
+     
 
     }
 
