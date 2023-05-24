@@ -17,72 +17,85 @@ namespace SequenceAssemblerGUI
         NovorParser novorParser;
         Dictionary<string, List<PsmRegistry>> psmDictTemp;
         Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
-        private string peptide;
-       
+      
+        DataTable dtDenovo = new DataTable
+        {
+            Columns =
+            {
+                new DataColumn("Folder"),
+                new DataColumn("File"),
+                new DataColumn("Sequences"),
+                new DataColumn("Score", typeof(double)),
+                new DataColumn("ScanNumber", typeof(int)) 
+            }
+        };
+
+        DataTable dtPSM = new DataTable
+        {
+            Columns = 
+            {
+                new DataColumn("Folder"),
+                new DataColumn("File"),
+                new DataColumn("Sequences"),
+                new DataColumn("Score", typeof(double)),
+                new DataColumn("ScanNumber", typeof(int)) 
+            }
+        };
+
+
         public MainWindow()
         {
             InitializeComponent();
 
         }
 
-
-
-
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
-
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = true;
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                DataTable dtDenovo = CreateResultDataTable();
-
-                DataTable dtPsm = new DataTable();
-                dtPsm.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-                dtPsm.Columns.Add("Sequences", typeof(string));
-                dtPsm.Columns.Add("Score", typeof(double));
-                dtPsm.Columns.Add("ScanNumber", typeof(int));
+                dtDenovo.Clear();
+                dtPSM.Clear();
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
                     DirectoryInfo mainDir = new DirectoryInfo(folderPath);
-                    string folderName = mainDir.Name; // Obter o nome da pasta selecionada
+                    string folderName = mainDir.Name; // Obter o nome da pasta principal
 
-                    foreach (DirectoryInfo subDir in mainDir.GetDirectories())
-                    {
-                        folderName += $",{subDir.Name}"; // Adicione o nome da subpasta separado por vírgula
-                    }
 
-                    novorParser = new();
-                    novorParser.LoadNovorUniversal(mainDir);
+                        foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
+                        {
+                            DataRow row = dtDenovo.NewRow();
+                            row["Folder"] = folderName; // Defina o valor da coluna "Folder" para o nome da pasta principal
+                            row["File"] = ""; // Defina o valor da coluna "File" para o nome do arquivo
+                            row["Sequences"] = denovo.Peptide;
+                            row["Score"] = denovo.Score;
+                            row["ScanNumber"] = denovo.ScanNumber;
+                            dtDenovo.Rows.Add(row);
+                        }
 
-                    foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
-                    {
-                        DataRow row = dtDenovo.NewRow();
-                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
-                        row["Sequences"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
-                        row["ScanNumber"] = denovo.ScanNumber;
-                        dtDenovo.Rows.Add(row);
-                    }
-
-                    foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
-                    {
-                        DataRow row = dtPsm.NewRow();
-                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
-                        row["Sequences"] = psm.Peptide;
-                        row["Score"] = psm.Score;
-                        row["ScanNumber"] = psm.ScanNumber;
-                        dtPsm.Rows.Add(row);
-                    }
+                        foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
+                        {
+                            DataRow row = dtPSM.NewRow();
+                            row["Folder"] = folderName; // Defina o valor da coluna "Folder" para o nome da pasta principal
+                            row["File"] = ""; // Defina o valor da coluna "File" para o nome do arquivo
+                            row["Sequences"] = psm.Peptide;
+                            row["Score"] = psm.Score;
+                            row["ScanNumber"] = psm.ScanNumber;
+                            dtPSM.Rows.Add(row);
+                        }
+                    
                 }
+
+
 
 
                 DataView dvDenovo = new DataView(dtDenovo);
                 DataGridDeNovo.ItemsSource = dvDenovo;
 
-                DataView dvPsm = new DataView(dtPsm);
+                DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
@@ -99,95 +112,99 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private static DataTable CreateResultDataTable()
-        {
-            DataTable dtDenovo = new DataTable();
-            dtDenovo.Columns.Add("Folder", typeof(string)); // Adicione uma nova coluna para o nome da pasta
-            dtDenovo.Columns.Add("Sequences", typeof(string));
-            dtDenovo.Columns.Add("Score", typeof(double));
-            dtDenovo.Columns.Add("ScanNumber", typeof(int));
-            return dtDenovo;
-        }
-
         private void UpdatePlot()
         {
-
-            PlotModel plotModel1 = new()
+            PlotModel plotModel1 = new PlotModel
             {
                 Title = "Sequences"
             };
-            BarSeries bsPSM = new() { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
-            BarSeries bsDeNovo = new() { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
 
+            BarSeries bsPSM = new BarSeries { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
+            BarSeries bsDeNovo = new BarSeries { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
 
-            var categoryAxis1 = new CategoryAxis() { Key = "y" };
-            var linearAxis = new LinearAxis() { Key = "x" };
+            var categoryAxis1 = new CategoryAxis { Key = "y", Position = AxisPosition.Bottom };
+            var linearAxis = new LinearAxis { Key = "x", Position = AxisPosition.Left };
 
-            foreach (KeyValuePair<string, List<DeNovoRegistry>> kvp in novorParser.DictDenovo)
+            // Adicione as pastas do dicionário DictDenovo ao eixo de categoria
+            foreach (var kvp in novorParser.DictDenovo)
             {
                 categoryAxis1.Labels.Add(kvp.Key);
-                bsPSM.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
-                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
             }
 
-            foreach (KeyValuePair<string, List<PsmRegistry>> kvp in novorParser.DictPsm)
+            // Adicione as pastas do dicionário DictPsm ao eixo de categoria
+            foreach (var kvp in novorParser.DictPsm)
             {
-                categoryAxis1.Labels.Add(kvp.Key);
-                bsPSM.Items.Add(new BarItem(psmDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
-                bsDeNovo.Items.Add(new BarItem(deNovoDictTemp[kvp.Key].Select(a => a.Peptide).Distinct().Count()));
+                if (!categoryAxis1.Labels.Contains(kvp.Key))
+                {
+                    categoryAxis1.Labels.Add(kvp.Key);
+                }
             }
 
+            // Adicione os valores dos dicionários ao BarSeries correspondente
+            foreach (var kvp in novorParser.DictDenovo)
+            {
+                bsDeNovo.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
+            }
 
+            foreach (var kvp in novorParser.DictPsm)
+            {
+                bsPSM.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
+            }
 
             plotModel1.Series.Add(bsPSM);
             plotModel1.Series.Add(bsDeNovo);
             plotModel1.Axes.Add(linearAxis);
             plotModel1.Axes.Add(categoryAxis1);
             PlotViewEnzymeEfficiency.Model = plotModel1;
-
         }
-        private void UpdateDataView(DataView dataView, Dictionary<string, List<DeNovoRegistry>> deNovoDict, Dictionary<string, List<PsmRegistry>> psmDict)
+        private void UpdateDataView()
         {
-            //if (dataView == null) return;
+            dtDenovo.Clear();
 
-            //DataTable dataTable = dataView.Table;
-            //dataTable.Rows.Clear();
+            if (deNovoDictTemp != null)
+            {
+                foreach (var kvp in deNovoDictTemp)
+                {
+                    string folderName = kvp.Key;
 
-            //if (deNovoDict != null)
-            //{
-            //    foreach (var kvp in deNovoDict)
-            //    {
-            //        string folderName = kvp.Key;
+                    foreach (var denovo in kvp.Value)
+                    {
+                        DataRow row = dtDenovo.NewRow();
+                        row["Folder"] = folderName;
+                        row["File"] = ""; // Aqui atribuímos o nome do arquivo correto à coluna "File"
+                        row["Sequences"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["ScanNumber"] = denovo.ScanNumber;
+                        dtDenovo.Rows.Add(row);
+                    }
+                }
 
-            //        foreach (var denovo in kvp.Value)
-            //        {
-            //            DataRow row = dataTable.NewRow();
-            //            row["Folder"] = folderName;
-            //            row["Sequences"] = denovo.Peptide;
-            //            row["Score"] = denovo.Score;
-            //            row["ScanNumber"] = denovo.ScanNumber;
-            //            dataTable.Rows.Add(row);
-            //        }
-            //    }
-            //}
+                DataView dvDenovo = new DataView(dtDenovo);
+                DataGridDeNovo.ItemsSource = dvDenovo;
+            }
 
-            //if (psmDict != null)
-            //{
-            //    foreach (var kvp in psmDict)
-            //    {
-            //        string folderName = kvp.Key;
+            dtPSM.Clear();
+            if (psmDictTemp != null)
+            {
+                foreach (var kvp in psmDictTemp)
+                {
+                    string folderName = kvp.Key;
 
-            //        foreach (var psm in kvp.Value)
-            //        {
-            //            DataRow row = dataTable.NewRow();
-            //            row["Folder"] = folderName;
-            //            row["Sequences"] = psm.Peptide;
-            //            row["Score"] = psm.Score;
-            //            row["ScanNumber"] = psm.ScanNumber;
-            //            dataTable.Rows.Add(row);
-            //        }
-            //    }
-            //}
+                    foreach (var psm in kvp.Value)
+                    {
+                        DataRow row = dtPSM.NewRow();
+                        row["Folder"] = folderName;
+                        row["File"] = ""; // Aqui atribuímos o nome do arquivo correto à coluna "File"
+                        row["Sequences"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        row["ScanNumber"] = psm.ScanNumber;
+                        dtPSM.Rows.Add(row);
+                    }
+                }
+
+                DataView dvPSM = new DataView(dtPSM);
+                DataGridPSM.ItemsSource = dvPSM;
+            }
         }
 
 
@@ -224,11 +241,10 @@ namespace SequenceAssemblerGUI
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
             NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
-            int filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
+            double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            UpdateDataView(DataGridDeNovo.ItemsSource as DataView, deNovoDictTemp, null);
-            UpdateDataView(DataGridPSM.ItemsSource as DataView, null, psmDictTemp);
+            UpdateDataView();
 
             // Update the plot with the filtered data
             UpdatePlot();
@@ -249,10 +265,17 @@ namespace SequenceAssemblerGUI
 
         }
 
-       
+        private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void DataGridPSM_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
     }
-       
+
 }
-        
-        
-      
+
+

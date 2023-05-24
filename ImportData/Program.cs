@@ -29,7 +29,10 @@ namespace SequenceAssemblerLogic.ResultParser
             {
                 Console.WriteLine(peptide);
             }
-           
+
+            string fileName = @"C:\ArgC\20210122_4121_CadeiaLeve_Pesada_sol_ArgC.raw.denovo.csv";
+            string result = Path.GetFileName(fileName);
+            Console.WriteLine(result);
 
         }
        
