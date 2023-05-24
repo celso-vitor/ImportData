@@ -77,8 +77,7 @@ namespace SequenceAssemblerGUI
                     foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
-                        row["Folder"] = folderName;
-                        row["File"] = "";
+                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
                         row["Sequences"] = denovo.Peptide;
                         row["Score"] = denovo.Score;
                         row["ScanNumber"] = denovo.ScanNumber;
@@ -88,7 +87,7 @@ namespace SequenceAssemblerGUI
                     foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
-                        row["Folder"] = folderName; 
+                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
                         row["File"] = "";
                         row["Sequences"] = psm.Peptide;
                         row["Score"] = psm.Score;
@@ -163,6 +162,7 @@ namespace SequenceAssemblerGUI
             plotModel1.Axes.Add(linearAxis);
             plotModel1.Axes.Add(categoryAxis1);
             PlotViewEnzymeEfficiency.Model = plotModel1;
+
         }
         private void UpdateDataView()
         {
