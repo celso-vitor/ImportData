@@ -77,7 +77,7 @@ namespace SequenceAssemblerGUI
                     foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
-                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
+                        row["Folder"] = folderName; 
                         row["Sequences"] = denovo.Peptide;
                         row["Score"] = denovo.Score;
                         row["ScanNumber"] = denovo.ScanNumber;
@@ -87,7 +87,7 @@ namespace SequenceAssemblerGUI
                     foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
-                        row["Folder"] = folderName; // Defina o valor da nova coluna para o nome da pasta
+                        row["Folder"] = folderName; 
                         row["File"] = "";
                         row["Sequences"] = psm.Peptide;
                         row["Score"] = psm.Score;
