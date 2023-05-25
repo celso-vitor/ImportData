@@ -147,12 +147,12 @@ namespace SequenceAssemblerGUI
             }
 
             // Add the values from the dictionaries to the corresponding BarSeries
-            foreach (var kvp in novorParser.DictDenovo)
+            foreach (var kvp in deNovoDictTemp)
             {
                 bsDeNovo.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
             }
 
-            foreach (var kvp in novorParser.DictPsm)
+            foreach (var kvp in psmDictTemp)
             {
                 bsPSM.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
             }
