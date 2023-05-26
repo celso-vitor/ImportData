@@ -23,10 +23,12 @@ namespace SequenceAssemblerGUI
         {
             Columns =
             {
+                new DataColumn("IsTag"),
                 new DataColumn("Folder"),
                 new DataColumn("File"),
-                new DataColumn("Sequences"),
+                new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
+                new DataColumn("AAScores"),
                 new DataColumn("ScanNumber", typeof(int)) 
             }
         };
@@ -37,7 +39,7 @@ namespace SequenceAssemblerGUI
             {
                 new DataColumn("Folder"),
                 new DataColumn("File"),
-                new DataColumn("Sequences"),
+                new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
                 new DataColumn("ScanNumber", typeof(int)) 
             }
@@ -77,10 +79,23 @@ namespace SequenceAssemblerGUI
                     foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
-                        row["Folder"] = folderName; 
-                        row["Sequences"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
+
+                        if (denovo.IsTag)
+                        {
+                            row["IsTag"] = "T";
+                        } 
+                        else
+                        {
+                            row["IsTag"] = "F";
+                        }
+
+                        row["Folder"] = folderName;
+                        row["File"] = novorParser.FileDictionary[denovo.File];
                         row["ScanNumber"] = denovo.ScanNumber;
+                        row["Sequence"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["AAScores"] = string.Join("-", denovo.AaScore);
+                        
                         dtDenovo.Rows.Add(row);
                     }
 
@@ -88,10 +103,11 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName; 
-                        row["File"] = "";
-                        row["Sequences"] = psm.Peptide;
-                        row["Score"] = psm.Score;
+                        row["File"] = novorParser.FileDictionary[psm.File];
                         row["ScanNumber"] = psm.ScanNumber;
+                        row["Sequence"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        
                         dtPSM.Rows.Add(row);
                     }
                 }
@@ -178,10 +194,23 @@ namespace SequenceAssemblerGUI
                     foreach (var denovo in kvp.Value)
                     {
                         DataRow row = dtDenovo.NewRow();
+
+                        if (denovo.IsTag)
+                        {
+                            row["IsTag"] = "T";
+                        }
+                        else
+                        {
+                            row["IsTag"] = "F";
+                        }
+
                         row["Folder"] = folderName;
-                        row["Sequences"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
+                        row["File"] = novorParser.FileDictionary[denovo.File];
                         row["ScanNumber"] = denovo.ScanNumber;
+                        row["Sequence"] = denovo.Peptide;
+                        row["Score"] = denovo.Score;
+                        row["AAScores"] = string.Join("-", denovo.AaScore);
+
                         dtDenovo.Rows.Add(row);
                     }
                 }
@@ -201,9 +230,11 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName;
-                        row["Sequences"] = psm.Peptide;
-                        row["Score"] = psm.Score;
+                        row["File"] = novorParser.FileDictionary[psm.File];
                         row["ScanNumber"] = psm.ScanNumber;
+                        row["Sequence"] = psm.Peptide;
+                        row["Score"] = psm.Score;
+                        
                         dtPSM.Rows.Add(row);
                     }
                 }

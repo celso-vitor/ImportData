@@ -9,7 +9,7 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class PsmRegistry
     {
-
+        public short File { get; set; }
         public int ScanNumber { get; set; }
         public double RT { get; set; }
         public double Mz { get; set; }

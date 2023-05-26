@@ -4,7 +4,8 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class DeNovoRegistry 
     {
-       
+        public bool IsTag { get; set; } = false;
+        public short File { get; set; }
         public int ScanNumber { get; set; }
         public double RT { get; set; }
         public double Mz { get; set; }
