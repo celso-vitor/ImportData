@@ -17,14 +17,6 @@ namespace SequenceAssemblerLogic.ResultParser
             DictPsm = new();
         }
 
-        public static void FilterDictMinLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
-        {
-            foreach (var kvp in theDict)
-            {
-                kvp.Value.RemoveAll(a => a.CleanPeptide.Length < peptideLength);
-            }
-        }
-
         public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
         {
             foreach (var kvp in theDict)

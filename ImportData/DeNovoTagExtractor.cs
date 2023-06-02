@@ -18,18 +18,15 @@ namespace SequenceAssemblerLogic
         }
 
 
-        public List<DeNovoRegistry> DeNovoRegistryToTags (DeNovoRegistry registry, int minScore, int minLength)
+        
+        public static List<DeNovoRegistry> DeNovoRegistryToTags (DeNovoRegistry registry, int minScore, int minLength)
         {
             
             List<(string PeptideSequence, List<int> Scores)> tagPrecursors = FindValidPeptides(registry.Peptide, registry.AaScore, minScore, minLength);
 
             if (tagPrecursors.Count == 0)
             {
-                return null;
-            } 
-            else if (tagPrecursors.Count == 1)
-            {
-                return new List<DeNovoRegistry>() { registry };
+                return new List<DeNovoRegistry>();
             } 
             else
             {
@@ -49,6 +46,7 @@ namespace SequenceAssemblerLogic
                         Score = registry.Score,
                         Peptide = pt.PeptideSequence,
                         AaScore = pt.Scores,
+                        File = registry.File
                     };
 
                     tags.Add(tag);
@@ -98,18 +96,19 @@ namespace SequenceAssemblerLogic
 
         }
 
-        public static List<string> ExtractBlocks(string input)
-        {
-            var matches = Regex.Matches(input, @"([A-Z](?!\())|([A-Z]\([A-Za-z]+\))");
-            var list = new List<string>();
+public static List<string> ExtractBlocks(string input)
+{
+    var matches = Regex.Matches(input, @"([A-Z](?!\())|([A-Z]\([A-Za-z]+(-[A-Za-z]+)*\))");
+    var list = new List<string>();
 
-            foreach (Match match in matches)
-            {
-                list.Add(match.Value);
-            }
+    foreach (Match match in matches)
+    {
+        list.Add(match.Value);
+    }
 
-            return list;
-        }
+    return list;
+}
+
 
     }
 }

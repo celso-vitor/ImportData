@@ -14,11 +14,14 @@ namespace SequenceAssemblerLogic.ResultParser
         {
 
             //peptides sequences
-            string sequence = "ABC(Cam)DEFGHIJKLMN";
-            List<int> scores = new List<int>() { 1, 4, 4, 5, 1, 1, 4, 4, 4, 5, 1, 2, 6, 6 };
-            int minScore = 4;
+            string sequence = "Q(Pyro-Glu)GKGEW(O)SSGRR";
 
-            List<(string PeptideSequence, List<int> Scores)> validPeptides = DeNovoTagExtractor.FindValidPeptides(sequence, scores, minScore, 3).ToList();
+
+            
+            List<int> scores = new List<int>() { 23, 20, 20, 20, 13, 4, 1, 20, 20, 20, 20 };
+            int minScore = 19;
+
+            List<(string PeptideSequence, List<int> Scores)> validPeptides = DeNovoTagExtractor.FindValidPeptides(sequence, scores, minScore, 4).ToList();
 
             Console.WriteLine("Valid Peptides:");
             foreach (var peptide in validPeptides)

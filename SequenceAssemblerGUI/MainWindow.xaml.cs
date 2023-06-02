@@ -1,7 +1,9 @@
 ﻿using Ookii.Dialogs.Wpf;
 using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Legends;
 using OxyPlot.Series;
+using SequenceAssemblerLogic;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
@@ -138,8 +140,11 @@ namespace SequenceAssemblerGUI
 
             PlotModel plotModel1 = new()
             {
-                Title = "Sequences"
+                Title = "Sequences",
+                IsLegendVisible = true, // Ensure the legend is visible
             };
+
+
             BarSeries bsPSM = new() { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
             BarSeries bsDeNovo = new() { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
 
@@ -254,9 +259,17 @@ namespace SequenceAssemblerGUI
             deNovoDictTemp = new Dictionary<string, List<DeNovoRegistry>>();
             psmDictTemp = new Dictionary<string, List<PsmRegistry>>();
 
+            int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
+            int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
+
             foreach (var kvp in novorParser.DictDenovo)
             {
-                deNovoDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
+
+                List<DeNovoRegistry> list = (from rg in kvp.Value.Select(a => a).ToList()
+                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
+                                             select rg2).ToList();
+
+                deNovoDictTemp.Add(kvp.Key, list);
             }
 
             foreach (var kvp in novorParser.DictPsm)
@@ -266,9 +279,6 @@ namespace SequenceAssemblerGUI
             //---------------------------------------------------------
 
             // Apply filters to the filtered dictionaries
-
-            int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
-            NovorParser.FilterDictMinLengthDeNovo(denovoMinSequeceLength, deNovoDictTemp);
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
             NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
