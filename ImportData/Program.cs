@@ -215,15 +215,15 @@ namespace SequenceAssemblerLogic.ResultParser
             ////    return "";
 
             List<string> peptides = new List<string>()
-{
-    "ABCDEFGHI",
-    "GHIJKLMN",
-    "MNOPQESTUVXZ",
-    "ZZZ",
-    "DEFGH",
-    "FGHBBBJ",
-    "AJKHJDDDD"
-};
+        {
+            "ABCDEFGHI",
+            "GHIJKLMN",
+            "MNOPQESTUVXZ",
+            "ZZZ",
+            "DEFGH",
+            "FGHBBBJ",
+            "AJKHJDDDD"     
+        };
 
             List<string> commonParts = new List<string>();
             List<string> similarSequences = FindSimilarSequences(peptides);
@@ -250,7 +250,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     Console.WriteLine("Sequences containing the common part:");
                     foreach (string peptide in peptides)
                     {
-                        if (peptide.Contains(part))
+                        if (peptide.IndexOf(part, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             Console.WriteLine(peptide);
                         }
@@ -262,101 +262,101 @@ namespace SequenceAssemblerLogic.ResultParser
             {
                 Console.WriteLine("No common parts found.");
             }
+        }
 
-            List<string> FindSimilarSequences(List<string> items)
+        static List<string> FindSimilarSequences(List<string> items)
+        {
+            List<string> similarSequences = new List<string>();
+
+            for (int i = 0; i < items.Count - 1; i++)
             {
-                List<string> similarSequences = new List<string>();
+                string currentSequence = items[i];
+                string nextSequence = items[i + 1];
 
-                for (int i = 0; i < items.Count - 1; i++)
+                List<string> commonSubsequences = FindCommonSubsequences(currentSequence, nextSequence);
+
+                foreach (string subsequence in commonSubsequences)
                 {
-                    string currentSequence = items[i];
-                    string nextSequence = items[i + 1];
-
-                    List<string> commonSubsequences = FindCommonSubsequences(currentSequence, nextSequence);
-
-                    foreach (string subsequence in commonSubsequences)
-                    {
-                        int currentIndex = items.IndexOf(currentSequence);
-                        int nextIndex = items.IndexOf(nextSequence);
-                        similarSequences.Add($"{currentIndex},{nextIndex}");
-                    }
+                    int currentIndex = items.IndexOf(currentSequence);
+                    int nextIndex = items.IndexOf(nextSequence);
+                    similarSequences.Add($"{currentIndex},{nextIndex}");
                 }
-
-                return similarSequences;
             }
 
-            List<string> FindCommonSubsequences(string str1, string str2)
+            return similarSequences;
+        }
+
+        static List<string> FindCommonSubsequences(string str1, string str2)
+        {
+            int[,] dp = new int[str1.Length + 1, str2.Length + 1];
+
+            for (int i = 1; i <= str1.Length; i++)
             {
-                int[,] dp = new int[str1.Length + 1, str2.Length + 1];
-
-                for (int i = 1; i <= str1.Length; i++)
+                for (int j = 1; j <= str2.Length; j++)
                 {
-                    for (int j = 1; j <= str2.Length; j++)
+                    if (char.ToLower(str1[i - 1]) == char.ToLower(str2[j - 1]))
                     {
-                        if (Char.ToLower(str1[i - 1]) == Char.ToLower(str2[j - 1]))
-                        {
-                            dp[i, j] = dp[i - 1, j - 1] + 1;
-                        }
-                        else
-                        {
-                            dp[i, j] = Math.Max(dp[i - 1, j], dp[i, j - 1]);
-                        }
+                        dp[i, j] = dp[i - 1, j - 1] + 1;
                     }
-                }
-
-                List<string> commonSubsequences = new List<string>();
-                FindCommonSubsequencesHelper(str1, str2, dp, str1.Length, str2.Length, "", commonSubsequences);
-
-                return commonSubsequences;
-            }
-
-            void FindCommonSubsequencesHelper(string str1, string str2, int[,] dp, int i, int j, string sequence, List<string> commonSubsequences)
-            {
-                if (i == 0 || j == 0)
-                {
-                    commonSubsequences.Add(sequence);
-                    return;
-                }
-
-                if (Char.ToLower(str1[i - 1]) == Char.ToLower(str2[j - 1]))
-                {
-                    FindCommonSubsequencesHelper(str1, str2, dp, i - 1, j - 1, str1[i - 1] + sequence, commonSubsequences);
-                }
-                else
-                {
-                    if (dp[i - 1, j] >= dp[i, j - 1])
+                    else
                     {
-                        FindCommonSubsequencesHelper(str1, str2, dp, i - 1, j, sequence, commonSubsequences);
-                    }
-
-                    if (dp[i, j - 1] >= dp[i - 1, j])
-                    {
-                        FindCommonSubsequencesHelper(str1, str2, dp, i, j - 1, sequence, commonSubsequences);
+                        dp[i, j] = Math.Max(dp[i - 1, j], dp[i, j - 1]);
                     }
                 }
             }
 
-            string FindCommonPart(string str1, string str2)
+            List<string> commonSubsequences = new List<string>();
+            FindCommonSubsequencesHelper(str1, str2, dp, str1.Length, str2.Length, "", commonSubsequences);
+
+            return commonSubsequences;
+        }
+
+        static void FindCommonSubsequencesHelper(string str1, string str2, int[,] dp, int i, int j, string sequence, List<string> commonSubsequences)
+        {
+            if (i == 0 || j == 0)
             {
-                int minLength = Math.Min(str1.Length, str2.Length);
-                string commonPart = "";
-
-                for (int i = 0; i < minLength; i++)
-                {
-                    for (int j = i + 2; j <= minLength; j++)
-                    {
-                        string substr = str1.Substring(i, j - i);
-                        if (str2.Contains(substr) && substr.Length > commonPart.Length)
-                        {
-                            commonPart = substr;
-                        }
-                    }
-                }
-
-                return commonPart;
+                commonSubsequences.Add(sequence);
+                return;
             }
 
+            if (char.ToLower(str1[i - 1]) == char.ToLower(str2[j - 1]))
+            {
+                FindCommonSubsequencesHelper(str1, str2, dp, i - 1, j - 1, str1[i - 1] + sequence, commonSubsequences);
+            }
+            else
+            {
+                if (dp[i - 1, j] >= dp[i, j - 1])
+                {
+                    FindCommonSubsequencesHelper(str1, str2, dp, i - 1, j, sequence, commonSubsequences);
+                }
 
+                if (dp[i, j - 1] >= dp[i - 1, j])
+                {
+                    FindCommonSubsequencesHelper(str1, str2, dp, i, j - 1, sequence, commonSubsequences);
+                }
+            }
+        }
+
+        static string FindCommonPart(string str1, string str2)
+        {
+            int minLength = Math.Min(str1.Length, str2.Length);
+            string commonPart = "";
+
+            for (int i = 0; i < minLength; i++)
+            {
+                for (int j = i + 2; j <= minLength; j++)
+                {
+                    string substr = str1.Substring(i, j - i);
+                    if (str2.IndexOf(substr, StringComparison.OrdinalIgnoreCase) >= 0 && substr.Length > commonPart.Length)
+                    {
+                        commonPart = substr;
+                    }
+                }
+            }
+
+            return commonPart;
         }
     }
+
 }
+    
