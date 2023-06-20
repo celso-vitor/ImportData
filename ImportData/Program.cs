@@ -18,9 +18,9 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             "ACGTYRGTPLKLNPR",
             "ACGTYRGTPLMNPS",
-            "TYRGTPLSLMNPSNPR",
-            "TYRGTPLMNPSNPR",
-            "TYRLMNPR"
+            "TYRGTPLSLMNPS",
+            "TYRGTPLMNPS",
+            "TYRLMN"
         };
 
             // Chama o método IdentifyContigs passando as sequências como argumento
