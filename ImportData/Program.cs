@@ -1,89 +1,90 @@
-﻿using SequenceAssemblerLogic.ResultParser;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Text.RegularExpressions;
-using static System.Formats.Asn1.AsnWriter;
 
-
-namespace SequenceAssemblerLogic.ResultParser
+public class Program
 {
-    public class Program
+    public static void Main()
     {
-        static void Main(string[] args)
+        List<string> sequences = new List<string>()
         {
-            // Cria uma lista de sequências de DNA
-            List<string> sequences = new List<string>
-        {
-            "ACGTYRGTPLKLNPR",
-            "ACGTYRGTPLMNPS",
-            "TYRGTPLSLMNPS",
-            "TYRGTPLMNPS",
-            "TYRLMN"
+            "ABCDEFGHI",
+            "GHIJKLMN",
+            "MNOPQESTUVXZ",
+            "ZZZ",
+            "DEFGH",
+            "FGHBBBJ",
+            "bbJklLL",
+            "AAVCASF"
         };
 
-            // Chama o método IdentifyContigs passando as sequências como argumento
-            IdentifyContigs(sequences);
-        }
+        var contigs = AssembleContigs(sequences);
 
-        static void IdentifyContigs(List<string> sequences)
+        Console.WriteLine("Contigs:");
+        foreach (var contig in contigs)
         {
-            // Cria uma lista vazia para armazenar os contigs
-            List<string> contigs = new List<string>();
+            Console.WriteLine(contig);
+        }
+    }
 
-            // Cria uma string vazia para armazenar as regiões sobrepostas
-            string overlapRegions = "";
+    public static List<string> AssembleContigs(List<string> sequences)
+    {
+        var contigs = new List<string>();
+        while (sequences.Count > 0)
+        {
+            var currentContig = sequences[0];
+            sequences.RemoveAt(0);
 
-            // Itera sobre cada sequência da lista de sequências
-            foreach (string sequence in sequences)
+            while (true)
             {
-                // Adiciona a sequência à lista de contigs
-                contigs.Add(sequence);
-            }
+                var overlapIndex = -1;
+                var overlapSize = 0;
+                var overlapString = "";
 
-            // Percorre os contigs para identificar as regiões sobrepostas
-            for (int i = 0; i < contigs.Count - 1; i++)
-            {
-                // Cria uma string vazia para armazenar a sobreposição
-                string overlap = "";
-
-                // Percorre os contigs a partir do próximo contig atual
-                for (int j = i + 1; j < contigs.Count; j++)
+                // Find the sequence with maximum overlap
+                for (int i = 0; i < sequences.Count; i++)
                 {
-                    // Verifica se o contig atual contém o contig seguinte
-                    if (contigs[i].Contains(contigs[j]))
+                    var size = GetOverlapLength(currentContig, sequences[i]);
+                    if (size > overlapSize)
                     {
-                        // O contig atual contém o contig seguinte, armazena o contig atual como sobreposição
-                        overlap = contigs[i];
-                        break;
-                    }
-                    // Verifica se o contig seguinte contém o contig atual
-                    else if (contigs[j].Contains(contigs[i]))
-                    {
-                        // O contig seguinte contém o contig atual, armazena o contig seguinte como sobreposição
-                        overlap = contigs[j];
-                        break;
+                        overlapSize = size;
+                        overlapIndex = i;
+                        overlapString = sequences[i].Substring(size);
                     }
                 }
 
-                // Adiciona a sobreposição à string que armazena as regiões sobrepostas
-                overlapRegions += overlap;
+                if (overlapIndex != -1)
+                {
+                    currentContig += overlapString;
+                    sequences.RemoveAt(overlapIndex);
+                }
+                else
+                {
+                    break;
+                }
             }
 
-            // Concatena todas as sequências de contigs e as regiões sobrepostas em uma única sequência final
-            string finalSequence = string.Concat(contigs) + overlapRegions;
-
-            // Imprime as sequências originais
-            Console.WriteLine("Sequências:");
-            foreach (string sequence in sequences)
-            {
-                Console.WriteLine(sequence);
-            }
-
-            // Imprime as regiões sobrepostas encontradas
-            Console.WriteLine("\nRegiões sobrepostas:");
-            Console.WriteLine(overlapRegions);
+            contigs.Add(currentContig);
         }
+
+        return contigs;
+    }
+
+    public static int GetOverlapLength(string seq1, string seq2)
+    {
+        seq1 = seq1.ToUpper();
+        seq2 = seq2.ToUpper();
+
+        int length = Math.Min(seq1.Length, seq2.Length);
+
+        for (int i = length; i > 0; i--)
+        {
+            if (seq1.EndsWith(seq2.Substring(0, i)))
+            {
+                return i;
+            }
+        }
+
+        return 0;
     }
 }
