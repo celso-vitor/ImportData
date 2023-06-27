@@ -19,7 +19,8 @@ public class Program
             "DEFGH",
             "FGHBBBJ",
             "AAVCASF",
-            "IJK"
+            "IJK",
+            "JKM"
         };
 
         gContigAssemblerNotWorkin ca = new gContigAssemblerNotWorkin(5);
