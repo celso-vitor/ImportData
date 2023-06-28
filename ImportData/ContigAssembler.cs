@@ -6,86 +6,89 @@ using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic
 {
+
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class ContigAssembler
     {
-        private Dictionary<string, string> sequencesDict;
+        private List<string> sequences;
         private List<string> finalSequences;
 
         public ContigAssembler()
         {
-            sequencesDict = new Dictionary<string, string>();
+            sequences = new List<string>();
             finalSequences = new List<string>();
         }
 
-        private int GetOverlapLength(string seq1, string seq2)
+        // Improved method for calculating overlap length.
+        private int GetOverlapLength(string seq1, string seq2, int minOverlap)
         {
-            int length = 0;
+            int len1 = seq1.Length;
+            int len2 = seq2.Length;
+            if (len1 == 0 || len2 == 0)
+                return 0;
 
-            // loop through the first sequence
-            for (int i = 0; i < seq1.Length; i++)
+            for (int i = minOverlap; i <= Math.Min(len1, len2); i++)
             {
-                // loop through the second sequence
-                for (int j = 0; j < seq2.Length; j++)
-                {
-                    int k = 0;
-
-                    // count the number of overlapping characters
-                    while (i + k < seq1.Length && j + k < seq2.Length && seq1[i + k] == seq2[j + k])
-                    {
-                        k++;
-                    }
-
-                    // if the current overlap is greater than the previous one, update the length
-                    if (k > length)
-                    {
-                        length = k;
-                    }
-                }
+                if (seq1.EndsWith(seq2.Substring(0, i)))
+                    return i;
             }
 
-            return length;
+            return 0;
         }
 
-        private void MergeSequences(int minOverlap)
+        // Improved MergeSequences method.
+        private bool MergeSequences(int minOverlap)
         {
-            bool merged;
-
-            do
+            for (int i = 0; i < sequences.Count; i++)
             {
-                merged = false;
-
-                var keys = new List<string>(sequencesDict.Keys);
-                foreach (var key1 in keys)
+                for (int j = 0; j < sequences.Count; j++)
                 {
-                    foreach (var key2 in keys)
+                    if (i != j)
                     {
-                        if (key1 != key2)
+                        int overlap = GetOverlapLength(sequences[i], sequences[j], minOverlap);
+
+                        if (overlap >= minOverlap)
                         {
-                            var overlap = GetOverlapLength(key1, key2);
-                            if (overlap >= minOverlap)
-                            {
-                                var newKey = key1 + key2.Substring(overlap);
-                                sequencesDict.Remove(key1);
-                                sequencesDict.Remove(key2);
-                                sequencesDict.Add(newKey, "");
-                                merged = true;
-                                break;
-                            }
+                            // Merge sequences
+                            string newSequence = sequences[i] + sequences[j].Substring(overlap);
+                            // Add new merged sequence
+                            sequences.Add(newSequence);
+                            // Remove merged sequences
+                            sequences.RemoveAt(Math.Max(i, j));
+                            sequences.RemoveAt(Math.Min(i, j));
+                            return true;
                         }
                     }
-
-                    if (merged) break;
                 }
             }
-            while (merged);
+            return false;
         }
 
-        public List<string> AssembleContigSequences(List<string> sequences, int minOverlap)
+        // Assembles contig sequences based on minimum overlap.
+        public List<string> AssembleContigSequences(List<string> inputSequences, int minOverlap)
         {
-            sequencesDict = sequences.ToDictionary(x => x, x => "");
-            MergeSequences(minOverlap);
-            finalSequences = sequencesDict.Keys.ToList();
+            if (inputSequences == null)
+                throw new ArgumentNullException(nameof(inputSequences));
+
+            if (minOverlap <= 0)
+                throw new ArgumentException("Minimum overlap must be a positive integer.", nameof(minOverlap));
+
+            sequences = new List<string>(inputSequences);
+            bool merged = true;
+
+            while (merged)
+            {
+                merged = MergeSequences(minOverlap);
+            }
+
+            finalSequences = new List<string>(sequences);
             return finalSequences;
         }
     }
+
+
 }

@@ -20,12 +20,11 @@ public class Program
             "FGHBBBJ",
             "AAVCASF",
             "IJK",
-            "JKM"
+            "JKM",
+            "TUVA",
+            "CASFZZ"
         };
 
-        gContigAssemblerNotWorkin ca = new gContigAssemblerNotWorkin(5);
-
-        List<string> contigs = ca.AssembleContigs(sequences);
 
         ContigAssembler sa = new ContigAssembler();
         var contigs2 = sa.AssembleContigSequences(sequences, 2);
