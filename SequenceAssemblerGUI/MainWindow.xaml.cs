@@ -47,6 +47,13 @@ namespace SequenceAssemblerGUI
             }
         };
 
+        DataTable dtContig = new DataTable
+        {
+            Columns =
+            {
+                new DataColumn("Contigs")
+            }
+        };
 
         public MainWindow()
         {
@@ -64,6 +71,11 @@ namespace SequenceAssemblerGUI
             {
                 dtDenovo.Clear();
                 dtPSM.Clear();
+                dtContig.Clear();
+
+
+                // Create a list to store the sequences for ContigAssembler
+                List<string> sequencesForAssembly = new List<string>();
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -78,6 +90,7 @@ namespace SequenceAssemblerGUI
                     novorParser = new();
                     novorParser.LoadNovorUniversal(mainDir);
 
+
                     foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
@@ -85,7 +98,7 @@ namespace SequenceAssemblerGUI
                         if (denovo.IsTag)
                         {
                             row["IsTag"] = "T";
-                        } 
+                        }
                         else
                         {
                             row["IsTag"] = "F";
@@ -97,21 +110,37 @@ namespace SequenceAssemblerGUI
                         row["Sequence"] = denovo.Peptide;
                         row["Score"] = denovo.Score;
                         row["AAScores"] = string.Join("-", denovo.AaScore);
-                        
+
                         dtDenovo.Rows.Add(row);
+                       // dtContig.Rows.Add(denovo.Peptide);
                     }
 
                     foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
-                        row["Folder"] = folderName; 
+                        row["Folder"] = folderName;
                         row["File"] = novorParser.FileDictionary[psm.File];
                         row["ScanNumber"] = psm.ScanNumber;
                         row["Sequence"] = psm.Peptide;
                         row["Score"] = psm.Score;
-                        
+
                         dtPSM.Rows.Add(row);
+
+                        sequencesForAssembly.Add(psm.Peptide);
                     }
+
+                    ContigAssembler contigAssembler = new ContigAssembler();
+                    int minOverlap = 2; // Você pode definir isso com base em suas necessidades
+                    List<string> assembledSequences = contigAssembler.AssembleContigSequences(sequencesForAssembly, minOverlap);
+
+                    // Adicione as sequências montadas à DataTable dtContig
+                    foreach (string assembledSequence in assembledSequences)
+                    {
+                        DataRow row = dtContig.NewRow();
+                        row["Contigs"] = assembledSequence;
+                        dtContig.Rows.Add(row);
+                    }
+
                 }
 
 
@@ -121,8 +150,12 @@ namespace SequenceAssemblerGUI
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
+                DataView dvContig = new DataView(dtContig);
+                DataGridContig.ItemsSource = dvContig;
+
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
+
 
                 Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
                 Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
@@ -133,6 +166,7 @@ namespace SequenceAssemblerGUI
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
             }
+            
         }
 
         private void UpdatePlot()
@@ -291,6 +325,9 @@ namespace SequenceAssemblerGUI
 
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
+
+            //int overlapContigs = (int)IntegerUpDownAAOverlap.Value;
+            //ContigAssembler.AssembleContigSequences(overlapContigs, psmDictTemp);
 
             UpdateDataView();
 

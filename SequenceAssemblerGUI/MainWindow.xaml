@@ -27,41 +27,50 @@
 
         <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
             <TabItem Header="Assembler">
-                
+
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="100"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="3*"/>
                         <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
 
-                    <GroupBox Header="Novor" Grid.Row="0">
-                        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Label Content="PSM Score"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="3" Minimum="1" Maximum="100"/>
-                            <Label Content="PSM MinLength"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
-                            <Label Content="PSM MaxLength" />
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                    <StackPanel  Grid.Row="0">
+                        <GroupBox Header="Novor">
+                            <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Label Content="PSM Score"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="3" Minimum="1" Maximum="100"/>
+                                <Label Content="PSM MinLength"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
+                                <Label Content="PSM MaxLength" />
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
 
-                            <Label Content="DeNovo Score"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="50" Maximum="100"/>
+                                <Label Content="DeNovo Score"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="50" Maximum="100"/>
 
-                            <Label Content="DeNovo MinLength" />
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
-                            <Label Content="DeNovo MaxLength" />
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
-                            <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
-                        </WrapPanel>
-                    </GroupBox>
+                                <Label Content="DeNovo MinLength" />
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
+                                <Label Content="DeNovo MaxLength" />
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                                <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
+                            </WrapPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Contig Assembly">
+                            <WrapPanel HorizontalAlignment="Center">
+                                <Label Content="AA Overlap"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
+                            </WrapPanel>
+                        </GroupBox>
+                    </StackPanel>
 
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" Grid.Row="1"/>
 
                     <GroupBox Grid.Row="2">
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
-                    
+
                     <TabControl Grid.Row="3">
                         <TabItem Header="DeNovo">
                             <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridDeNovo_LoadingRow"/>
@@ -69,17 +78,20 @@
                         <TabItem  Header="PSM">
                             <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
                         </TabItem>
+                        <TabItem Header="Contig Assembly">
+                            <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
+                        </TabItem>
                     </TabControl>
-                    
+
                 </Grid>
 
             </TabItem>
-            
+
             <TabItem x:Name="TabItemResults" Header="Results" IsEnabled ="False">
 
             </TabItem>
         </TabControl>
-        
+
 
 
     </Grid>
