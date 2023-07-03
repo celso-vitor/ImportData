@@ -129,6 +129,8 @@ namespace SequenceAssemblerGUI
                         sequencesForAssembly.Add(psm.Peptide);
                     }
 
+                    //Tentar implementar os parametros do minoverlap para filtrar meus dados que estão sendo inseridos na datatable
+
                     ContigAssembler contigAssembler = new ContigAssembler();
                     int minOverlap = 2; // Você pode definir isso com base em suas necessidades
                     List<string> assembledSequences = contigAssembler.AssembleContigSequences(sequencesForAssembly, minOverlap);
