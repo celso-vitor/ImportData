@@ -10,11 +10,11 @@ public class Program
     public static void Main()
     {
         // Inicializa uma lista de sequências de strings
-        List<string> trypsina = new List<string>() { "a", "b",  "c", "d", "e", "f", "g", "h", "i", "j", "k" };
-        List<string> pepsina = new List<string>() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "l", "m", "n", "o" };
-        List<string> lysc = new List<string>() { "f", "g", "h", "i" };
-        List<string> v3 = new List<string>() { "r", "s", "t", "u", "v" };
-        List<string> micro = new List<string>() { "i", "z" };
+        List<string> trypsina = new() { "a", "b",  "c", "d", "e", "f", "g", "h", "i", "j", "k" };
+        List<string> pepsina = new() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "l", "m", "n", "o" };
+        List<string> lysc = new() { "f", "g", "h", "i" };
+        List<string> v3 = new() { "r", "s", "t", "u", "v" };
+        List<string> micro = new() { "i", "z" };
 
 
 
