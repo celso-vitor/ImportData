@@ -15,9 +15,6 @@ public class Program
         List<string> lysc = new() { "f", "g", "h", "i" };
         List<string> v3 = new() { "r", "s", "t", "u", "v" };
         List<string> micro = new() { "i", "z" };
-
-
-
     }
 
     // Método para montar contigs a partir de uma lista de sequências
