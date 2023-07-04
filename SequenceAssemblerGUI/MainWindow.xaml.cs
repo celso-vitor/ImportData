@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace SequenceAssemblerGUI
@@ -47,14 +48,6 @@ namespace SequenceAssemblerGUI
             }
         };
 
-        DataTable dtContig = new DataTable
-        {
-            Columns =
-            {
-                new DataColumn("Contigs")
-            }
-        };
-
         public MainWindow()
         {
             InitializeComponent();
@@ -71,7 +64,6 @@ namespace SequenceAssemblerGUI
             {
                 dtDenovo.Clear();
                 dtPSM.Clear();
-                dtContig.Clear();
 
 
                 // Create a list to store the sequences for ContigAssembler
@@ -129,20 +121,6 @@ namespace SequenceAssemblerGUI
                         sequencesForAssembly.Add(psm.Peptide);
                     }
 
-                    //Tentar implementar os parametros do minoverlap para filtrar meus dados que estão sendo inseridos na datatable
-
-                    ContigAssembler contigAssembler = new ContigAssembler();
-                    int minOverlap = 2; // Você pode definir isso com base em suas necessidades
-                    List<string> assembledSequences = contigAssembler.AssembleContigSequences(sequencesForAssembly, minOverlap);
-
-                    // Adicione as sequências montadas à DataTable dtContig
-                    foreach (string assembledSequence in assembledSequences)
-                    {
-                        DataRow row = dtContig.NewRow();
-                        row["Contigs"] = assembledSequence;
-                        dtContig.Rows.Add(row);
-                    }
-
                 }
 
 
@@ -152,8 +130,6 @@ namespace SequenceAssemblerGUI
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
-                DataView dvContig = new DataView(dtContig);
-                DataGridContig.ItemsSource = dvContig;
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
@@ -221,7 +197,7 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
 
         }
-        private void UpdateDataView()
+        private async void UpdateDataView()
         {
             
             dtDenovo.Clear();
@@ -284,6 +260,36 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
+            //Generate and Update the Contig data view
+
+            int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
+            List<string> sequencesPSM =
+                (from s in psmDictTemp.Values
+                 from psmID in s
+                 select psmID.CleanPeptide).Distinct().ToList();
+
+            List<string> sequencesDeNovo =
+                (from s in deNovoDictTemp.Values
+                 from denovoID in s
+                 select denovoID.CleanPeptide).Distinct().ToList();
+
+            List<string> filteredSequences = sequencesPSM.Concat(sequencesDeNovo).ToList();
+
+            DataGridContig.IsEnabled = false;
+            loadingLabel.Visibility = Visibility.Visible;
+
+            var contigs = await Task.Run(
+                () =>
+                        {
+                            ContigAssembler ca = new ContigAssembler();
+                            return ca.AssembleContigSequences(filteredSequences, overlapAAForContigs);
+                        }
+                        );
+            DataGridContig.ItemsSource = contigs.Select(a => new { Contig = a });
+
+            DataGridContig.IsEnabled = true;
+            loadingLabel.Visibility = Visibility.Hidden;
+
         }
 
 
@@ -328,13 +334,10 @@ namespace SequenceAssemblerGUI
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            //int overlapContigs = (int)IntegerUpDownAAOverlap.Value;
-            //ContigAssembler.AssembleContigSequences(overlapContigs, psmDictTemp);
 
-            UpdateDataView();
-
-            // Update the plot with the filtered data
+            //Update the GUI
             UpdatePlot();
+            UpdateDataView();
 
         }
 

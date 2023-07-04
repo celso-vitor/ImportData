@@ -79,7 +79,11 @@
                             <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
                         </TabItem>
                         <TabItem Header="Contig Assembly">
-                            <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
+                            <Grid>
+                                <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
+                                <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            
                         </TabItem>
                     </TabControl>
 
