@@ -260,34 +260,46 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
-            //Generate and Update the Contig data view
-
+            // Define how many amino acids should overlap for contigs (partially overlapping sequences).
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
+
+            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
             List<string> sequencesPSM =
                 (from s in psmDictTemp.Values
                  from psmID in s
                  select psmID.CleanPeptide).Distinct().ToList();
 
+            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
             List<string> sequencesDeNovo =
                 (from s in deNovoDictTemp.Values
                  from denovoID in s
                  select denovoID.CleanPeptide).Distinct().ToList();
 
+            // Concatenate the PSM and deNovo sequence lists into a single list named filteredSequences.
             List<string> filteredSequences = sequencesPSM.Concat(sequencesDeNovo).ToList();
 
+            // Disable the DataGridContig to prevent user interaction while data is being loaded.
             DataGridContig.IsEnabled = false;
+
+            // Make a loading label visible to inform the user that data is being loaded.
             loadingLabel.Visibility = Visibility.Visible;
 
+            // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
             var contigs = await Task.Run(
                 () =>
-                        {
-                            ContigAssembler ca = new ContigAssembler();
-                            return ca.AssembleContigSequences(filteredSequences, overlapAAForContigs);
-                        }
+                {
+                    ContigAssembler ca = new ContigAssembler();
+                    return ca.AssembleContigSequences(filteredSequences, overlapAAForContigs);
+                }
                         );
+
+            // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
             DataGridContig.ItemsSource = contigs.Select(a => new { Contig = a });
 
+            // Re-enable the DataGridContig to allow user interaction.
             DataGridContig.IsEnabled = true;
+
+            // Hide the loading label as the data has now been loaded.
             loadingLabel.Visibility = Visibility.Hidden;
 
         }
