@@ -46,7 +46,7 @@
                                 <Label Content="PSM MaxLength" />
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
 
-                                <Label Content="DeNovo Score"/>
+                                <Label Content="DeNovo AA Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="50" Maximum="100"/>
 
                                 <Label Content="DeNovo MinLength" />
