@@ -1,0 +1,15 @@
+﻿using SequenceAssemblerLogic.ResultParser;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SequenceAssemblerLogic
+{
+    public class Contig
+    {
+        public string Sequence { get; set; }
+        public List<IDResult> IDs { get; set; }
+    }
+}

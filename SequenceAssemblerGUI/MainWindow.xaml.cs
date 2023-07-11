@@ -18,9 +18,10 @@ namespace SequenceAssemblerGUI
     public partial class MainWindow : Window
     {
         NovorParser novorParser;
-        Dictionary<string, List<PsmRegistry>> psmDictTemp;
-        Dictionary<string, List<DeNovoRegistry>> deNovoDictTemp;
+        Dictionary<string, List<IDResult>> psmDictTemp;
+        Dictionary<string, List<IDResult>> deNovoDictTemp;
         private string peptide;
+        List<Contig> contigs;
 
         DataTable dtDenovo = new DataTable
         {
@@ -285,16 +286,28 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Visible;
 
             // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
-            var contigs = await Task.Run(
+            contigs = await Task.Run
+            (
                 () =>
                 {
                     ContigAssembler ca = new ContigAssembler();
-                    return ca.AssembleContigSequences(filteredSequences, overlapAAForContigs);
+                    List<IDResult> results = new List<IDResult>();
+
+                    var resultsPSM = (from kvp in psmDictTemp
+                                      from r in kvp.Value
+                                      select r).ToList();
+
+                    var resultsDenovo = (from kvp in deNovoDictTemp
+                                     from r in kvp.Value
+                                     select r).ToList();
+
+
+                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
                 }
-                        );
+            );
 
             // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-            DataGridContig.ItemsSource = contigs.Select(a => new { Contig = a });
+            DataGridContig.ItemsSource = contigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
             // Re-enable the DataGridContig to allow user interaction.
             DataGridContig.IsEnabled = true;
@@ -310,8 +323,8 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
 
             //Reset the temporary Dictionary
-            deNovoDictTemp = new Dictionary<string, List<DeNovoRegistry>>();
-            psmDictTemp = new Dictionary<string, List<PsmRegistry>>();
+            deNovoDictTemp = new Dictionary<string, List<IDResult>>();
+            psmDictTemp = new Dictionary<string, List<IDResult>>();
 
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
@@ -319,7 +332,7 @@ namespace SequenceAssemblerGUI
             foreach (var kvp in novorParser.DictDenovo)
             {
 
-                List<DeNovoRegistry> list = (from rg in kvp.Value.Select(a => a).ToList()
+                List<IDResult> list = (from rg in kvp.Value.Select(a => a).ToList()
                                              from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                              select rg2).ToList();
 
@@ -375,6 +388,22 @@ namespace SequenceAssemblerGUI
         private void DataGridPSM_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (Contig c in contigs)
+            {
+                int total = c.IDs.Count;
+                int denovo = c.IDs.Count(a => !a.IsPSM);
+                int psm = c.IDs.Count(a => a.IsPSM);
+
+                if (total == denovo + psm)
+                {
+                    Console.WriteLine("Sequence {0}\nTotal {1}, DeNovo {2}, PSMs {3}", c.Sequence, total, denovo, psm);
+                }
+                Console.Write("");
+            }
         }
     }
 

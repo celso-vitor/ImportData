@@ -6,8 +6,8 @@ namespace SequenceAssemblerLogic.ResultParser
     public class NovorParser
     {
 
-        public Dictionary<string, List<DeNovoRegistry>> DictDenovo { get; private set; }
-        public Dictionary<string, List<PsmRegistry>> DictPsm { get; private set; }
+        public Dictionary<string, List<IDResult>> DictDenovo { get; private set; }
+        public Dictionary<string, List<IDResult>> DictPsm { get; private set; }
 
         public Dictionary<short, string> FileDictionary { get; private set; }
 
@@ -17,7 +17,7 @@ namespace SequenceAssemblerLogic.ResultParser
             DictPsm = new();
         }
 
-        public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<DeNovoRegistry>> theDict)
+        public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<IDResult>> theDict)
         {
             foreach (var kvp in theDict)
             {
@@ -26,7 +26,7 @@ namespace SequenceAssemblerLogic.ResultParser
         }
 
 
-        public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
+        public static void FilterDictMinLengthPSM(int peptideLength, Dictionary<string, List<IDResult>> theDict)
         {
             foreach (var kvp in theDict)
             {
@@ -34,7 +34,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
-        public static void FilterDictMaxLengthPSM(int peptideLength, Dictionary<string, List<PsmRegistry>> theDict)
+        public static void FilterDictMaxLengthPSM(int peptideLength, Dictionary<string, List<IDResult>> theDict)
         {
             foreach (var kvp in theDict)
             {
@@ -42,7 +42,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
         }
 
-        public static void FilterSequencesByScorePSM(double minScore, Dictionary<string, List<PsmRegistry>> theDict)
+        public static void FilterSequencesByScorePSM(double minScore, Dictionary<string, List<IDResult>> theDict)
         {
             foreach (var kvp in theDict)
             {
@@ -98,15 +98,16 @@ namespace SequenceAssemblerLogic.ResultParser
         }
        
 
-        private List<DeNovoRegistry> LoadNovorDeNovoRegistries(string denovofileName, short fileCounter)
+        private List<IDResult> LoadNovorDeNovoRegistries(string denovofileName, short fileCounter)
         {
             string[] lines = File.ReadAllLines(denovofileName);
-            List<DeNovoRegistry> myRegistries = new();
+            List<IDResult> myRegistries = new();
             for (int i = 22; i < lines.Length; i++)
             {
                 string[] cols = Regex.Split(lines[i], ",");
-                DeNovoRegistry deNovoRegistry = new DeNovoRegistry()
+                IDResult deNovoRegistry = new IDResult()
                 {
+                    IsPSM = false,
                     ScanNumber = int.Parse(cols[1]),
                     File = fileCounter,
                     RT = double.Parse(cols[2]),
@@ -123,14 +124,14 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-        private List<PsmRegistry> LoadNovorPsmRegistries(string psmfileName, short fileCounter)
+        private List<IDResult> LoadNovorPsmRegistries(string psmfileName, short fileCounter)
         {
             string[] line = File.ReadAllLines(psmfileName);
-            List<PsmRegistry> myRegistries = new();
+            List<IDResult> myRegistries = new();
             for (int i = 2; i < line.Length; i++)
             {
                 string[] columns = Regex.Split(line[i], ",");
-                PsmRegistry psmRegistry = new PsmRegistry()
+                IDResult psmRegistry = new IDResult()
                 {
                     ScanNumber = int.Parse(columns[2]),
                     File = fileCounter,

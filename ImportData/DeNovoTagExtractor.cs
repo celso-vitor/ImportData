@@ -19,23 +19,24 @@ namespace SequenceAssemblerLogic
 
 
         
-        public static List<DeNovoRegistry> DeNovoRegistryToTags (DeNovoRegistry registry, int minScore, int minLength)
+        public static List<IDResult> DeNovoRegistryToTags (IDResult registry, int minScore, int minLength)
         {
             
             List<(string PeptideSequence, List<int> Scores)> tagPrecursors = FindValidPeptides(registry.Peptide, registry.AaScore, minScore, minLength);
 
             if (tagPrecursors.Count == 0)
             {
-                return new List<DeNovoRegistry>();
+                return new List<IDResult>();
             } 
             else
             {
-                List<DeNovoRegistry> tags = new();
+                List<IDResult> tags = new();
 
                 foreach (var pt in tagPrecursors)
                 {
-                    DeNovoRegistry tag = new DeNovoRegistry()
+                    IDResult tag = new ()
                     {
+                        IsPSM = false,
                         IsTag = true,
                         ScanNumber = registry.ScanNumber,
                         RT = registry.RT,
