@@ -10,7 +10,7 @@ namespace SequenceAssemblerLogic
     {
         public static List<(string ID, int Gain)> GenerateOrderedGains(Dictionary<string, List<string>> listOfLists)
         {
-            // Identifica a lista com o maior número de sequências
+            // Identifies the list with the highest number of sequences
             string nameOfLargestList = "";
             int maxCount = 0;
 
@@ -25,7 +25,7 @@ namespace SequenceAssemblerLogic
 
             List<string> largestList = listOfLists[nameOfLargestList];
 
-            // Encontra as sequências que não estão presentes na maior lista
+            // Find strings that are not present in the largest list
             List<(string ID, int Gain)> sequenceGains = new List<(string ID, int Gain)>();
 
             foreach (var entry in listOfLists)
@@ -37,7 +37,7 @@ namespace SequenceAssemblerLogic
                 }
             }
 
-            // Ordena a lista de ganhos
+            // Sort the gain list
             sequenceGains.Sort((x, y) => y.Gain.CompareTo(x.Gain));
 
             return sequenceGains;

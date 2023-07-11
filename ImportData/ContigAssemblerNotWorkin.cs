@@ -9,7 +9,7 @@ namespace SequenceAssemblerLogic
     public class gContigAssemblerNotWorkin
     {
         int minOverlap;
-        public gContigAssemblerNotWorkin(int MinOverlap) 
+        public gContigAssemblerNotWorkin(int MinOverlap)
         {
             minOverlap = MinOverlap;
         }
@@ -18,31 +18,31 @@ namespace SequenceAssemblerLogic
         {
 
             sequences = sequences.Select(a => a.ToUpper()).OrderByDescending(a => a.Length).ToList();
-            // Lista para armazenar os contigs resultantes
+            // List to store the resulting contigs
             var contigs = new List<string>();
 
 
-            // Continua enquanto houver sequências para processar
+            // Continue as long as there are strings to process
             while (sequences.Count > 0)
             {
-                // Inicializa o contig atual com a primeira sequência da lista
+                // Initialize the current contig with the first sequence in the list
                 var currentContig = sequences[0];
                 sequences.RemoveAt(0);
 
-                // Loop infinito até encontrar uma sequência que não se sobreponha
+                // Infinite loop until finding a non-overlapping sequence
                 while (true)
                 {
                     var overlapIndex = -1;
                     var overlapSize = 0;
                     var overlapString = "";
 
-                    // Encontra a sequência com a maior sobreposição
+                    // Find the sequence with the most overlap
                     for (int i = 0; i < sequences.Count; i++)
                     {
-                        // Obtém o tamanho da sobreposição
+                        // Get the size of the overlay
                         var overlap = GetOverlapLength(currentContig, sequences[i]);
-                        // Se a sobreposição for maior que a sobreposição encontrada anteriormente,
-                        // atualiza o índice e tamanho da sobreposição
+                        // If the overlap is greater than the previously found overlap,
+                        // update the overlay index and size
                         if (overlap > overlapSize)
                         {
                             overlapSize = overlap;
@@ -51,7 +51,7 @@ namespace SequenceAssemblerLogic
                         }
                     }
 
-                    // Se uma sequência sobreposta foi encontrada, anexe-a ao contig atual
+                    // If an overlapping string was found, append it to the current contig
                     if (overlapIndex != -1)
                     {
                         currentContig += overlapString;
@@ -59,20 +59,20 @@ namespace SequenceAssemblerLogic
                     }
                     else
                     {
-                        // Se não houver mais sobreposições, saia do loop
+                        // If there are no more overlaps, exit the loop
                         break;
                     }
                 }
 
-                // Adiciona o contig atual à lista de contigs
+                // Add current contig to list of contigs
                 contigs.Add(currentContig);
             }
 
-            // Retorna a lista de contigs montados
+            // Returns the list of mounted contigs
             return contigs;
         }
 
-        // Método para calcular o tamanho da sobreposição entre duas sequências
+        // Method to calculate overlap size between two sequences
         private int GetOverlapLength(string seq1, string seq2)
         {
             int length = 0;
