@@ -22,6 +22,7 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> deNovoDictTemp;
         private string peptide;
         List<Contig> contigs;
+        List<FASTA> MyFasta;
 
         DataTable dtDenovo = new DataTable
         {
