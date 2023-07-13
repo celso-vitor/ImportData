@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using static SequenceAssemblerLogic.SequenceAssembler;
 
 namespace SequenceAssemblerGUI
 {
@@ -22,7 +23,8 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> deNovoDictTemp;
         private string peptide;
         List<Contig> contigs;
-        List<FASTA> MyFasta;
+        List<FASTA> myFasta;
+        
 
         DataTable dtDenovo = new DataTable
         {
@@ -334,7 +336,7 @@ namespace SequenceAssemblerGUI
             {
 
                 List<IDResult> list = (from rg in kvp.Value.Select(a => a).ToList()
-                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
+                                       from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                              select rg2).ToList();
 
                 deNovoDictTemp.Add(kvp.Key, list);
@@ -370,12 +372,29 @@ namespace SequenceAssemblerGUI
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             TabItemResults.IsEnabled = true;
-
             TabControlMain.SelectedItem = TabItemResults;
+
+            VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
+            openFileDialog.Multiselect = true;
+            openFileDialog.Filter = "FASTA Files (*.fasta)|*.fasta";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                List<SequenceAssembler.FASTA> fastaList = new List<SequenceAssembler.FASTA>();
+
+                foreach (string fileName in openFileDialog.FileNames)
+                {
+                    SequenceAssembler.FASTA fasta = new SequenceAssembler.FASTA();
+                    fasta.ID = fileName;
+                    fasta.Sequence = File.ReadAllText(fileName);
+
+                    fastaList.Add(fasta);
+                }
+            }
 
         }
 
-        private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
+            private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
 
