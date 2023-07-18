@@ -67,6 +67,7 @@
                     </StackPanel>
 
                     <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" Grid.Row="1"/>
+                    
 
                     <GroupBox Grid.Row="2">
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
@@ -92,7 +93,10 @@
 
             </TabItem>
 
-            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled ="False">
+            <TabItem x:Name="TabItemResults" Header="Results">
+              <DataGrid x:Name="DataGridFasta" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"/>
+                
+                
 
             </TabItem>
         </TabControl>

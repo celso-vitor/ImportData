@@ -10,9 +10,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using static SequenceAssemblerLogic.SequenceAssembler;
+using static SequenceAssemblerLogic.FASTA;
 
 namespace SequenceAssemblerGUI
 {
@@ -23,8 +24,7 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> deNovoDictTemp;
         private string peptide;
         List<Contig> contigs;
-        List<FASTA> myFasta;
-        
+        List<FASTA> MyFasta;
 
         DataTable dtDenovo = new DataTable
         {
@@ -36,19 +36,28 @@ namespace SequenceAssemblerGUI
                 new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
                 new DataColumn("AAScores"),
-                new DataColumn("ScanNumber", typeof(int)) 
+                new DataColumn("ScanNumber", typeof(int))
             }
         };
 
         DataTable dtPSM = new DataTable
         {
-            Columns = 
+            Columns =
             {
                 new DataColumn("Folder"),
                 new DataColumn("File"),
                 new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
-                new DataColumn("ScanNumber", typeof(int)) 
+                new DataColumn("ScanNumber", typeof(int))
+            }
+        };
+
+        DataTable dtFasta = new DataTable
+        {
+            Columns =
+            {
+                new DataColumn("ID"),
+                new DataColumn("Sequence")
             }
         };
 
@@ -108,7 +117,7 @@ namespace SequenceAssemblerGUI
                         row["AAScores"] = string.Join("-", denovo.AaScore);
 
                         dtDenovo.Rows.Add(row);
-                       // dtContig.Rows.Add(denovo.Peptide);
+                      
                     }
 
                     foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
@@ -134,6 +143,7 @@ namespace SequenceAssemblerGUI
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
+               
 
                 int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
@@ -148,7 +158,7 @@ namespace SequenceAssemblerGUI
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
             }
-            
+
         }
 
         private void UpdatePlot()
@@ -203,7 +213,7 @@ namespace SequenceAssemblerGUI
         }
         private async void UpdateDataView()
         {
-            
+
             dtDenovo.Clear();
 
             if (deNovoDictTemp != null)
@@ -255,7 +265,7 @@ namespace SequenceAssemblerGUI
                         row["ScanNumber"] = psm.ScanNumber;
                         row["Sequence"] = psm.Peptide;
                         row["Score"] = psm.Score;
-                        
+
                         dtPSM.Rows.Add(row);
                     }
                 }
@@ -301,8 +311,8 @@ namespace SequenceAssemblerGUI
                                       select r).ToList();
 
                     var resultsDenovo = (from kvp in deNovoDictTemp
-                                     from r in kvp.Value
-                                     select r).ToList();
+                                         from r in kvp.Value
+                                         select r).ToList();
 
 
                     return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
@@ -337,7 +347,7 @@ namespace SequenceAssemblerGUI
 
                 List<IDResult> list = (from rg in kvp.Value.Select(a => a).ToList()
                                        from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
-                                             select rg2).ToList();
+                                       select rg2).ToList();
 
                 deNovoDictTemp.Add(kvp.Key, list);
             }
@@ -368,33 +378,86 @@ namespace SequenceAssemblerGUI
             UpdateDataView();
 
         }
-
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
-            TabItemResults.IsEnabled = true;
-            TabControlMain.SelectedItem = TabItemResults;
 
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
-            openFileDialog.Multiselect = true;
+            openFileDialog.Multiselect = false;
             openFileDialog.Filter = "FASTA Files (*.fasta)|*.fasta";
 
             if (openFileDialog.ShowDialog() == true)
             {
-                List<SequenceAssembler.FASTA> fastaList = new List<SequenceAssembler.FASTA>();
+                ProcessFastaFile(openFileDialog.FileName);
+                LoadFASTAIntoDataTable(MyFasta);
+            }
+        }
+        private List<FASTA> ProcessFastaFile(string fileName)
+        {
+            var MyFasta = new List<FASTA>();
 
-                foreach (string fileName in openFileDialog.FileNames)
+            string line;
+            string id = null;
+            StringBuilder sequence = new StringBuilder();
+
+            using (var reader = new StreamReader(fileName))
+            {
+                while ((line = reader.ReadLine()) != null)
                 {
-                    SequenceAssembler.FASTA fasta = new SequenceAssembler.FASTA();
-                    fasta.ID = fileName;
-                    fasta.Sequence = File.ReadAllText(fileName);
+                    if (line.StartsWith(">"))
+                    {
+                        if (id != null)
+                        {
+                            MyFasta.Add(new FASTA { ID = id, Sequence = sequence.ToString() });
+                            sequence.Clear();
+                        }
 
-                    fastaList.Add(fasta);
+                        id = line;
+                    }
+                    else
+                    {
+                        sequence.Append(line);
+                    }
+                }
+
+                if (id != null)
+                {
+                    MyFasta.Add(new FASTA { ID = id, Sequence = sequence.ToString() });
                 }
             }
 
+            return MyFasta;
+           
         }
+        private void LoadFASTAIntoDataTable(List<FASTA> myFasta)
+        {
+            if (MyFasta == null)
+            {
+                throw new ArgumentNullException(nameof(MyFasta));
+            }
 
-            private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
+            if (dtFasta == null)
+            {
+                dtFasta = new DataTable();
+
+                dtFasta.Columns.Add("ID", typeof(string));
+                dtFasta.Columns.Add("Sequence", typeof(string));
+            }
+
+            foreach (var fasta in MyFasta)
+            {
+                if (fasta == null)
+                {
+                    continue;
+                }
+
+                DataRow row = dtFasta.NewRow();
+                row["ID"] = fasta.ID ?? string.Empty;
+                row["Sequence"] = fasta.Sequence ?? string.Empty;
+                dtFasta.Rows.Add(row);
+            }
+            DataView dvFasta = new DataView(dtFasta);
+        }
+        private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
 
@@ -424,9 +487,10 @@ namespace SequenceAssemblerGUI
                 }
                 Console.Write("");
             }
-        }
+        } 
     }
 
-}
+} 
+
 
 

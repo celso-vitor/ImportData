@@ -148,5 +148,10 @@ namespace SequenceAssemblerLogic.ResultParser
             }
             return myRegistries;
         }
+
+        //Method for finding valid peptides sequences
+        
+
+
     }
 }
