@@ -13,7 +13,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using static SequenceAssemblerLogic.FASTA;
 
 namespace SequenceAssemblerGUI
 {
@@ -52,14 +51,6 @@ namespace SequenceAssemblerGUI
             }
         };
 
-        DataTable dtFasta = new DataTable
-        {
-            Columns =
-            {
-                new DataColumn("ID"),
-                new DataColumn("Sequence")
-            }
-        };
 
         public MainWindow()
         {
@@ -387,76 +378,12 @@ namespace SequenceAssemblerGUI
 
             if (openFileDialog.ShowDialog() == true)
             {
-                ProcessFastaFile(openFileDialog.FileName);
-                LoadFASTAIntoDataTable(MyFasta);
+                MyFasta = Useful.LoadFasta(openFileDialog.FileName);
+                DataGridFasta.ItemsSource = MyFasta;
             }
         }
-        private List<FASTA> ProcessFastaFile(string fileName)
-        {
-            var MyFasta = new List<FASTA>();
 
-            string line;
-            string id = null;
-            StringBuilder sequence = new StringBuilder();
 
-            using (var reader = new StreamReader(fileName))
-            {
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (line.StartsWith(">"))
-                    {
-                        if (id != null)
-                        {
-                            MyFasta.Add(new FASTA { ID = id, Sequence = sequence.ToString() });
-                            sequence.Clear();
-                        }
-
-                        id = line;
-                    }
-                    else
-                    {
-                        sequence.Append(line);
-                    }
-                }
-
-                if (id != null)
-                {
-                    MyFasta.Add(new FASTA { ID = id, Sequence = sequence.ToString() });
-                }
-            }
-
-            return MyFasta;
-           
-        }
-        private void LoadFASTAIntoDataTable(List<FASTA> myFasta)
-        {
-            if (MyFasta == null)
-            {
-                throw new ArgumentNullException(nameof(MyFasta));
-            }
-
-            if (dtFasta == null)
-            {
-                dtFasta = new DataTable();
-
-                dtFasta.Columns.Add("ID", typeof(string));
-                dtFasta.Columns.Add("Sequence", typeof(string));
-            }
-
-            foreach (var fasta in MyFasta)
-            {
-                if (fasta == null)
-                {
-                    continue;
-                }
-
-                DataRow row = dtFasta.NewRow();
-                row["ID"] = fasta.ID ?? string.Empty;
-                row["Sequence"] = fasta.Sequence ?? string.Empty;
-                dtFasta.Rows.Add(row);
-            }
-            DataView dvFasta = new DataView(dtFasta);
-        }
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();

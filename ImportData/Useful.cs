@@ -8,6 +8,48 @@ namespace SequenceAssemblerLogic
 {
     public static class Useful
     {
+
+        public static List<FASTA> LoadFasta(string fileName)
+        {
+            List<FASTA> MyFasta = new List<FASTA>();
+
+            string line;
+            string id = null;
+            string description = null;
+
+            FASTA f = new FASTA();
+
+            using (var reader = new StreamReader(fileName))
+            {
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.Length == 0)
+                    {
+                        //do nothing
+                    }
+                    else if (line.StartsWith(">"))
+                    {
+
+                        string[] parts = line.Substring(1).Split(new[] { ' ' }, 2); // Remove '>' and split
+                        if (parts.Length >= 2)
+                        {
+
+                            id = parts[0];
+                            description = parts[1];
+                            MyFasta.Add(new FASTA { ID = id, Description = description });
+                        }
+
+                    }
+                    else
+                    {
+                        MyFasta.Last().Sequence += line;
+                    }
+                }
+            }
+
+            return MyFasta;
+
+        }
         public static List<(string ID, int Gain)> GenerateOrderedGains(Dictionary<string, List<string>> listOfLists)
         {
             // Identifies the list with the highest number of sequences

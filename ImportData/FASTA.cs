@@ -9,6 +9,7 @@ namespace SequenceAssemblerLogic
     public class FASTA
     {
         public string ID { get; set; }
+        public string Description { get; set; }
         public string Sequence { get; set; }
     }
 }
