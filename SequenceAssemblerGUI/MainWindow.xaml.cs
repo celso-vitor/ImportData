@@ -369,6 +369,7 @@ namespace SequenceAssemblerGUI
             UpdateDataView();
 
         }
+        //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
 
@@ -402,19 +403,26 @@ namespace SequenceAssemblerGUI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            foreach (Contig c in contigs)
+            if (contigs != null)
             {
-                int total = c.IDs.Count;
-                int denovo = c.IDs.Count(a => !a.IsPSM);
-                int psm = c.IDs.Count(a => a.IsPSM);
-
-                if (total == denovo + psm)
+                foreach (Contig c in contigs)
                 {
-                    Console.WriteLine("Sequence {0}\nTotal {1}, DeNovo {2}, PSMs {3}", c.Sequence, total, denovo, psm);
+                    int total = c.IDs.Count;
+                    int denovo = c.IDs.Count(a => !a.IsPSM);
+                    int psm = c.IDs.Count(a => a.IsPSM);
+
+                    if (total == denovo + psm)
+                    {
+                        Console.WriteLine("Sequence {0}\nTotal {1}, DeNovo {2}, PSMs {3}", c.Sequence, total, denovo, psm);
+                    }
+                    Console.Write("");
                 }
-                Console.Write("");
             }
-        } 
+            else
+            {
+                Console.WriteLine("contigs is null");
+            }
+        }
     }
 
 } 

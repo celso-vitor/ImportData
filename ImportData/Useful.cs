@@ -8,7 +8,7 @@ namespace SequenceAssemblerLogic
 {
     public static class Useful
     {
-
+        //Add fasta file 
         public static List<FASTA> LoadFasta(string fileName)
         {
             List<FASTA> MyFasta = new List<FASTA>();
