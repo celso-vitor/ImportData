@@ -7,29 +7,18 @@ public class Program
 {
     public static void Main()
     {
-        // Initialize a list of string sequences
-        List<string> trypsina = new() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k" };
-        List<string> pepsina = new() { "a", "b", "c", "d", "e", "f", "g", "h", "i", "l", "m", "n", "o" };
-        List<string> lysc = new() { "f", "g", "h", "i" };
-        List<string> v3 = new() { "r", "s", "t", "u", "v" };
-        List<string> micro = new() { "i", "z" };
-
-        // Put all lists into a list of lists
-        Dictionary<string, List<string>> listOfLists = new Dictionary<string, List<string>>
-    {
-        {"trypsina", trypsina},
-        {"pepsina", pepsina},
-        {"lysc", lysc},
-        {"v3", v3},
-        {"micro", micro}
-    };
-
-        List<(string ID, int Gain)> sequenceGains = Useful.GenerateOrderedGains(listOfLists);
-
-        // Print earnings sorted by id and gain
-        foreach (var entry in sequenceGains)
+        string clustaloPath = System.IO.Path.GetTempPath() + "clustalo.exe";
+        Console.WriteLine(System.IO.Path.GetTempPath());
+        if(!File.Exists(clustaloPath))
         {
-            Console.WriteLine($"ID: {entry.ID}, Gain: {entry.Gain}");
+            File.WriteAllBytes(System.IO.Path.GetTempPath() + "clustalo.exe", SequenceAssemblerLogic.Properties.Resources.clustalo);
+            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libgcc_s_sjlj-1.dll", SequenceAssemblerLogic.Properties.Resources.libgcc_s_sjlj_1);
+            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libgomp-1.dll", SequenceAssemblerLogic.Properties.Resources.libgomp_1);
+            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libstdc++-6.dll", SequenceAssemblerLogic.Properties.Resources.libstdc___6);
+            File.WriteAllBytes(System.IO.Path.GetTempPath() + "pthreadGC2-w64.dll", SequenceAssemblerLogic.Properties.Resources.pthreadGC2_w64);
         }
+        string input = "sequence.fasta"; //Série de sequencias 
+        string output = "output.txt";
+        //como chamar o metodo envoque no c# para executar o arquivo de entrada e gerar o arquivo de saída
     }
 }
