@@ -310,6 +310,8 @@ namespace SequenceAssemblerGUI
                 }
             );
 
+            ButtonProcess.IsEnabled = true;
+
             // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
             DataGridContig.ItemsSource = contigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
