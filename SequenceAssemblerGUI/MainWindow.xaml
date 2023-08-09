@@ -61,7 +61,7 @@
                             <WrapPanel HorizontalAlignment="Center">
                                 <Label Content="AA Overlap"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
-                                <Button Content="Debug" Click="Button_Click"/>
+                                <Button Content="Debug" Click="Button_Click" Margin="2,2,2,2"/>
                             </WrapPanel>
                         </GroupBox>
                     </StackPanel>
