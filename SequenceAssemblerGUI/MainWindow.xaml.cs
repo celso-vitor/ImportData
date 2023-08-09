@@ -383,7 +383,13 @@ namespace SequenceAssemblerGUI
             {
                 MyFasta = Useful.LoadFasta(openFileDialog.FileName);
                 DataGridFasta.ItemsSource = MyFasta;
+
+                //Gerar um arquivo txt, que inclui o Fasta Selecionado mais os contigs
+
+
             }
+
+
         }
 
 

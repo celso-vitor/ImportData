@@ -56,7 +56,7 @@
                                 <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                             </WrapPanel>
                         </GroupBox>
-                        
+
                         <GroupBox Header="Contig Assembly">
                             <WrapPanel HorizontalAlignment="Center">
                                 <Label Content="AA Overlap"/>
@@ -66,7 +66,13 @@
                         </GroupBox>
                     </StackPanel>
 
-                    <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" IsEnabled="False" Grid.Row="1"/>
+                    <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
+                        <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
+                        <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" IsEnabled="False" Grid.Row="1" Width="200"/>
+                    </WrapPanel>
+
+                    
                     
 
                     <GroupBox Grid.Row="2">
