@@ -11,6 +11,7 @@ public class Program
     private static void Main()
     {
         Console.WriteLine("Por favor, insira o caminho para o arquivo FASTA:");
+        //Mudar o caminho utilizando a proteina 
 
         string clustaloPath = System.IO.Path.GetTempPath() + "clustalo.exe";
         Console.WriteLine(System.IO.Path.GetTempPath());

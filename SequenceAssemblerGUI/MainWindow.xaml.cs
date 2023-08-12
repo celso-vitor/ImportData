@@ -265,7 +265,7 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
-            // Define how many amino acids should overlap for contigs (partially overlapping sequences).
+            // How many amino acids should overlap for contigs (partially overlapping sequences).
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
 
             // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
@@ -323,6 +323,23 @@ namespace SequenceAssemblerGUI
 
         }
 
+        private string ContigsToFastaFormat(List<Contig> contigs)
+        {
+            StringBuilder fastaFormat = new StringBuilder();
+            int counter = 1;
+
+            foreach (Contig contig in contigs)
+            {
+                fastaFormat.AppendLine($">Contig_{counter}");
+                fastaFormat.AppendLine(contig.Sequence);
+                counter++;
+            }
+
+            return fastaFormat.ToString();
+            string contigsInFastaFormat = ContigsToFastaFormat(contigs);
+        }
+
+
 
         private void UpdateGeneral()
         {
@@ -374,7 +391,6 @@ namespace SequenceAssemblerGUI
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
-
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
             openFileDialog.Multiselect = false;
             openFileDialog.Filter = "FASTA Files (*.fasta)|*.fasta";
@@ -384,12 +400,23 @@ namespace SequenceAssemblerGUI
                 MyFasta = Useful.LoadFasta(openFileDialog.FileName);
                 DataGridFasta.ItemsSource = MyFasta;
 
-                //Gerar um arquivo txt, que inclui o Fasta Selecionado mais os contigs
+                // Initialize the StringBuilder to combine the contents
+                StringBuilder combinedContent = new StringBuilder();
 
+                // Adds the contents of the selected FASTA file
+                combinedContent.AppendLine(File.ReadAllText(openFileDialog.FileName));
 
+                // Add the contigs to the content in FASTA format
+                combinedContent.AppendLine(ContigsToFastaFormat(contigs));  // supondo que 'contigs' é a lista dos contigs já gerados
+
+                // Define the path where the combined file will be saved
+                string savePath = Path.Combine(Path.GetDirectoryName(openFileDialog.FileName), "combinedOutput.txt");
+
+                // Save the combined content in a new .txt file
+                File.WriteAllText(savePath, combinedContent.ToString());
+
+                MessageBox.Show($"Arquivo combinado salvo em {savePath}");
             }
-
-
         }
 
 
