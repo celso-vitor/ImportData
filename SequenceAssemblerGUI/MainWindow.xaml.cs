@@ -322,25 +322,7 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Hidden;
 
         }
-
-        private string ContigsToFastaFormat(List<Contig> contigs)
-        {
-            StringBuilder fastaFormat = new StringBuilder();
-            int counter = 1;
-
-            foreach (Contig contig in contigs)
-            {
-                fastaFormat.AppendLine($">Contig_{counter}");
-                fastaFormat.AppendLine(contig.Sequence);
-                counter++;
-            }
-
-            return fastaFormat.ToString();
-            string contigsInFastaFormat = ContigsToFastaFormat(contigs);
-        }
-
-
-
+       
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
@@ -407,7 +389,7 @@ namespace SequenceAssemblerGUI
                 combinedContent.AppendLine(File.ReadAllText(openFileDialog.FileName));
 
                 // Add the contigs to the content in FASTA format
-                combinedContent.AppendLine(ContigsToFastaFormat(contigs));  // supondo que 'contigs' é a lista dos contigs já gerados
+                combinedContent.AppendLine(SequenceAssemblerLogic.Useful.ContigsToFastaFormat(contigs));  // supondo que 'contigs' é a lista dos contigs já gerados
 
                 // Define the path where the combined file will be saved
                 string savePath = Path.Combine(Path.GetDirectoryName(openFileDialog.FileName), "combinedOutput.txt");

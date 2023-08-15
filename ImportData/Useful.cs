@@ -84,5 +84,23 @@ namespace SequenceAssemblerLogic
 
             return sequenceGains;
         }
+
+        public static string ContigsToFastaFormat(List<Contig> contigs)
+        {
+            StringBuilder fastaFormat = new StringBuilder();
+            int counter = 1;
+
+            foreach (Contig contig in contigs)
+            {
+                fastaFormat.AppendLine($">Contig_{counter}");
+                fastaFormat.AppendLine(contig.Sequence);
+                counter++;
+            }
+
+            return fastaFormat.ToString();
+            string contigsInFastaFormat = ContigsToFastaFormat(contigs);
+        }
+
+
     }
 }

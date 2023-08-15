@@ -12,9 +12,9 @@ public class Program
     {
         Console.WriteLine("Por favor, insira o caminho para o arquivo FASTA:");
         //Mudar o caminho utilizando a proteina 
-
+        //combinedOutput.txt
         string clustaloPath = System.IO.Path.GetTempPath() + "clustalo.exe";
-        Console.WriteLine(System.IO.Path.GetTempPath());
+        //Console.WriteLine(System.IO.Path.GetTempPath());
         if (!File.Exists(clustaloPath))
         {
             File.WriteAllBytes(System.IO.Path.GetTempPath() + "clustalo.exe", SequenceAssemblerLogic.Properties.Resources.clustalo);
