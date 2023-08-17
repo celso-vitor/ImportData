@@ -396,8 +396,15 @@ namespace SequenceAssemblerGUI
 
                 // Save the combined content in a new .txt file
                 File.WriteAllText(savePath, combinedContent.ToString());
+                // Depois de salvar o arquivo combinado
+                File.WriteAllText(savePath, combinedContent.ToString());
+
+                // Parse the combined file and store the strings in a list
+                List<FASTA> fastaSequences = SequenceAssemblerLogic.FastaParser.ParseFastaFile(savePath);
 
                 MessageBox.Show($"Arquivo combinado salvo em {savePath}");
+
+                MessageBox.Show($"Número total de sequências: {fastaSequences.Count}\nSequência Fasta: {fastaSequences[0].ID}");
             }
         }
 
