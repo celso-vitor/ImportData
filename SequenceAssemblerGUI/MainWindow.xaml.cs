@@ -404,7 +404,7 @@ namespace SequenceAssemblerGUI
 
                 MessageBox.Show($"Arquivo combinado salvo em {savePath}");
 
-                MessageBox.Show($"Número total de sequências: {fastaSequences.Count}\nSequência Fasta: {fastaSequences[0].ID}");
+                MessageBox.Show($"Totality sequence: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
             }
         }
 
