@@ -402,9 +402,9 @@ namespace SequenceAssemblerGUI
                 // Parse the combined file and store the strings in a list
                 List<FASTA> fastaSequences = SequenceAssemblerLogic.FastaParser.ParseFastaFile(savePath);
 
-                MessageBox.Show($"Arquivo combinado salvo em {savePath}");
+                Console.WriteLine($"File generated at {savePath}");
 
-                MessageBox.Show($"Totality sequence: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
+                Console.WriteLine($"Number of contigs: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
             }
         }
 
