@@ -4,6 +4,7 @@ using OxyPlot.Axes;
 using OxyPlot.Legends;
 using OxyPlot.Series;
 using SequenceAssemblerLogic;
+using SequenceAssemblerLogic.Aligment;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
@@ -396,18 +397,26 @@ namespace SequenceAssemblerGUI
 
                 // Save the combined content in a new .txt file
                 File.WriteAllText(savePath, combinedContent.ToString());
-                // Depois de salvar o arquivo combinado
-                File.WriteAllText(savePath, combinedContent.ToString());
 
                 // Parse the combined file and store the strings in a list
                 List<FASTA> fastaSequences = SequenceAssemblerLogic.FastaParser.ParseFastaFile(savePath);
 
                 Console.WriteLine($"File generated at {savePath}");
 
-                Console.WriteLine($"Number of contigs: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
+                if (fastaSequences.Count > 0)
+                {
+                    Console.WriteLine($"Number of contigs: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
+
+                    SequenceAligner aligner = new SequenceAligner();
+                    aligner.AlignSequences(fastaSequences);
+                    Console.WriteLine(string.Join("\n", fastaSequences.Select(f => $"{f.ID}: {f.Sequence}")));
+                }
+                else
+                {
+                    Console.WriteLine("No valid sequences found in the file.");
+                }
             }
         }
-
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
