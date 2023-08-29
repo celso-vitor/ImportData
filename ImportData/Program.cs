@@ -5,75 +5,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using static System.Net.Mime.MediaTypeNames;
+using System.Xml;
 
 public class Program
 {
     private static void Main()
     {
-        Console.WriteLine("Por favor, insira o caminho para o arquivo FASTA:");
-        //Mudar o caminho utilizando a proteina 
-        //combinedOutput.txt
-        string clustaloPath = System.IO.Path.GetTempPath() + "clustalo.exe";
-        //Console.WriteLine(System.IO.Path.GetTempPath());
-        if (!File.Exists(clustaloPath))
+        List<FASTA> alignments = FastaParser.ParseFastaFile("output.txt");
+        Console.WriteLine(alignments.Count + " alignments read");
+
+        List<(string word, int startPos)> contigPos = new();
+        
+        if (alignments.Count > 1)
         {
-            File.WriteAllBytes(System.IO.Path.GetTempPath() + "clustalo.exe", SequenceAssemblerLogic.Properties.Resources.clustalo);
-            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libgcc_s_sjlj-1.dll", SequenceAssemblerLogic.Properties.Resources.libgcc_s_sjlj_1);
-            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libgomp-1.dll", SequenceAssemblerLogic.Properties.Resources.libgomp_1);
-            File.WriteAllBytes(System.IO.Path.GetTempPath() + "libstdc++-6.dll", SequenceAssemblerLogic.Properties.Resources.libstdc___6);
-            File.WriteAllBytes(System.IO.Path.GetTempPath() + "pthreadGC2-w64.dll", SequenceAssemblerLogic.Properties.Resources.pthreadGC2_w64);
-        }
-        string input = Console.ReadLine();
-        string output = "output.txt";
-
-        ProcessStartInfo startInfo = new ProcessStartInfo
-        {
-            FileName = clustaloPath,
-            Arguments = $"-i \"{input}\" -o \"{output}\" --force",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        try
-        {
-            Process process = new Process { StartInfo = startInfo };
-            process.Start();
-
-            string standardOutput = process.StandardOutput.ReadToEnd();
-            string standardError = process.StandardError.ReadToEnd();
-
-            process.WaitForExit();
-
-            if (string.IsNullOrEmpty(standardOutput) && string.IsNullOrEmpty(standardError))
+            for (int i = 1; i < alignments.Count; i++)
             {
-                Console.WriteLine("Nenhuma saída padrão ou erro foi gerado pelo processo.");
-            }
-            else
-            {
-                Console.WriteLine(standardOutput);
-                if (!string.IsNullOrEmpty(standardError))
-                {
-                    Console.Error.WriteLine(standardError);
-                }
+
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Uma exceção ocorreu: {ex.Message}");
-        }
+        
 
-        if (File.Exists(output))
-        {
-            string outputFileContent = File.ReadAllText(output);
-            Console.WriteLine("Conteúdo do arquivo de saída:");
-            Console.WriteLine(outputFileContent);
-        }
-        else
-        {
-            Console.WriteLine("Arquivo de saída não encontrado.");
-        }
+        Console.WriteLine("Done");
+
+
 
     }
 }

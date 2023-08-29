@@ -4,7 +4,6 @@ using OxyPlot.Axes;
 using OxyPlot.Legends;
 using OxyPlot.Series;
 using SequenceAssemblerLogic;
-using SequenceAssemblerLogic.Aligment;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
@@ -408,7 +407,15 @@ namespace SequenceAssemblerGUI
                     Console.WriteLine($"Number of contigs: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
 
                     SequenceAligner aligner = new SequenceAligner();
-                    aligner.AlignSequences(fastaSequences);
+                    List<FASTA> alignments = aligner.AlignSequences(fastaSequences);
+
+                    List<(string word, int position)> aaPos = new();
+
+                    if (alignments.Count > 1) 
+                    {
+
+                    }
+
                     Console.WriteLine(string.Join("\n", fastaSequences.Select(f => $"{f.ID}: {f.Sequence}")));
                 }
                 else

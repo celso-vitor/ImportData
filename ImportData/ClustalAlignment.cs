@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace SequenceAssemblerLogic.Aligment;
+namespace SequenceAssemblerLogic;
 public class SequenceAligner
 {
     private const string ClustaloName = "clustalo.exe";
@@ -13,18 +13,19 @@ public class SequenceAligner
     {
         if (!File.Exists(GetTempFilePath(ClustaloName)))
         {
-            File.WriteAllBytes(GetTempFilePath(ClustaloName), SequenceAssemblerLogic.Properties.Resources.clustalo);
-            File.WriteAllBytes(GetTempFilePath("libgcc_s_sjlj-1.dll"), SequenceAssemblerLogic.Properties.Resources.libgcc_s_sjlj_1);
-            File.WriteAllBytes(GetTempFilePath("libgomp-1.dll"), SequenceAssemblerLogic.Properties.Resources.libgomp_1);
-            File.WriteAllBytes(GetTempFilePath("libstdc++-6.dll"), SequenceAssemblerLogic.Properties.Resources.libstdc___6);
-            File.WriteAllBytes(GetTempFilePath("pthreadGC2-w64.dll"), SequenceAssemblerLogic.Properties.Resources.pthreadGC2_w64);
+            File.WriteAllBytes(GetTempFilePath(ClustaloName), Properties.Resources.clustalo);
+            File.WriteAllBytes(GetTempFilePath("libgcc_s_sjlj-1.dll"), Properties.Resources.libgcc_s_sjlj_1);
+            File.WriteAllBytes(GetTempFilePath("libgomp-1.dll"), Properties.Resources.libgomp_1);
+            File.WriteAllBytes(GetTempFilePath("libstdc++-6.dll"), Properties.Resources.libstdc___6);
+            File.WriteAllBytes(GetTempFilePath("pthreadGC2-w64.dll"), Properties.Resources.pthreadGC2_w64);
         }
     }
 
-    public void AlignSequences(List<FASTA> sequences)
+    public List<FASTA> AlignSequences(List<FASTA> sequences)
     {
         // Escreve a lista de sequências em um arquivo temporário
         string input = Path.Combine(Path.GetTempPath(), "tempFasta.fasta");
+
         using (StreamWriter writer = new StreamWriter(input))
         {
             foreach (var sequence in sequences)
@@ -80,13 +81,14 @@ public class SequenceAligner
 
         if (File.Exists(output))
         {
-            string outputFileContent = File.ReadAllText(output);
-            Console.WriteLine("Output file content:");
-            Console.WriteLine(outputFileContent);
+            List<FASTA> alignments =  FastaParser.ParseFastaFile(output);
+            //File.Delete(output);
+            return alignments;
         }
         else
         {
             Console.WriteLine("Output file not found.");
+            return null;
         }
     }
 
