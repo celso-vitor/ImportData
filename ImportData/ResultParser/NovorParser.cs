@@ -51,7 +51,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
-        public void LoadNovorUniversal(DirectoryInfo di)
+        public void LoadUniversal(DirectoryInfo di)
         {
             short fileCounter = 0;
             FileDictionary = new Dictionary<short, string>();
@@ -62,8 +62,13 @@ namespace SequenceAssemblerLogic.ResultParser
                 Console.WriteLine(di2.Name);
 
 
+
                 foreach (string fileName in csvFiles)
                 {
+
+                    //Descobrir se o resultado eh do peaks ou do rapidnovr
+
+
                     FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
 
                     string firstLine = File.ReadAllLines(fileName)[0];
@@ -147,6 +152,11 @@ namespace SequenceAssemblerLogic.ResultParser
                 myRegistries.Add(psmRegistry);
             }
             return myRegistries;
+        }
+
+        public List<IDResult> LoadPeaksNovorRegistries(string denovofileName, short fileCounter)
+        {
+            return null;
         }
 
         //Method for finding valid peptides sequences
