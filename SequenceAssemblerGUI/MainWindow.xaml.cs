@@ -18,7 +18,7 @@ namespace SequenceAssemblerGUI
 {
     public partial class MainWindow : Window
     {
-        NovorParser novorParser;
+        Parser novorParser;
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
         private string peptide;
@@ -84,10 +84,10 @@ namespace SequenceAssemblerGUI
                     }
 
                     novorParser = new();
-                    novorParser.LoadNovorUniversal(mainDir);
+                    novorParser.LoadUniversal(mainDir);
 
 
-                    foreach (var denovo in novorParser.DictDenovo.Values.SelectMany(x => x))
+                    foreach (var denovo in novorParser.DictNovorDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
 
@@ -111,7 +111,7 @@ namespace SequenceAssemblerGUI
                       
                     }
 
-                    foreach (var psm in novorParser.DictPsm.Values.SelectMany(x => x))
+                    foreach (var psm in novorParser.DictNovorPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName;
@@ -134,10 +134,10 @@ namespace SequenceAssemblerGUI
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
-               
+                //Parser novorParser = new Parser();
 
-                int totalPsmRegistries = novorParser.DictPsm.Values.Sum(list => list.Count);
-                int totalDenovoRegistries = novorParser.DictDenovo.Values.Sum(list => list.Count);
+                int totalPsmRegistries = novorParser.DictNovorPsm.Values.Sum(list => list.Count);
+                int totalDenovoRegistries = novorParser.DictNovorDenovo.Values.Sum(list => list.Count);
 
 
                 Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
@@ -170,13 +170,13 @@ namespace SequenceAssemblerGUI
             var linearAxis = new LinearAxis() { Key = "x", Position = AxisPosition.Left };
 
             // Add DictDenovo dictionary folders to category axis
-            foreach (var kvp in novorParser.DictDenovo)
+            foreach (var kvp in novorParser.DictNovorDenovo)
             {
                 categoryAxis1.Labels.Add(kvp.Key);
             }
 
             // Add DictPsm dictionary folders to the category axis
-            foreach (var kvp in novorParser.DictPsm)
+            foreach (var kvp in novorParser.DictNovorPsm)
             {
                 if (!categoryAxis1.Labels.Contains(kvp.Key))
                 {
@@ -334,7 +334,7 @@ namespace SequenceAssemblerGUI
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
 
-            foreach (var kvp in novorParser.DictDenovo)
+            foreach (var kvp in novorParser.DictNovorDenovo)
             {
 
                 List<IDResult> list = (from rg in kvp.Value.Select(a => a).ToList()
@@ -344,7 +344,7 @@ namespace SequenceAssemblerGUI
                 deNovoDictTemp.Add(kvp.Key, list);
             }
 
-            foreach (var kvp in novorParser.DictPsm)
+            foreach (var kvp in novorParser.DictNovorPsm)
             {
                 psmDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
             }
@@ -353,16 +353,16 @@ namespace SequenceAssemblerGUI
             // Apply filters to the filtered dictionaries
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
-            NovorParser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
+            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
-            NovorParser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
+            Parser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
 
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
-            NovorParser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
+            Parser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
-            NovorParser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
+            Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
 
             //Update the GUI
