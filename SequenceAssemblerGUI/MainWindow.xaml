@@ -72,9 +72,6 @@
                         <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" IsEnabled="False" Grid.Row="1" Width="200"/>
                     </WrapPanel>
 
-                    
-                    
-
                     <GroupBox Grid.Row="2">
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
@@ -91,7 +88,7 @@
                                 <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
                                 <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Grid>
-                            
+
                         </TabItem>
                     </TabControl>
 
@@ -100,9 +97,9 @@
             </TabItem>
 
             <TabItem x:Name="TabItemResults" Header="Results">
-              <DataGrid x:Name="DataGridFasta" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"/>
-                
-                
+                <DataGrid x:Name="DataGridFasta" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"/>
+
+
 
             </TabItem>
         </TabControl>

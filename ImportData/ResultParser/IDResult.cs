@@ -22,7 +22,7 @@ namespace SequenceAssemblerLogic.ResultParser
         public double Score { get; set; }
         public string Peptide { get; set; }
         public List<int> AaScore { get; set; }
-
+        
         public string CleanPeptide
         {
             get
