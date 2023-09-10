@@ -409,17 +409,17 @@ namespace SequenceAssemblerGUI
 
             foreach (var kvp in newParser.DictNovorDenovo)
             {
-                // Lógica para Novor DeNovo
+               
                 List<IDResult> listNovor = (from rg in kvp.Value.Select(a => a).ToList()
                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                             select rg2).ToList();
 
                 deNovoNovorDictTemp.Add(kvp.Key, listNovor);
 
-                // Se DictPeaksDenovo não for nulo e contiver uma chave correspondente
+                
                 if (newParser.DictPeaksDenovo != null && newParser.DictPeaksDenovo.ContainsKey(kvp.Key))
                 {
-                    // Lógica para PEAKS DeNovo (usando o mesmo método de filtragem)
+                    
                     List<IDResult> listPeaks = (from rg in newParser.DictPeaksDenovo[kvp.Key].Select(a => a).ToList()
                                                 from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                                 select rg2).ToList();
