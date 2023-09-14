@@ -40,14 +40,14 @@
                         <GroupBox Header="Novor">
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Label Content="PSM Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="3" Minimum="1" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
                                 <Label Content="PSM MinLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
                                 <Label Content="PSM MaxLength" />
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
 
                                 <Label Content="DeNovo AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="50" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="50" Maximum="100"/>
 
                                 <Label Content="DeNovo MinLength" />
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>

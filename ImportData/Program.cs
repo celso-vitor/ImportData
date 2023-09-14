@@ -11,7 +11,7 @@ public class Program
     private static void Main()
     {
         List<FASTA> alignments = FastaParser.ParseFastaFile("output.txt");
-        Console.WriteLine(alignments.Count + "Total Alignments Read");
+        Console.WriteLine(alignments.Count + " Total Alignments Read");
 
         if (alignments.Count > 1)
         {
