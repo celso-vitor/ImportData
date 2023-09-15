@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SequenceAssemblerLogic
+namespace SequenceAssemblerLogic.ContigCode
 {
     public class Contig
     {

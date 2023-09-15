@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ProteinAlignmentCode
+namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
-    
-    class Program
+    public class SequenceAlignment
     {
         static Dictionary<string, int> substitutionMatrix;
 
-        static void Main(string[] args)
+        public void ProteinAlignment(List<FASTA> fastaList)
         {
             InitializeSubstitutionMatrix();
-            string largeSequence = "ADEFGHIKLMNPQDEFGHIRSTVWY";
-            List<string> smallSequences = new List<string> { "DFGHI", "ADE" };
+            // Assume the first sequence is the large sequence
+            string largeSequence = fastaList.First().Sequence;
+
+            // Assume the rest are small sequences
+            List<string> smallSequences = fastaList.Skip(1).Select(fasta => fasta.Sequence).ToList();
             int maxGaps = 2;
             int gapPenalty = -1;
             bool ignoreILDifference = true;

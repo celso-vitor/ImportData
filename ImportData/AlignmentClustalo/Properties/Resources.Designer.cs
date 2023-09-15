@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SequenceAssemblerLogic.Properties {
+namespace SequenceAssemblerLogic.AlignmentClustalo.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SequenceAssemblerLogic.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SequenceAssemblerLogic.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SequenceAssemblerLogic.AlignmentClustalo.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,56 +57,6 @@ namespace SequenceAssemblerLogic.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] clustalo {
-            get {
-                object obj = ResourceManager.GetObject("clustalo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] libgcc_s_sjlj_1 {
-            get {
-                object obj = ResourceManager.GetObject("libgcc_s_sjlj-1", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] libgomp_1 {
-            get {
-                object obj = ResourceManager.GetObject("libgomp-1", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] libstdc___6 {
-            get {
-                object obj = ResourceManager.GetObject("libstdc++-6", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] pthreadGC2_w64 {
-            get {
-                object obj = ResourceManager.GetObject("pthreadGC2-w64", resourceCulture);
-                return ((byte[])(obj));
             }
         }
     }

@@ -1,17 +1,16 @@
 ﻿using Ookii.Dialogs.Wpf;
 using OxyPlot;
 using OxyPlot.Axes;
-using OxyPlot.Legends;
 using OxyPlot.Series;
 using SequenceAssemblerLogic;
+using SequenceAssemblerLogic.ContigCode;
+using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -473,7 +472,7 @@ namespace SequenceAssemblerGUI
                 combinedContent.AppendLine(File.ReadAllText(openFileDialog.FileName));
 
                 // Add the contigs to the content in FASTA format
-                combinedContent.AppendLine(SequenceAssemblerLogic.Useful.ContigsToFastaFormat(contigs)); 
+                combinedContent.AppendLine(SequenceAssemblerLogic.Useful.ContigsToFastaFormat(contigs));
 
                 // Define the path where the combined file will be saved
                 string savePath = Path.Combine(Path.GetDirectoryName(openFileDialog.FileName), "combinedOutput.txt");
@@ -486,28 +485,23 @@ namespace SequenceAssemblerGUI
 
                 Console.WriteLine($"File generated at {savePath}");
 
-                if (fastaSequences.Count > 0)
+                // Here we process each individual FASTA sequence
+                foreach (var fasta in fastaSequences)
                 {
-                    Console.WriteLine($"Number of contigs: {fastaSequences.Count}\nSequence Fasta: {fastaSequences[0].ID}");
+                    string individualSequence = fasta.Sequence; // Assuming 'Sequence' is the property containing the sequence
 
-                    SequenceAligner aligner = new SequenceAligner();
-                    List<FASTA> alignments = aligner.AlignSequences(fastaSequences);
-
-                    List<(string word, int position)> aaPos = new();
-
-                    if (alignments.Count > 1) 
-                    {
-
-                    }
-
-                    Console.WriteLine(string.Join("\n", fastaSequences.Select(f => $"{f.ID}: {f.Sequence}")));
+                    // Perform your operations on 'individualSequence' here
+                    // This is where you would put your existing logic that used 'largeSequence'
                 }
-                else
-                {
-                    Console.WriteLine("No valid sequences found in the file.");
-                }
+
+                Console.WriteLine($"File generated at {savePath}");
+
+                // Assuming you have SequenceAlignment class and ProteinAlignment method
+                SequenceAlignment sequenceAlignment = new SequenceAlignment();
+                sequenceAlignment.ProteinAlignment(fastaSequences);
             }
         }
+
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {

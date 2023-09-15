@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SequenceAssemblerLogic
+namespace SequenceAssemblerLogic.ContigCode
 {
     using SequenceAssemblerLogic.ResultParser;
     using System;
@@ -103,11 +103,11 @@ namespace SequenceAssemblerLogic
             Console.WriteLine(groupedResults.Count());
 
             contigSeeds = (from gr in groupedResults
-                     select new Contig()
-                     {
-                         Sequence = Regex.Replace(gr.Key, @"\([^)]*\)", ""),
-                         IDs = gr.ToList()
-                     }).ToList();
+                           select new Contig()
+                           {
+                               Sequence = Regex.Replace(gr.Key, @"\([^)]*\)", ""),
+                               IDs = gr.ToList()
+                           }).ToList();
 
 
 
