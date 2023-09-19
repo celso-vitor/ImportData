@@ -6,14 +6,18 @@ using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
-    internal class Alignment
-    {
-            public string AlignedLargeSequence { get; set; }
-            public string AlignedSmallSequence { get; set; }
-            public List<int> StartPositions { get; set; }
-            public double IdentityScore { get; set; }
-            public int GapsUsed { get; set; }
-            public int SimilarityScore { get; set; }
-        
+    public class Alignment
+    {  
+        public double IdentityScore { get; set; }
+        public int SimilarityScore { get; set; }
+
+        public int AlignedAA { get; set; }
+        public double NormalizedAlignedAA { get; set; }
+        public int GapsUsed { get; set; }
+        public List<int> StartPositions { get; set; }
+        public double NormalizedSimilarity { get; set; }
+        public string AlignedLargeSequence { get; set; }
+        public string AlignedSmallSequence { get; set; }
+
     }
 }

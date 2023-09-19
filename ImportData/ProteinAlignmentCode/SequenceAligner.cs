@@ -6,40 +6,25 @@ using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
-    public class SequenceAlignment
+    public class SequenceAligner
     {
-        static Dictionary<string, int> substitutionMatrix;
+        public Dictionary<string, int> SubstitutionMatrix { get; set; }
+        public int MaxGaps { get; set; }
+        public int GapPenalty { get; set; }
+        public bool IgnoreILDifference { get; set; }
 
-        public void ProteinAlignment(List<FASTA> fastaList)
+        public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreILDifference = true) 
         {
+            MaxGaps = maxGaps;
+            GapPenalty = gapPenalty;
+            IgnoreILDifference = ignoreILDifference;
             InitializeSubstitutionMatrix();
-            // Assume the first sequence is the large sequence
-            string largeSequence = fastaList.First().Sequence;
-
-            // Assume the rest are small sequences
-            List<string> smallSequences = fastaList.Skip(1).Select(fasta => fasta.Sequence).ToList();
-            int maxGaps = 2;
-            int gapPenalty = -1;
-            bool ignoreILDifference = true;
-
-            foreach (var smallSequence in smallSequences)
-            {
-                SequenceAssemblerLogic.ProteinAlignmentCode.Alignment result = AlignSequences(largeSequence, smallSequence, maxGaps, gapPenalty, ignoreILDifference);
-                Console.WriteLine("Full Large Sequence: " + largeSequence);
-                Console.WriteLine("Aligned Large Sequence: " + result.AlignedLargeSequence);
-                Console.WriteLine("Aligned Small Sequence: " + result.AlignedSmallSequence);
-                Console.WriteLine("Alignment starts at positions: " + string.Join(", ", result.StartPositions));
-                Console.WriteLine("Identity Score: " + result.IdentityScore + "%");
-                Console.WriteLine("Similarity Score: " + result.SimilarityScore);
-                Console.WriteLine("Number of Gaps Used: " + result.GapsUsed);
-                Console.WriteLine("------------------------------------------------");
-            }
         }
 
 
-        static void InitializeSubstitutionMatrix()
+        void InitializeSubstitutionMatrix()
         {
-            substitutionMatrix = new Dictionary<string, int>();
+            SubstitutionMatrix = new Dictionary<string, int>();
             string[] lines = new string[]
             {
         "A R N D C Q E G H I L K M F P S T W Y V B Z J X U *",
@@ -85,26 +70,39 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     string key1 = rowChar.ToString() + colChar.ToString();
                     string key2 = colChar.ToString() + rowChar.ToString();
 
-                    if (!substitutionMatrix.ContainsKey(key1))
+                    if (!SubstitutionMatrix.ContainsKey(key1))
                     {
-                        substitutionMatrix.Add(key1, score);
+                        SubstitutionMatrix.Add(key1, score);
                     }
 
-                    if (!substitutionMatrix.ContainsKey(key2))
+                    if (!SubstitutionMatrix.ContainsKey(key2))
                     {
-                        substitutionMatrix.Add(key2, score);
+                        SubstitutionMatrix.Add(key2, score);
                     }
                 }
             }
         }
 
 
-        static int GetSubstitutionScore(char a, char b)
+        int GetSubstitutionScore(char a, char b)
         {
-            return substitutionMatrix[a.ToString() + b.ToString()];
+            return SubstitutionMatrix[a.ToString() + b.ToString()];
         }
 
-        static SequenceAssemblerLogic.ProteinAlignmentCode.Alignment AlignSequences(string largeSeq, string smallSeq, int maxGaps, int gapPenalty, bool ignoreILDifference)
+        double GetMaximumSimilarity(string sequence)
+        {
+            double maxValue = 0;
+
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                maxValue += SubstitutionMatrix[sequence[i].ToString() + sequence[i].ToString()];
+            }
+
+            return maxValue;
+
+        }
+
+        public Alignment AlignSequences(string largeSeq, string smallSeq)
         {
             int largeLen = largeSeq.Length;
             int smallLen = smallSeq.Length;
@@ -125,8 +123,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 {
                     int substitutionScore = GetSubstitutionScore(largeSeq[i - 1], smallSeq[j - 1]);
                     int match = dp[i - 1, j - 1] + substitutionScore;
-                    int delete = dp[i - 1, j] + gapPenalty;
-                    int insert = dp[i, j - 1] + gapPenalty;
+                    int delete = dp[i - 1, j] + GapPenalty;
+                    int insert = dp[i, j - 1] + GapPenalty;
                     dp[i, j] = Math.Max(0, Math.Max(match, Math.Max(delete, insert)));
 
                     if (dp[i, j] > maxScore)
@@ -142,7 +140,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             string alignedLarge = "";
             int startLarge = endLarge;
 
-            while (endLarge > 0 && endSmall > 0 && gapsUsed <= maxGaps)
+            while (endLarge > 0 && endSmall > 0 && gapsUsed <= MaxGaps)
             {
                 int substitutionScore = GetSubstitutionScore(largeSeq[endLarge - 1], smallSeq[endSmall - 1]);
                 if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall - 1] + substitutionScore)
@@ -154,7 +152,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     endLarge--;
                     endSmall--;
                 }
-                else if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall] + gapPenalty)
+                else if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall] + GapPenalty)
                 {
                     alignedSmall = "-" + alignedSmall;
                     alignedLarge = largeSeq[endLarge - 1] + alignedLarge;
@@ -181,14 +179,19 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
             double identityScore = (double)matches / alignedSmall.Length * 100;
 
+
+
             return new SequenceAssemblerLogic.ProteinAlignmentCode.Alignment
             {
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmall,
                 StartPositions = startPositions,
-                IdentityScore = identityScore,
+                IdentityScore = Math.Round(identityScore),
                 GapsUsed = gapsUsed,
-                SimilarityScore = similarityScore
+                SimilarityScore = similarityScore,
+                NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
+                AlignedAA = alignedSmall.Count(a => a != '-'),
+                NormalizedAlignedAA = Math.Round(((double)alignedSmall.Count(a => a != '-') / (double)alignedSmall.Length) * 100)
             };
         }
     }

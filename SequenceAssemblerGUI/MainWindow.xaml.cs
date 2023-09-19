@@ -9,6 +9,7 @@ using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -110,7 +111,7 @@ namespace SequenceAssemblerGUI
                         row["AAScores"] = string.Join("-", denovo.AaScore);
 
                         dtDenovo.Rows.Add(row);
-                      
+
                     }
 
                     foreach (var psm in newParser.DictNovorPsm.Values.SelectMany(x => x))
@@ -160,7 +161,7 @@ namespace SequenceAssemblerGUI
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
 
-               
+
 
                 int totalPsmRegistries = newParser.DictNovorPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = newParser.DictNovorDenovo.Values.Sum(list => list.Count);
@@ -302,7 +303,7 @@ namespace SequenceAssemblerGUI
                     {
                         DataRow row = dtDenovo.NewRow();
 
-                        if (denovo.IsTag)  
+                        if (denovo.IsTag)
                         {
                             row["IsTag"] = "T";
                         }
@@ -322,7 +323,7 @@ namespace SequenceAssemblerGUI
                     }
                 }
             }
-           
+
 
             // How many amino acids should overlap for contigs (partially overlapping sequences).
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
@@ -393,7 +394,7 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Hidden;
 
         }
-       
+
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
@@ -408,17 +409,17 @@ namespace SequenceAssemblerGUI
 
             foreach (var kvp in newParser.DictNovorDenovo)
             {
-               
+
                 List<IDResult> listNovor = (from rg in kvp.Value.Select(a => a).ToList()
                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                             select rg2).ToList();
 
                 deNovoNovorDictTemp.Add(kvp.Key, listNovor);
 
-                
+
                 if (newParser.DictPeaksDenovo != null && newParser.DictPeaksDenovo.ContainsKey(kvp.Key))
                 {
-                    
+
                     List<IDResult> listPeaks = (from rg in newParser.DictPeaksDenovo[kvp.Key].Select(a => a).ToList()
                                                 from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                                 select rg2).ToList();
@@ -428,7 +429,7 @@ namespace SequenceAssemblerGUI
             }
 
             foreach (var kvp in newParser.DictNovorPsm)
-                {
+            {
                 psmNovorDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
             }
             //---------------------------------------------------------
@@ -437,7 +438,7 @@ namespace SequenceAssemblerGUI
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
             Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoNovorDictTemp);
-            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoPeaksDictTemp); 
+            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoPeaksDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
             Parser.FilterDictMinLengthPSM(psmMinSequenceLength, psmNovorDictTemp);
@@ -465,40 +466,11 @@ namespace SequenceAssemblerGUI
                 MyFasta = Useful.LoadFasta(openFileDialog.FileName);
                 DataGridFasta.ItemsSource = MyFasta;
 
-                // Initialize the StringBuilder to combine the contents
-                StringBuilder combinedContent = new StringBuilder();
-
-                // Adds the contents of the selected FASTA file
-                combinedContent.AppendLine(File.ReadAllText(openFileDialog.FileName));
-
-                // Add the contigs to the content in FASTA format
-                combinedContent.AppendLine(SequenceAssemblerLogic.Useful.ContigsToFastaFormat(contigs));
-
-                // Define the path where the combined file will be saved
-                string savePath = Path.Combine(Path.GetDirectoryName(openFileDialog.FileName), "combinedOutput.txt");
-
-                // Save the combined content in a new .txt file
-                File.WriteAllText(savePath, combinedContent.ToString());
-
-                // Parse the combined file and store the strings in a list
-                List<FASTA> fastaSequences = SequenceAssemblerLogic.FastaParser.ParseFastaFile(savePath);
-
-                Console.WriteLine($"File generated at {savePath}");
-
-                // Here we process each individual FASTA sequence
-                foreach (var fasta in fastaSequences)
-                {
-                    string individualSequence = fasta.Sequence; // Assuming 'Sequence' is the property containing the sequence
-
-                    // Perform your operations on 'individualSequence' here
-                    // This is where you would put your existing logic that used 'largeSequence'
-                }
-
-                Console.WriteLine($"File generated at {savePath}");
-
                 // Assuming you have SequenceAlignment class and ProteinAlignment method
-                SequenceAlignment sequenceAlignment = new SequenceAlignment();
-                sequenceAlignment.ProteinAlignment(fastaSequences);
+                SequenceAligner aligner = new SequenceAligner(maxGaps: 1, gapPenalty: -2, ignoreILDifference: true);
+
+                List<Alignment> alnResults = contigs.Select(a => aligner.AlignSequences(MyFasta[0].Sequence, a.Sequence)).ToList();
+                DataGridAlignments.ItemsSource = alnResults;
             }
         }
 
@@ -543,7 +515,7 @@ namespace SequenceAssemblerGUI
         }
     }
 
-} 
+}
 
 
 

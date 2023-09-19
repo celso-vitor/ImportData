@@ -97,7 +97,20 @@
             </TabItem>
 
             <TabItem x:Name="TabItemResults" Header="Results">
-                <DataGrid x:Name="DataGridFasta" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="70"/>
+                        <RowDefinition Height="80*"/>
+                    </Grid.RowDefinitions>
+                    <WrapPanel HorizontalAlignment="Center">
+                        <Label Content="Minimum Identity"/>
+                        <Label Content="Minimum Normalized Similarity"/>
+                    </WrapPanel>
+                    <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
+                    <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Grid.Row="2"/>
+                </Grid>
+                
 
 
 
