@@ -76,9 +76,9 @@
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
 
-                    <TabControl Grid.Row="3">
+                    <TabControl Grid.Row="2" Margin="0,237,0,0" Grid.RowSpan="2">
                         <TabItem Header="DeNovo">
-                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridDeNovo_LoadingRow"/>
+                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="170" LoadingRow="DataGridDeNovo_LoadingRow"/>
                         </TabItem>
                         <TabItem  Header="PSM">
                             <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>

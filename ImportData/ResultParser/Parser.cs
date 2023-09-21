@@ -7,17 +7,15 @@ namespace SequenceAssemblerLogic.ResultParser
     public class Parser
     {
 
-        public Dictionary<string, List<IDResult>> DictNovorDenovo { get; private set; }
-        public Dictionary<string, List<IDResult>> DictNovorPsm { get; private set; }
-        public Dictionary<string, List<IDResult>> DictPeaksDenovo { get; private set; }
+        public Dictionary<string, List<IDResult>> DictDenovo { get; private set; }
+        public Dictionary<string, List<IDResult>> DictPsm { get; private set; }
 
         public Dictionary<short, string> FileDictionary { get; private set; }
 
         public Parser()
         {
-            DictNovorDenovo = new();
-            DictNovorPsm = new();
-            DictPeaksDenovo = new();
+            DictDenovo = new();
+            DictPsm = new();
         }
 
         public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<IDResult>> theDict)
@@ -54,7 +52,8 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
-     
+
+
         public void LoadUniversal(DirectoryInfo di)
         {
             short fileCounter = 0;
@@ -75,35 +74,35 @@ namespace SequenceAssemblerLogic.ResultParser
 
                     if (firstLine.StartsWith("#id"))
                     {
-                        if (DictNovorPsm.ContainsKey(di2.Name))
+                        if (DictPsm.ContainsKey(di2.Name))
                         {
-                            DictNovorPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName, fileCounter));
+                            DictPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName, fileCounter));
                         }
                         else
                         {
-                            DictNovorPsm.Add(di2.Name, LoadNovorPsmRegistries(fileName, fileCounter));
+                            DictPsm.Add(di2.Name, LoadNovorPsmRegistries(fileName, fileCounter));
                         }
                     }
                     else if (firstLine.StartsWith("Fraction"))
                     {
-                        if (DictNovorDenovo.ContainsKey(di2.Name))
+                        if (DictDenovo.ContainsKey(di2.Name))
                         {
-                            DictNovorDenovo[di2.Name].AddRange(LoadPeaksDeNovorRegistries(fileName, fileCounter));
+                            DictDenovo[di2.Name].AddRange(LoadPeaksDeNovorRegistries(fileName, fileCounter));
                         }
                         else
                         {
-                            DictNovorDenovo.Add(di2.Name, LoadPeaksDeNovorRegistries(fileName, fileCounter));
+                            DictDenovo.Add(di2.Name, LoadPeaksDeNovorRegistries(fileName, fileCounter));
                         }
                     }
                     else
                     {
-                        if (DictNovorDenovo.ContainsKey(di2.Name))
+                        if (DictDenovo.ContainsKey(di2.Name))
                         {
-                            DictNovorDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName, fileCounter));
+                            DictDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName, fileCounter));
                         }
                         else
                         {
-                            DictNovorDenovo.Add(di2.Name, LoadNovorDeNovoRegistries(fileName, fileCounter));
+                            DictDenovo.Add(di2.Name, LoadNovorDeNovoRegistries(fileName, fileCounter));
                         }
                     }
                 }
@@ -166,7 +165,7 @@ namespace SequenceAssemblerLogic.ResultParser
             var lines = File.ReadAllLines(denovofileName);
             var myRegistries = new List<IDResult>();
 
-            for (int i = 1; i < lines.Length; i++) 
+            for (int i = 1; i < lines.Length; i++)
             {
                 var columns = Regex.Split(lines[i], ",");
 
@@ -188,6 +187,8 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-     
+
     }
 }
+
+

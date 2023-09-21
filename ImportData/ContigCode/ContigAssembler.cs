@@ -22,10 +22,8 @@ namespace SequenceAssemblerLogic.ContigCode
 
         }
 
-      
-
         // Improved method for calculating overlap length.
-        private int GetOverlapLength(Contig c1, Contig c2, int minOverlap)
+        public int GetOverlapLength(Contig c1, Contig c2, int minOverlap)
         {
             int len1 = c1.Sequence.Length;
             int len2 = c2.Sequence.Length;

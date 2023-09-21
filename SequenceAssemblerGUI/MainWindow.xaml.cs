@@ -12,6 +12,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,12 +24,12 @@ namespace SequenceAssemblerGUI
     public partial class MainWindow : Window
     {
         Parser newParser;
-        Dictionary<string, List<IDResult>> psmNovorDictTemp;
-        Dictionary<string, List<IDResult>> deNovoNovorDictTemp;
-        Dictionary<string, List<IDResult>> deNovoPeaksDictTemp;
-        //private string peptide;
+        Dictionary<string, List<IDResult>> psmDictTemp;
+        Dictionary<string, List<IDResult>> deNovoDictTemp;
+
         List<Contig> myContigs;
         List<Fasta> myFasta;
+        List<Alignment> myAlignment;
 
         DataTable dtDenovo = new DataTable
         {
@@ -92,7 +93,7 @@ namespace SequenceAssemblerGUI
                     newParser.LoadUniversal(mainDir);
 
 
-                    foreach (var denovo in newParser.DictNovorDenovo.Values.SelectMany(x => x))
+                    foreach (var denovo in newParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
 
@@ -116,7 +117,7 @@ namespace SequenceAssemblerGUI
 
                     }
 
-                    foreach (var psm in newParser.DictNovorPsm.Values.SelectMany(x => x))
+                    foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
                         row["Folder"] = folderName;
@@ -128,29 +129,6 @@ namespace SequenceAssemblerGUI
                         dtPSM.Rows.Add(row);
 
                         sequencesForAssembly.Add(psm.Peptide);
-                    }
-
-                    foreach (var denovo in newParser.DictPeaksDenovo.Values.SelectMany(x => x))
-                    {
-                        DataRow row = dtDenovo.NewRow();
-
-                        if (denovo.IsTag)
-                        {
-                            row["IsTag"] = "T";
-                        }
-                        else
-                        {
-                            row["IsTag"] = "F";
-                        }
-
-                        row["Folder"] = folderName;
-                        row["File"] = newParser.FileDictionary[denovo.File];
-                        row["ScanNumber"] = denovo.ScanNumber;
-                        row["Sequence"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
-                        row["AAScores"] = string.Join("-", denovo.AaScore);
-
-                        dtDenovo.Rows.Add(row);
                     }
 
                 }
@@ -165,16 +143,14 @@ namespace SequenceAssemblerGUI
 
 
 
-                int totalPsmRegistries = newParser.DictNovorPsm.Values.Sum(list => list.Count);
-                int totalDenovoRegistries = newParser.DictNovorDenovo.Values.Sum(list => list.Count);
-                int totalPeaksDenovoRegistries = newParser.DictPeaksDenovo.Values.Sum(list => list.Count);
+                int totalPsmRegistries = newParser.DictPsm.Values.Sum(list => list.Count);
+                int totalDenovoRegistries = newParser.DictDenovo.Values.Sum(list => list.Count);
 
                 Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
                 Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
 
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
-                //LabelDeNovoCount.Content = totalPeaksDenovoRegistries;
 
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
@@ -200,13 +176,13 @@ namespace SequenceAssemblerGUI
             var linearAxis = new LinearAxis() { Key = "x", Position = AxisPosition.Left };
 
             // Add DictDenovo dictionary folders to category axis
-            foreach (var kvp in newParser.DictNovorDenovo)
+            foreach (var kvp in newParser.DictDenovo)
             {
                 categoryAxis1.Labels.Add(kvp.Key);
             }
 
             // Add DictPsm dictionary folders to the category axis
-            foreach (var kvp in newParser.DictNovorPsm)
+            foreach (var kvp in newParser.DictPsm)
             {
                 if (!categoryAxis1.Labels.Contains(kvp.Key))
                 {
@@ -215,12 +191,12 @@ namespace SequenceAssemblerGUI
             }
 
             // Add the values from the dictionaries to the corresponding BarSeries
-            foreach (var kvp in deNovoNovorDictTemp)
+            foreach (var kvp in deNovoDictTemp)
             {
                 bsDeNovo.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
             }
 
-            foreach (var kvp in psmNovorDictTemp)
+            foreach (var kvp in psmDictTemp)
             {
                 bsPSM.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
             }
@@ -237,9 +213,9 @@ namespace SequenceAssemblerGUI
 
             dtDenovo.Clear();
 
-            if (deNovoNovorDictTemp != null)
+            if (deNovoDictTemp != null)
             {
-                foreach (var kvp in deNovoNovorDictTemp)
+                foreach (var kvp in deNovoDictTemp)
                 {
                     string folderName = kvp.Key;
 
@@ -272,9 +248,9 @@ namespace SequenceAssemblerGUI
             }
 
             dtPSM.Clear();
-            if (psmNovorDictTemp != null)
+            if (psmDictTemp != null)
             {
-                foreach (var kvp in psmNovorDictTemp)
+                foreach (var kvp in psmDictTemp)
                 {
                     string folderName = kvp.Key;
 
@@ -295,111 +271,67 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
-            if (deNovoPeaksDictTemp != null)
-            {
-                foreach (var kvp in deNovoPeaksDictTemp)
-                {
-                    string folderName = kvp.Key;
-
-                    foreach (var denovo in kvp.Value)
-                    {
-                        DataRow row = dtDenovo.NewRow();
-
-                        if (denovo.IsTag)
-                        {
-                            row["IsTag"] = "T";
-                        }
-                        else
-                        {
-                            row["IsTag"] = "F";
-                        }
-
-                        row["Folder"] = folderName;
-                        row["File"] = newParser.FileDictionary[denovo.File];
-                        row["ScanNumber"] = denovo.ScanNumber;
-                        row["Sequence"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
-                        row["AAScores"] = string.Join("-", denovo.AaScore);
-
-                        dtDenovo.Rows.Add(row);
-                    }
-                }
-            }
-
-
-            // How many amino acids should overlap for contigs (partially overlapping sequences).
-            int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
 
             // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
-            List<string> sequencesPSM =
-                (from s in psmNovorDictTemp.Values
+            List<string> sequencesNovorPSM =
+                (from s in psmDictTemp.Values
                  from psmID in s
                  select psmID.CleanPeptide).Distinct().ToList();
 
             // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-            List<string> sequencesDeNovo =
-                (from s in deNovoNovorDictTemp.Values
+            List<string> sequencesNovorDeNovo =
+                (from s in deNovoDictTemp.Values
                  from denovoID in s
                  select denovoID.CleanPeptide).Distinct().ToList();
 
-            // From a dictionary of data deNovoPeaksDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-            List<string> sequencesPeaksDeNovo =
-               (from s in deNovoPeaksDictTemp.Values
-                from denovoID in s
-                select denovoID.CleanPeptide).Distinct().ToList();
-
             // Concatenate the PSM and deNovo sequence lists into a single list named filteredSequences.
-            List<string> filteredSequences = sequencesPSM.Concat(sequencesDeNovo).ToList();
+            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).ToList();
 
-            // Concatenate the PSM and deNovo sequencePeaks lists into a single list named filteredSequences.
-            List<string> filteredSequencesPeaks = sequencesPeaksDeNovo.ToList();
 
             // Disable the DataGridContig to prevent user interaction while data is being loaded.
-            DataGridContig.IsEnabled = false;
+            DataGridContig.IsEnabled = true;
 
             // Make a loading label visible to inform the user that data is being loaded.
             loadingLabel.Visibility = Visibility.Visible;
 
-            // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
-            myContigs = await Task.Run
-            (
-                () =>
-                {
-                    ContigAssembler ca = new ContigAssembler();
-                    List<IDResult> results = new List<IDResult>();
+            //UpdateContigAsync();
+        }
 
-                    var resultsPSM = (from kvp in psmNovorDictTemp
-                                      from r in kvp.Value
-                                      select r).ToList();
+        private async Task UpdateContigAsync() 
+        {
+            int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
 
-                    var resultsDenovo = (from kvp in deNovoNovorDictTemp
-                                         from r in kvp.Value
-                                         select r).ToList();
-
-                    var resultsDenovoPeaks = (from kvp in deNovoPeaksDictTemp
-                                              from r in kvp.Value
-                                              select r).ToList();
-
-                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).Concat(resultsDenovoPeaks).ToList(), overlapAAForContigs);
-                }
-            );
-
+            myContigs = await Task.Run(() =>
+            {
+                ContigAssembler ca = new ContigAssembler();
+                var resultsPSM = (from kvp in psmDictTemp from r in kvp.Value select r).ToList();
+                var resultsDenovo = (from kvp in deNovoDictTemp from r in kvp.Value select r).ToList();
+                return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
+            });
 
             ButtonProcess.IsEnabled = true;
 
-            // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-            DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
+            if (myContigs == null || myContigs.Count == 0) // check if myContigs is null or empty
+            {
+                Console.WriteLine("No overlapping sequences found.");
+                return; // return early if no overlapping sequences are found
+            }
 
-            // Re-enable the DataGridContig to allow user interaction.
-            DataGridContig.IsEnabled = true;
+            DataGridContig.ItemsSource = myContigs.Select(a => new
+            {
+                Sequence = a.Sequence,
+                IDTotal = a.IDs.Count(),
+                IDsDenovo = a.IDs.Count(a => !a.IsPSM),
+                IDsPSM = a.IDs.Count(a => a.IsPSM)
+            });
 
-            // Hide the loading label as the data has now been loaded.
             loadingLabel.Visibility = Visibility.Hidden;
-
         }
 
+        //---------------------------------------------------------
 
-        private List<Alignment> alnResults;
+        // Alingment sequences contig with fasta
+
         private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
         {
 
@@ -415,7 +347,7 @@ namespace SequenceAssemblerGUI
         {
             List<Alignment> filteredAlignments = new List<Alignment>();
 
-            foreach (var alignment in alnResults)
+            foreach (var alignment in myAlignment)
             {
                 if (alignment.IdentityScore > minIdentity && alignment.NormalizedSimilarity > minNormalizedSimilarity)
                 {
@@ -424,64 +356,58 @@ namespace SequenceAssemblerGUI
             }
             return filteredAlignments;
         }
+
+        //---------------------------------------------------------
+
+        // Update in Dicionarys DeNovo and Psm
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
 
             //Reset the temporary Dictionary
-            deNovoNovorDictTemp = new Dictionary<string, List<IDResult>>();
-            psmNovorDictTemp = new Dictionary<string, List<IDResult>>();
-            deNovoPeaksDictTemp = new Dictionary<string, List<IDResult>>();
+            deNovoDictTemp = new Dictionary<string, List<IDResult>>();
+            psmDictTemp = new Dictionary<string, List<IDResult>>();
 
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
 
-            foreach (var kvp in newParser.DictNovorDenovo)
+            foreach (var kvp in newParser.DictDenovo)
             {
 
                 List<IDResult> listNovor = (from rg in kvp.Value.Select(a => a).ToList()
                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                             select rg2).ToList();
 
-                deNovoNovorDictTemp.Add(kvp.Key, listNovor);
-
-
-                if (newParser.DictPeaksDenovo != null && newParser.DictPeaksDenovo.ContainsKey(kvp.Key))
-                {
-
-                    List<IDResult> listPeaks = (from rg in newParser.DictPeaksDenovo[kvp.Key].Select(a => a).ToList()
-                                                from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
-                                                select rg2).ToList();
-
-                    deNovoPeaksDictTemp.Add(kvp.Key, listPeaks);
-                }
+                deNovoDictTemp.Add(kvp.Key, listNovor);
             }
 
-            foreach (var kvp in newParser.DictNovorPsm)
+            foreach (var kvp in newParser.DictPsm)
             {
-                psmNovorDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
+                psmDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
             }
             //---------------------------------------------------------
 
             // Apply filters to the filtered dictionaries
 
             int denovoMaxSequeceLength = (int)IntegerUpDownDeNovoMaxLength.Value;
-            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoNovorDictTemp);
-            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoPeaksDictTemp);
+            Parser.FilterDictMaxLengthDeNovo(denovoMaxSequeceLength, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
-            Parser.FilterDictMinLengthPSM(psmMinSequenceLength, psmNovorDictTemp);
+            Parser.FilterDictMinLengthPSM(psmMinSequenceLength, psmDictTemp);
 
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
-            Parser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmNovorDictTemp);
+            Parser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
-            Parser.FilterSequencesByScorePSM(filterPsmSocore, psmNovorDictTemp);
+            Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
             // Update the GUI
             UpdatePlot();
             UpdateDataView();
         }
+
+        //---------------------------------------------------------
+
 
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
@@ -498,8 +424,8 @@ namespace SequenceAssemblerGUI
                 // Assuming you have SequenceAlignment class and ProteinAlignment method
                 SequenceAligner aligner = new SequenceAligner(maxGaps: 1, gapPenalty: -2, ignoreILDifference: true);
 
-                alnResults = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
-                DataGridAlignments.ItemsSource = alnResults;
+                myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
+                DataGridAlignments.ItemsSource = myAlignment;
 
                 // Open the TabItemResults
                 TabControlMain.SelectedItem = TabItemResults;
@@ -533,40 +459,29 @@ namespace SequenceAssemblerGUI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (myContigs != null)
-            {
-                // Create a list to hold the updated data
-                List<object> updatedList = new List<object>();
+           
+             if (myContigs != null)
+             {
+                UpdateContigAsync();
 
-                foreach (Contig c in myContigs)
-                {
-                    int total = c.IDs.Count;
-                    int denovo = c.IDs.Count(a => a.IsTag);
-                    int psm = c.IDs.Count(a => a.IsPSM);
-
-                    if (total == denovo + psm)
-                    {
-                        Console.WriteLine("Sequence {0}\nTotal {1}, DeNovo {2}, PSMs {3}", c.Sequence, total, denovo, psm);
-
-                        // Add an anonymous object to the list with the updated values
-                        updatedList.Add(new { Sequence = c.Sequence, IDTotal = total, IDsDenovo = denovo, IDsPSM = psm });
-                    }
-                }
-
-                // Update DataGrid's ItemsSource with the updated list
-                DataGridContig.ItemsSource = updatedList;
-
-                // Optionally, if you want to refresh the DataGrid view
-                DataGridContig.Items.Refresh();
             }
-            else
-            {
-                Console.WriteLine("contigs is null");
-            }
+             else
+             {
+
+                 Console.WriteLine("Contigs is null");
+
+             }
+
         }
-    }
-}
 
+    }
+
+}
+    
+
+
+
+    
 
 
 
