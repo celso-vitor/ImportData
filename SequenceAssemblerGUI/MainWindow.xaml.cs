@@ -15,6 +15,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using Xceed.Wpf.Toolkit;
 
 namespace SequenceAssemblerGUI
 {
@@ -24,9 +26,9 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> psmNovorDictTemp;
         Dictionary<string, List<IDResult>> deNovoNovorDictTemp;
         Dictionary<string, List<IDResult>> deNovoPeaksDictTemp;
-        private string peptide;
-        List<Contig> contigs;
-        List<FASTA> MyFasta;
+        //private string peptide;
+        List<Contig> myContigs;
+        List<Fasta> myFasta;
 
         DataTable dtDenovo = new DataTable
         {
@@ -74,7 +76,7 @@ namespace SequenceAssemblerGUI
 
 
                 // Create a list to store the sequences for ContigAssembler
-                List<string> sequencesForAssembly = new List<string>();
+                List<string> sequencesForAssembly = new();
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -172,7 +174,7 @@ namespace SequenceAssemblerGUI
 
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
-                LabelDeNovoCount.Content = totalPeaksDenovoRegistries;
+                //LabelDeNovoCount.Content = totalPeaksDenovoRegistries;
 
                 TabControlMain.IsEnabled = true;
                 UpdateGeneral();
@@ -359,7 +361,7 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Visible;
 
             // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
-            contigs = await Task.Run
+            myContigs = await Task.Run
             (
                 () =>
                 {
@@ -382,10 +384,11 @@ namespace SequenceAssemblerGUI
                 }
             );
 
+
             ButtonProcess.IsEnabled = true;
 
             // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-            DataGridContig.ItemsSource = contigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
+            DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
             // Re-enable the DataGridContig to allow user interaction.
             DataGridContig.IsEnabled = true;
@@ -395,6 +398,32 @@ namespace SequenceAssemblerGUI
 
         }
 
+
+        private List<Alignment> alnResults;
+        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
+        {
+
+            // Apply filters on the data
+            List<Alignment> filteredAlnResults = FilterAlignments(myContigs, myFasta, minIdentity, minNormalizedSimilarity);
+
+            // Update DataGridAlignments
+            DataGridAlignments.ItemsSource = null; // Clear previous items
+            DataGridAlignments.ItemsSource = filteredAlnResults; // Set new filtered items
+        }
+
+        private List<Alignment> FilterAlignments(List<Contig> contigs, List<Fasta> fasta, int minIdentity, int minNormalizedSimilarity)
+        {
+            List<Alignment> filteredAlignments = new List<Alignment>();
+
+            foreach (var alignment in alnResults)
+            {
+                if (alignment.IdentityScore > minIdentity && alignment.NormalizedSimilarity > minNormalizedSimilarity)
+                {
+                    filteredAlignments.Add(alignment);
+                }
+            }
+            return filteredAlignments;
+        }
         private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
@@ -459,18 +488,21 @@ namespace SequenceAssemblerGUI
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
             openFileDialog.Multiselect = false;
-            openFileDialog.Filter = "FASTA Files (*.fasta)|*.fasta";
+            openFileDialog.Filter = "Fasta Files (*.fasta)|*.fasta";
 
             if (openFileDialog.ShowDialog() == true)
             {
-                MyFasta = Useful.LoadFasta(openFileDialog.FileName);
-                DataGridFasta.ItemsSource = MyFasta;
+                myFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
+                DataGridFasta.ItemsSource = myFasta;
 
                 // Assuming you have SequenceAlignment class and ProteinAlignment method
                 SequenceAligner aligner = new SequenceAligner(maxGaps: 1, gapPenalty: -2, ignoreILDifference: true);
 
-                List<Alignment> alnResults = contigs.Select(a => aligner.AlignSequences(MyFasta[0].Sequence, a.Sequence)).ToList();
+                alnResults = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
                 DataGridAlignments.ItemsSource = alnResults;
+
+                // Open the TabItemResults
+                TabControlMain.SelectedItem = TabItemResults;
             }
         }
 
@@ -478,8 +510,16 @@ namespace SequenceAssemblerGUI
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
-
         }
+
+        private void ButtonUpdateResult_Click(object sender, RoutedEventArgs e)
+        {
+            int minIdentity = IdentityUpDown.Value ?? 0;
+            int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
+
+            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+        }
+
 
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
@@ -493,20 +533,31 @@ namespace SequenceAssemblerGUI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (contigs != null)
+            if (myContigs != null)
             {
-                foreach (Contig c in contigs)
+                // Create a list to hold the updated data
+                List<object> updatedList = new List<object>();
+
+                foreach (Contig c in myContigs)
                 {
                     int total = c.IDs.Count;
-                    int denovo = c.IDs.Count(a => !a.IsPSM);
+                    int denovo = c.IDs.Count(a => a.IsTag);
                     int psm = c.IDs.Count(a => a.IsPSM);
 
                     if (total == denovo + psm)
                     {
                         Console.WriteLine("Sequence {0}\nTotal {1}, DeNovo {2}, PSMs {3}", c.Sequence, total, denovo, psm);
+
+                        // Add an anonymous object to the list with the updated values
+                        updatedList.Add(new { Sequence = c.Sequence, IDTotal = total, IDsDenovo = denovo, IDsPSM = psm });
                     }
-                    Console.Write("");
                 }
+
+                // Update DataGrid's ItemsSource with the updated list
+                DataGridContig.ItemsSource = updatedList;
+
+                // Optionally, if you want to refresh the DataGrid view
+                DataGridContig.Items.Refresh();
             }
             else
             {
@@ -514,8 +565,8 @@ namespace SequenceAssemblerGUI
             }
         }
     }
-
 }
+
 
 
 

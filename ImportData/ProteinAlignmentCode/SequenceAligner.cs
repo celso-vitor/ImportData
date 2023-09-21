@@ -194,6 +194,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 NormalizedAlignedAA = Math.Round(((double)alignedSmall.Count(a => a != '-') / (double)alignedSmall.Length) * 100)
             };
         }
+
+      
     }
 }
 

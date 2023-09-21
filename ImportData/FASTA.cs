@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic
 {
-    public class FASTA
+    public class Fasta
     {
         public string ID { get; set; }
         public string Description { get; set; }
@@ -17,10 +17,10 @@ namespace SequenceAssemblerLogic
 
     public static class FastaParser
     {
-        public static List<FASTA> ParseFastaFile(string filePath)
+        public static List<Fasta> ParseFastaFile(string filePath)
         {
-            List<FASTA> sequences = new List<FASTA>();
-            FASTA currentSequence = null;
+            List<Fasta> sequences = new List<Fasta>();
+            Fasta currentSequence = null;
 
             foreach (var line in File.ReadLines(filePath))
             {
@@ -32,7 +32,7 @@ namespace SequenceAssemblerLogic
                     }
 
                     var parts = line.Substring(1).Split(new[] { ' ' }, 2);  // Split the line on the first space
-                    currentSequence = new FASTA
+                    currentSequence = new Fasta
                     {
                         ID = parts[0],
                         Description = parts.Length > 1 ? parts[1] : string.Empty,
@@ -55,5 +55,51 @@ namespace SequenceAssemblerLogic
 
         }
        
+    }
+
+    public static class FastaFormat
+    {
+        //Add fasta file 
+        public static List<Fasta> LoadFasta(string fileName)
+        {
+            List<Fasta> MyFasta = new List<Fasta>();
+
+            string line;
+            string id = null;
+            string description = null;
+
+            Fasta f = new Fasta();
+
+            using (var reader = new StreamReader(fileName))
+            {
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.Length == 0)
+                    {
+                        //do nothing
+                    }
+                    else if (line.StartsWith(">"))
+                    {
+
+                        string[] parts = line.Substring(1).Split(new[] { ' ' }, 2); // Remove '>' and split
+                        if (parts.Length >= 2)
+                        {
+
+                            id = parts[0];
+                            description = parts[1];
+                            MyFasta.Add(new Fasta { ID = id, Description = description });
+                        }
+
+                    }
+                    else
+                    {
+                        MyFasta.Last().Sequence += line;
+                    }
+                }
+            }
+
+            return MyFasta;
+
+        }
     }
 }

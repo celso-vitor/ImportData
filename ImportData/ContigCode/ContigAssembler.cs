@@ -22,21 +22,7 @@ namespace SequenceAssemblerLogic.ContigCode
 
         }
 
-        private int GetOverlapLength(string seq1, string seq2, int minOverlap)
-        {
-            int len1 = seq1.Length;
-            int len2 = seq2.Length;
-            if (len1 == 0 || len2 == 0)
-                return 0;
-
-            for (int i = minOverlap; i <= Math.Min(len1, len2); i++)
-            {
-                if (seq1.EndsWith(seq2.Substring(0, i)))
-                    return i;
-            }
-
-            return 0;
-        }
+      
 
         // Improved method for calculating overlap length.
         private int GetOverlapLength(Contig c1, Contig c2, int minOverlap)

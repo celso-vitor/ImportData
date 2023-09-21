@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using SequenceAssemblerLogic.ProteinAlignmentCode;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SequenceAssemblerLogic.ResultParser
@@ -53,6 +54,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
         }
 
+     
         public void LoadUniversal(DirectoryInfo di)
         {
             short fileCounter = 0;
@@ -185,5 +187,7 @@ namespace SequenceAssemblerLogic.ResultParser
             }
             return myRegistries;
         }
+
+     
     }
 }

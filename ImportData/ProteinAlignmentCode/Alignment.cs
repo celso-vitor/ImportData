@@ -20,4 +20,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public string AlignedSmallSequence { get; set; }
 
     }
+
 }
+

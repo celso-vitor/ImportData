@@ -103,9 +103,12 @@
                         <RowDefinition Height="70"/>
                         <RowDefinition Height="80*"/>
                     </Grid.RowDefinitions>
-                    <WrapPanel HorizontalAlignment="Center">
+                    <WrapPanel Grid.Row="0" HorizontalAlignment="Center">
                         <Label Content="Minimum Identity"/>
+                        <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="50" Width="40"/>
                         <Label Content="Minimum Normalized Similarity"/>
+                        <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="50" Width="40"/>
+                        <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
                     </WrapPanel>
                     <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
                     <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Grid.Row="2"/>
