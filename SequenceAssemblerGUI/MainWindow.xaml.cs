@@ -294,37 +294,41 @@ namespace SequenceAssemblerGUI
             // Make a loading label visible to inform the user that data is being loaded.
             loadingLabel.Visibility = Visibility.Visible;
 
-            //UpdateContigAsync();
+            UptadeContig();
         }
 
-        private async Task UpdateContigAsync() 
+        async void UptadeContig()
         {
+
+            // How many amino acids should overlap for contigs (partially overlapping sequences).
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
 
-            myContigs = await Task.Run(() =>
-            {
-                ContigAssembler ca = new ContigAssembler();
-                var resultsPSM = (from kvp in psmDictTemp from r in kvp.Value select r).ToList();
-                var resultsDenovo = (from kvp in deNovoDictTemp from r in kvp.Value select r).ToList();
-                return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
-            });
+            // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
+            myContigs = await Task.Run
+            (
+                () =>
+                {
+                    ContigAssembler ca = new ContigAssembler();
+                    List<IDResult> results = new List<IDResult>();
+
+                    var resultsPSM = (from kvp in psmDictTemp
+                                      from r in kvp.Value
+                                      select r).ToList();
+
+                    var resultsDenovo = (from kvp in deNovoDictTemp
+                                         from r in kvp.Value
+                                         select r).ToList();
+
+
+                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
+                });
 
             ButtonProcess.IsEnabled = true;
 
-            if (myContigs == null || myContigs.Count == 0) // check if myContigs is null or empty
-            {
-                Console.WriteLine("No overlapping sequences found.");
-                return; // return early if no overlapping sequences are found
-            }
+            // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
+            DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
-            DataGridContig.ItemsSource = myContigs.Select(a => new
-            {
-                Sequence = a.Sequence,
-                IDTotal = a.IDs.Count(),
-                IDsDenovo = a.IDs.Count(a => !a.IsPSM),
-                IDsPSM = a.IDs.Count(a => a.IsPSM)
-            });
-
+            // Hide the loading label as the data has now been loaded.
             loadingLabel.Visibility = Visibility.Hidden;
         }
 
@@ -349,7 +353,7 @@ namespace SequenceAssemblerGUI
 
             foreach (var alignment in myAlignment)
             {
-                if (alignment.IdentityScore > minIdentity && alignment.NormalizedSimilarity > minNormalizedSimilarity)
+                if (alignment.NormalizedIdentityScore > minIdentity && alignment.NormalizedSimilarity > minNormalizedSimilarity)
                 {
                     filteredAlignments.Add(alignment);
                 }
@@ -462,9 +466,9 @@ namespace SequenceAssemblerGUI
            
              if (myContigs != null)
              {
-                UpdateContigAsync();
-
-            }
+                 UptadeContig();
+                      
+             }
              else
              {
 

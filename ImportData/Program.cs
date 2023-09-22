@@ -1,12 +1,21 @@
-﻿using System;
+﻿using SequenceAssemblerLogic.ProteinAlignmentCode;
+using System;
 using System.Collections.Generic;
 
-namespace TestProgram
+namespace ProteinAlignmentCode
 {
 
     class Program
-    { 
-
+    {
+        static void Main(string[] args)
+        {
+            string small = "VFDEFKPLVEEPQNLIK";
+            string large = "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKGRFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAMDYWGQGTLVTVSSASTKGPSVFPLAPSSKSTSGGTAALGCLVKDYFPEPVTVSWNSGALTSGVHTFPAVLQSSGLYSLSSVVTVPSSSLGTQTYICNVNHKPSNTKVDKKVEPKSCDKTHTCPPCPAPELLGGPSVFLFPPKPKDTLMISRTPEVTCVVVDVSHEDPEVKFNWYVDGVEVHNAKTKPREEQYNSTYRVVSVLTVLHQDWLNGKEYKCKVSNKALPAPIEKTISKAKGQPREPQVYTLPPSREEMTKNQVSLTCLVKGFYPSDIAVEWESNGQPENNYKTTPPVLDSDGSFFLYSKLTVDKSRWQQGNVFSCSVMHEALHNHYTQKSLSLSPGK";
+            SequenceAligner sequenceAligner = new SequenceAligner();
+            var result = sequenceAligner.AlignSequences(small, large) ;
+            Console.WriteLine(result);
+            
+        }
 
     }
 

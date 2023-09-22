@@ -186,7 +186,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmall,
                 StartPositions = startPositions,
-                IdentityScore = Math.Round(identityScore),
+                NormalizedIdentityScore = Math.Round(identityScore),
                 GapsUsed = gapsUsed,
                 SimilarityScore = similarityScore,
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
