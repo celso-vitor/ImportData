@@ -110,7 +110,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             int maxScore = 0;
             int endLarge = 0;
             int endSmall = 0;
-            int matches = 0;
+            int matchesSimilarity = 0;
             int gapsUsed = 0;
             int similarityScore = 0;
 
@@ -148,7 +148,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     alignedSmall = smallSeq[endSmall - 1] + alignedSmall;
                     alignedLarge = largeSeq[endLarge - 1] + alignedLarge;
                     similarityScore += substitutionScore;
-                    if (substitutionScore > 0) matches++;
+                    if (substitutionScore > 0) matchesSimilarity++;
                     endLarge--;
                     endSmall--;
                 }
@@ -177,7 +177,24 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 index++;
             }
 
-            double identityScore = (double)matches / alignedSmall.Length * 100;
+            //calculate identity
+            int matchedIdentity = 0;
+            int alignedAA = 0;
+            for (int i = 0; i < alignedLarge.Length; i++)
+            {
+                if (alignedLarge[i] != '-' && alignedSmall[i] != '-')
+                {
+                    alignedAA++;
+
+                    if (alignedLarge[i] == alignedSmall[i])
+                    {
+                        matchedIdentity++;
+                    }
+                }
+            }
+
+
+            double normalizedIdentityScore = (double)matchedIdentity / (double)alignedSmall.Length * 100;
 
 
 
@@ -186,12 +203,12 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmall,
                 StartPositions = startPositions,
-                NormalizedIdentityScore = Math.Round(identityScore),
+                NormalizedIdentityScore = Math.Round(normalizedIdentityScore),
                 GapsUsed = gapsUsed,
                 SimilarityScore = similarityScore,
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
-                AlignedAA = alignedSmall.Count(a => a != '-'),
-                NormalizedAlignedAA = Math.Round(((double)alignedSmall.Count(a => a != '-') / (double)alignedSmall.Length) * 100)
+                AlignedAA = alignedAA,
+                NormalizedAlignedAA = Math.Round(((double)alignedAA / (double)alignedSmall.Length) * 100)
             };
         }
 

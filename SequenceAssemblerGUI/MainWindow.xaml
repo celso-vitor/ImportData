@@ -76,16 +76,16 @@
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
 
-                    <TabControl Grid.Row="2" Margin="0,237,0,0" Grid.RowSpan="2">
+                    <TabControl Grid.Row="3" Grid.RowSpan="2">
                         <TabItem Header="DeNovo">
-                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="170" LoadingRow="DataGridDeNovo_LoadingRow"/>
+                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
                         </TabItem>
                         <TabItem  Header="PSM">
-                            <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
+                            <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
                         </TabItem>
                         <TabItem Header="Contig Assembly">
                             <Grid>
-                                <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Height="260" LoadingRow="DataGridPSM_LoadingRow"/>
+                                <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
                                 <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Grid>
 
