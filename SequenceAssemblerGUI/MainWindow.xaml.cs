@@ -334,32 +334,34 @@ namespace SequenceAssemblerGUI
 
         //---------------------------------------------------------
 
-        // Alingment sequences contig with fasta
-
-        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
+        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity, int maxGaps)
         {
-
             // Apply filters on the data
-            List<Alignment> filteredAlnResults = FilterAlignments(myContigs, myFasta, minIdentity, minNormalizedSimilarity);
+            List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, minIdentity, minNormalizedSimilarity, maxGaps);
 
             // Update DataGridAlignments
             DataGridAlignments.ItemsSource = null; // Clear previous items
             DataGridAlignments.ItemsSource = filteredAlnResults; // Set new filtered items
         }
 
-        private List<Alignment> FilterAlignments(List<Contig> contigs, List<Fasta> fasta, int minIdentity, int minNormalizedSimilarity)
+        private List<Alignment> FilterAlignments(List<Alignment> alignments, int minIdentity, int minNormalizedSimilarity, int maxGaps)
         {
             List<Alignment> filteredAlignments = new List<Alignment>();
 
-            foreach (var alignment in myAlignment)
+            foreach (var alignment in alignments)
             {
-                if (alignment.NormalizedIdentityScore > minIdentity && alignment.NormalizedSimilarity > minNormalizedSimilarity)
+                if (alignment.NormalizedIdentityScore > minIdentity &&
+                    alignment.NormalizedSimilarity > minNormalizedSimilarity &&
+                    alignment.AlignedAA <= maxGaps)
                 {
                     filteredAlignments.Add(alignment);
                 }
             }
+
             return filteredAlignments;
         }
+
+        
 
         //---------------------------------------------------------
 
@@ -446,8 +448,16 @@ namespace SequenceAssemblerGUI
         {
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
+            int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0; // Obtenha o valor máximo de gaps do usuário
 
-            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, maxGaps); // Chame a função com os três argumentos
+            int? maxGapsValue = IntegerUpDownMaximumGaps.Value;
+
+            //// Verifique se o valor de maxGaps é válido (por exemplo, dentro do intervalo desejado)
+            //bool isMaxGapsValid = maxGapsValue.HasValue && maxGapsValue >= 1 && maxGapsValue <= 10;
+
+            //// Habilite o botão "Process" apenas se o valor de maxGaps for válido
+            //ButtonProcess.IsEnabled = isMaxGapsValid;
         }
 
 

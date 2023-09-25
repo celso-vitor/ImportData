@@ -212,7 +212,17 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             };
         }
 
-      
+        //public class AlignmentFilter
+        //{
+        //    public static List<Alignment> FilterAlignmentsByGaps(List<Alignment> alignments, int maxGaps)
+        //    {
+        //        // Aplicar o filtro na lista de alinhamentos com base na quantidade de gaps
+        //        List<Alignment> filteredAlignments = alignments.Where(alignment => alignment.AlignedAA <= maxGaps).ToList();
+
+        //        return filteredAlignments;
+        //    }
+        //}
+
     }
 }
 

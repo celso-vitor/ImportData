@@ -69,8 +69,11 @@
                     <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
                         <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
+                        <Label Content="Maximum Gaps"/>
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
                         <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" IsEnabled="False" Grid.Row="1" Width="200"/>
                     </WrapPanel>
+
 
                     <GroupBox Grid.Row="2">
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
@@ -105,15 +108,15 @@
                     </Grid.RowDefinitions>
                     <WrapPanel Grid.Row="0" HorizontalAlignment="Center">
                         <Label Content="Minimum Identity"/>
-                        <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="50" Width="40"/>
+                        <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
                         <Label Content="Minimum Normalized Similarity"/>
-                        <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="50" Width="40"/>
+                        <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
                         <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
                     </WrapPanel>
                     <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
                     <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"  Grid.Row="2" LoadingRow="DataGridAlignments_LoadingRow"/>
                 </Grid>
-                
+
 
 
 
