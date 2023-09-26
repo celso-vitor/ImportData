@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -342,8 +343,10 @@ namespace SequenceAssemblerGUI
             // Update DataGridAlignments
             DataGridAlignments.ItemsSource = null; // Clear previous items
             DataGridAlignments.ItemsSource = filteredAlnResults; // Set new filtered items
-        }
 
+
+        }
+   
         private List<Alignment> FilterAlignments(List<Alignment> alignments, int minIdentity, int minNormalizedSimilarity, int maxGaps)
         {
             List<Alignment> filteredAlignments = new List<Alignment>();
@@ -361,7 +364,6 @@ namespace SequenceAssemblerGUI
             return filteredAlignments;
         }
 
-        
 
         //---------------------------------------------------------
 
@@ -448,16 +450,11 @@ namespace SequenceAssemblerGUI
         {
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
-            int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0; // Obtenha o valor máximo de gaps do usuário
+            int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0; 
 
-            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, maxGaps); // Chame a função com os três argumentos
+            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, maxGaps); 
             int? maxGapsValue = IntegerUpDownMaximumGaps.Value;
-
-            //// Verifique se o valor de maxGaps é válido (por exemplo, dentro do intervalo desejado)
-            //bool isMaxGapsValid = maxGapsValue.HasValue && maxGapsValue >= 1 && maxGapsValue <= 10;
-
-            //// Habilite o botão "Process" apenas se o valor de maxGaps for válido
-            //ButtonProcess.IsEnabled = isMaxGapsValid;
+          
         }
 
 
