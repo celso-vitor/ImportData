@@ -335,33 +335,21 @@ namespace SequenceAssemblerGUI
 
         //---------------------------------------------------------
 
-        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity, int maxGaps)
+        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
         {
             // Apply filters on the data
-            List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, minIdentity, minNormalizedSimilarity, maxGaps);
+            //List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, minIdentity, minNormalizedSimilarity);
+
+            List<Alignment> filteredAlnResults = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+
+            //Criar datatable em cima do resultado filtrado
+
+            //vincular a datatable com o itemssource
 
             // Update DataGridAlignments
             DataGridAlignments.ItemsSource = null; // Clear previous items
             DataGridAlignments.ItemsSource = filteredAlnResults; // Set new filtered items
 
-
-        }
-   
-        private List<Alignment> FilterAlignments(List<Alignment> alignments, int minIdentity, int minNormalizedSimilarity, int maxGaps)
-        {
-            List<Alignment> filteredAlignments = new List<Alignment>();
-
-            foreach (var alignment in alignments)
-            {
-                if (alignment.NormalizedIdentityScore > minIdentity &&
-                    alignment.NormalizedSimilarity > minNormalizedSimilarity &&
-                    alignment.AlignedAA <= maxGaps)
-                {
-                    filteredAlignments.Add(alignment);
-                }
-            }
-
-            return filteredAlignments;
         }
 
 
@@ -430,7 +418,8 @@ namespace SequenceAssemblerGUI
                 DataGridFasta.ItemsSource = myFasta;
 
                 // Assuming you have SequenceAlignment class and ProteinAlignment method
-                SequenceAligner aligner = new SequenceAligner(maxGaps: 1, gapPenalty: -2, ignoreILDifference: true);
+                int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps , gapPenalty: -2, ignoreILDifference: true);
 
                 myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
                 DataGridAlignments.ItemsSource = myAlignment;
@@ -450,10 +439,8 @@ namespace SequenceAssemblerGUI
         {
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
-            int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0; 
 
-            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, maxGaps); 
-            int? maxGapsValue = IntegerUpDownMaximumGaps.Value;
+            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity); 
           
         }
 

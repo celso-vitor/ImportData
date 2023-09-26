@@ -140,7 +140,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             string alignedLarge = "";
             int startLarge = endLarge;
 
-            while (endLarge > 0 && endSmall > 0 && gapsUsed <= MaxGaps)
+            while (endLarge > 0 && endSmall > 0 && gapsUsed < MaxGaps)
             {
                 int substitutionScore = GetSubstitutionScore(largeSeq[endLarge - 1], smallSeq[endSmall - 1]);
                 if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall - 1] + substitutionScore)
@@ -200,6 +200,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
             return new SequenceAssemblerLogic.ProteinAlignmentCode.Alignment
             {
+                Identity = matchedIdentity,
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmall,
                 StartPositions = startPositions,

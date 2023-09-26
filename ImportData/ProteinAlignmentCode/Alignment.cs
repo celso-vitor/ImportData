@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
     public class Alignment
-    {  
+    {
+        public int Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }
         public int SimilarityScore { get; set; }
         public double NormalizedSimilarity { get; set; }

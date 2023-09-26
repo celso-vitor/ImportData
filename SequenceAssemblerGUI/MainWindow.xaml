@@ -9,7 +9,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
@@ -18,25 +17,28 @@
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
             </MenuItem>
         </Menu>
-        <WrapPanel Background ="Bisque" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="1">
-            <Label Content="PSMs: "/>
-            <Label x:Name="LabelPSMCount" Content="?"/>
-            <Label Content="DeNovo: "/>
-            <Label x:Name="LabelDeNovoCount" Content="?"/>
-        </WrapPanel>
+
 
         <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
             <TabItem Header="Assembler">
 
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
                         <RowDefinition Height="100"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="3*"/>
                         <RowDefinition Height="2*"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel  Grid.Row="0">
+                    <WrapPanel Background ="Bisque" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="0">
+                        <Label Content="PSMs: "/>
+                        <Label x:Name="LabelPSMCount" Content="?"/>
+                        <Label Content="DeNovo: "/>
+                        <Label x:Name="LabelDeNovoCount" Content="?"/>
+                    </WrapPanel>
+
+                    <StackPanel  Grid.Row="1">
                         <GroupBox Header="Novor">
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Label Content="PSM Score"/>
@@ -66,7 +68,7 @@
                         </GroupBox>
                     </StackPanel>
 
-                    <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <WrapPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
                         <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
                         <Label Content="Maximum Gaps"/>
@@ -75,11 +77,11 @@
                     </WrapPanel>
 
 
-                    <GroupBox Grid.Row="2">
+                    <GroupBox Grid.Row="3">
                         <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
                     </GroupBox>
 
-                    <TabControl Grid.Row="3" Grid.RowSpan="2">
+                    <TabControl Grid.Row="4" Grid.RowSpan="2">
                         <TabItem Header="DeNovo">
                             <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
                         </TabItem>
@@ -114,7 +116,10 @@
                         <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
                     </WrapPanel>
                     <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
-                    <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"  Grid.Row="2" LoadingRow="DataGridAlignments_LoadingRow"/>
+                    
+                    <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"  Grid.Row="2" LoadingRow="DataGridAlignments_LoadingRow">
+                        
+                    </DataGrid>
                 </Grid>
 
 
