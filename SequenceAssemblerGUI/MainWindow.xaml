@@ -39,7 +39,7 @@
                     </WrapPanel>
 
                     <StackPanel  Grid.Row="1">
-                        <GroupBox Header="Novor">
+                        <GroupBox Header="Novor-Peaks">
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Label Content="PSM Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
@@ -101,7 +101,7 @@
 
             </TabItem>
 
-            <TabItem x:Name="TabItemResults" Header="Results">
+            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled="False">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>

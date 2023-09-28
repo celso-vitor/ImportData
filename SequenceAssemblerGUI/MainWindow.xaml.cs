@@ -338,20 +338,45 @@ namespace SequenceAssemblerGUI
         private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
         {
             // Apply filters on the data
-            //List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, minIdentity, minNormalizedSimilarity);
-
             List<Alignment> filteredAlnResults = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
-            //Criar datatable em cima do resultado filtrado
+            
+            DataTable dataTable = new DataTable();
 
-            //vincular a datatable com o itemssource
+            // Define the DataTable columns with the appropriate data types
+            dataTable.Columns.Add("Identity", typeof(int));
+            dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
+            dataTable.Columns.Add("SimilarityScore", typeof(int));
+            dataTable.Columns.Add("NormalizedSimilarity", typeof(double));
+            dataTable.Columns.Add("AlignedAA", typeof(int));
+            dataTable.Columns.Add("NormalizedAlignedAA", typeof(double));
+            dataTable.Columns.Add("GapsUsed", typeof(int));
+            dataTable.Columns.Add("StartPositions", typeof(string)); 
+            dataTable.Columns.Add("AlignedLargeSequence", typeof(string));
+            dataTable.Columns.Add("AlignedSmallSequence", typeof(string));
 
-            // Update DataGridAlignments
+            // Fill the DataTable with your data
+            foreach (var alignment in filteredAlnResults)
+            {
+                DataRow newRow = dataTable.NewRow();
+                newRow["Identity"] = alignment.Identity;
+                newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
+                newRow["SimilarityScore"] = alignment.SimilarityScore;
+                newRow["NormalizedSimilarity"] = alignment.NormalizedSimilarity;
+                newRow["AlignedAA"] = alignment.AlignedAA;
+                newRow["NormalizedAlignedAA"] = alignment.NormalizedAlignedAA;
+                newRow["GapsUsed"] = alignment.GapsUsed;
+                newRow["StartPositions"] = string.Join(",", alignment.StartPositions); 
+                newRow["AlignedLargeSequence"] = alignment.AlignedLargeSequence;
+                newRow["AlignedSmallSequence"] = alignment.AlignedSmallSequence;
+
+                dataTable.Rows.Add(newRow);
+            }
+
+            // Set the DataTable as the data source for your control 
             DataGridAlignments.ItemsSource = null; // Clear previous items
-            DataGridAlignments.ItemsSource = filteredAlnResults; // Set new filtered items
-
+            DataGridAlignments.ItemsSource = dataTable.DefaultView;
         }
-
 
         //---------------------------------------------------------
 
@@ -419,13 +444,23 @@ namespace SequenceAssemblerGUI
 
                 // Assuming you have SequenceAlignment class and ProteinAlignment method
                 int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                int minIdentity = (int)NormalizedSimilarityUpDown.Value;
+                int minNormalizedSimilarity = (int)IdentityUpDown.Value;
                 SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps , gapPenalty: -2, ignoreILDifference: true);
 
                 myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
-                DataGridAlignments.ItemsSource = myAlignment;
 
-                // Open the TabItemResults
+
+                // Call the UpdateAlignmentGrid method with the required parameters
+                UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+
+                // After processing, enable the "Results" 
+                TabItemResults.IsEnabled = true;
+
+                // Abra o TabItemResults
                 TabControlMain.SelectedItem = TabItemResults;
+
+
             }
         }
 
