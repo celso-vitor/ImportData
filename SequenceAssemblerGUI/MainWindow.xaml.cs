@@ -345,30 +345,30 @@ namespace SequenceAssemblerGUI
 
             // Define the DataTable columns with the appropriate data types
             dataTable.Columns.Add("Identity", typeof(int));
-            dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
-            dataTable.Columns.Add("SimilarityScore", typeof(int));
-            dataTable.Columns.Add("NormalizedSimilarity", typeof(double));
+            dataTable.Columns.Add("Normalized Identity Score", typeof(double));
+            dataTable.Columns.Add("Similarity Score", typeof(int));
+            dataTable.Columns.Add("Normalized Similarity", typeof(double));
             dataTable.Columns.Add("AlignedAA", typeof(int));
-            dataTable.Columns.Add("NormalizedAlignedAA", typeof(double));
-            dataTable.Columns.Add("GapsUsed", typeof(int));
-            dataTable.Columns.Add("StartPositions", typeof(string)); 
-            dataTable.Columns.Add("AlignedLargeSequence", typeof(string));
-            dataTable.Columns.Add("AlignedSmallSequence", typeof(string));
+            dataTable.Columns.Add("Normalized AlignedAA", typeof(double));
+            dataTable.Columns.Add("Gaps Used", typeof(int));
+            dataTable.Columns.Add("Start Positions", typeof(string)); 
+            dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
+            dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
 
             // Fill the DataTable with your data
             foreach (var alignment in filteredAlnResults)
             {
                 DataRow newRow = dataTable.NewRow();
-                newRow["Identity"] = alignment.Identity;
-                newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
-                newRow["SimilarityScore"] = alignment.SimilarityScore;
-                newRow["NormalizedSimilarity"] = alignment.NormalizedSimilarity;
-                newRow["AlignedAA"] = alignment.AlignedAA;
-                newRow["NormalizedAlignedAA"] = alignment.NormalizedAlignedAA;
-                newRow["GapsUsed"] = alignment.GapsUsed;
-                newRow["StartPositions"] = string.Join(",", alignment.StartPositions); 
-                newRow["AlignedLargeSequence"] = alignment.AlignedLargeSequence;
-                newRow["AlignedSmallSequence"] = alignment.AlignedSmallSequence;
+                newRow[0] = alignment.Identity;
+                newRow[1] = alignment.NormalizedIdentityScore;
+                newRow[2] = alignment.SimilarityScore;
+                newRow[3] = alignment.NormalizedSimilarity;
+                newRow[4] = alignment.AlignedAA;
+                newRow[5] = alignment.NormalizedAlignedAA;
+                newRow[6] = alignment.GapsUsed;
+                newRow[7] = string.Join(",", alignment.StartPositions); 
+                newRow[8] = alignment.AlignedLargeSequence;
+                newRow[9] = alignment.AlignedSmallSequence;
 
                 dataTable.Rows.Add(newRow);
             }
