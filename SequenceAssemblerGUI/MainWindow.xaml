@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5" xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
-        Title="Sequence Assembler" Height="700" Width="950">
+        Title="Protein Sequence Assembler" Height="700" Width="950">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -19,7 +19,7 @@
         </Menu>
 
 
-        <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2">
+        <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2" SelectionChanged="TabControlMain_SelectionChanged">
             <TabItem Header="Assembler">
 
                 <Grid>
@@ -39,7 +39,7 @@
                     </WrapPanel>
 
                     <StackPanel  Grid.Row="1">
-                        <GroupBox Header="Novor-Peaks">
+                        <GroupBox Header="Novor-Peaks-PatternLab">
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <Label Content="PSM Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
@@ -73,7 +73,7 @@
                         <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
                         <Label Content="Maximum Gaps"/>
                         <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
-                        <Button x:Name="ButtonProcess" Content="Process" Click="ButtonProcess_Click" Margin="2,2,2,2" IsEnabled="False" Grid.Row="1" Width="200"/>
+                        <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
                     </WrapPanel>
 
 
@@ -101,7 +101,7 @@
 
             </TabItem>
 
-            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled="False">
+            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled="False" Height="20" VerticalAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -114,11 +114,14 @@
                         <Label Content="Minimum Normalized Similarity"/>
                         <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
                         <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
+                        <Button x:Name="ButtonDownloadData" Content="Download Data" Click="ButtonDownloadData_Click" Width="91" Margin="10,0,0,0"/>
+
                     </WrapPanel>
+
                     <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
-                    
+
                     <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"  Grid.Row="2" LoadingRow="DataGridAlignments_LoadingRow">
-                        
+
                     </DataGrid>
                 </Grid>
 
@@ -127,6 +130,7 @@
 
             </TabItem>
         </TabControl>
+
 
 
 

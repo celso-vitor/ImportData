@@ -9,16 +9,11 @@ using SequenceAssemblerLogic.ResultParser;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Xceed.Wpf.Toolkit;
 
 namespace SequenceAssemblerGUI
 {
@@ -64,7 +59,6 @@ namespace SequenceAssemblerGUI
             InitializeComponent();
 
         }
-
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
 
@@ -340,7 +334,7 @@ namespace SequenceAssemblerGUI
             // Apply filters on the data
             List<Alignment> filteredAlnResults = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
-            
+
             DataTable dataTable = new DataTable();
 
             // Define the DataTable columns with the appropriate data types
@@ -351,7 +345,7 @@ namespace SequenceAssemblerGUI
             dataTable.Columns.Add("AlignedAA", typeof(int));
             dataTable.Columns.Add("Normalized AlignedAA", typeof(double));
             dataTable.Columns.Add("Gaps Used", typeof(int));
-            dataTable.Columns.Add("Start Positions", typeof(string)); 
+            dataTable.Columns.Add("Start Positions", typeof(string));
             dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
             dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
 
@@ -366,7 +360,7 @@ namespace SequenceAssemblerGUI
                 newRow[4] = alignment.AlignedAA;
                 newRow[5] = alignment.NormalizedAlignedAA;
                 newRow[6] = alignment.GapsUsed;
-                newRow[7] = string.Join(",", alignment.StartPositions); 
+                newRow[7] = string.Join(",", alignment.StartPositions);
                 newRow[8] = alignment.AlignedLargeSequence;
                 newRow[9] = alignment.AlignedSmallSequence;
 
@@ -446,7 +440,7 @@ namespace SequenceAssemblerGUI
                 int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                 int minIdentity = (int)NormalizedSimilarityUpDown.Value;
                 int minNormalizedSimilarity = (int)IdentityUpDown.Value;
-                SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps , gapPenalty: -2, ignoreILDifference: true);
+                SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps, gapPenalty: -2, ignoreILDifference: true);
 
                 myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
@@ -475,8 +469,8 @@ namespace SequenceAssemblerGUI
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity); 
-          
+            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+
         }
 
 
@@ -492,33 +486,87 @@ namespace SequenceAssemblerGUI
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-           
-             if (myContigs != null)
-             {
-                 UptadeContig();
-                      
-             }
-             else
-             {
 
-                 Console.WriteLine("Contigs is null");
+            if (myContigs != null)
+            {
+                UptadeContig();
 
-             }
+            }
+            else
+            {
+
+                Console.WriteLine("Contigs is null");
+
+            }
 
         }
 
+        //------------------------------------------------------------------------------------------------
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
+
+        private void ButtonDownloadData_Click(object sender, RoutedEventArgs e)
+        {
+            // Use SaveFileDialog to allow the user to choose the location and name of the file
+            Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            saveFileDialog.Filter = "CSV Files (*.csv)|*.csv";
+            saveFileDialog.DefaultExt = "csv";
+            saveFileDialog.Title = "Save CSV File";
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                // Call a method to export data from DataGrids to CSV
+                ExportDataGridsToCSV(DataGridFasta, DataGridAlignments, saveFileDialog.FileName);
+            }
+        }
+
+        private void ExportDataGridsToCSV(DataGrid dataGridFasta, DataGrid dataGridAlignments, string filePath)
+        {
+            var lines = new List<string>();
+
+            // Add the DataGridFasta header
+            var headerFasta = new[] { "Description", "Template Sequence" };
+            lines.Add(string.Join(",", headerFasta));
+
+            // Add the DataGridFasta rows
+            foreach (var item in (IEnumerable<SequenceAssemblerLogic.Fasta>)dataGridFasta.ItemsSource)
+            {
+                var column1 = item.Description;
+                var column2 = item.Sequence;
+
+                // Add lines to the final result
+                lines.Add($"{column1},{column2}");
+            }
+
+            // Add a blank line between DataGrids
+            lines.Add(string.Empty);
+
+            // Add DataGridAlignments header
+            var headerAlignments = new[] { " Assembling Sequences" };
+            lines.Add(string.Join(",", headerAlignments));
+
+            // Add the DataGridAlignments lines
+            foreach (DataRowView dataItem in dataGridAlignments.ItemsSource)
+            {
+                var largeSequence = dataItem["Aligned Large Sequence"].ToString();
+                var smallSequence = dataItem["Aligned Small Sequence"].ToString();
+
+                // Add lines to the final result
+                lines.Add($"Large Sequence: {largeSequence}");
+                lines.Add($"Small Sequence: {smallSequence}");
+                lines.Add(string.Empty); // Blank line
+            }
+
+            // Save to file
+            System.IO.File.WriteAllLines(filePath, lines);
+        }
+
+
+        private void TabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Implement as needed
+        }
     }
-
 }
-    
-
-
-
-    
-
-
-
