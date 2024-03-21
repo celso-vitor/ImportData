@@ -16,6 +16,10 @@
             <MenuItem Header="File">
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
             </MenuItem>
+
+            <MenuItem x:Name="MenuItemCompareSequences" Header="Compare Sequences" Click="MenuItemCompareSequences_Click"/>
+
+
         </Menu>
 
 
@@ -114,25 +118,19 @@
                         <Label Content="Minimum Normalized Similarity"/>
                         <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
                         <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
-                        <Button x:Name="ButtonDownloadData" Content="Save Data" Click="ButtonDownloadData_Click" Width="91" Margin="10,0,0,0"/>
+
 
                     </WrapPanel>
 
                     <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
 
-                    <DataGrid x:Name="DataGridAlignments" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True"  Grid.Row="2" LoadingRow="DataGridAlignments_LoadingRow">
+                    <DataGrid x:Name="DataGridAlignments" AutoGenerateColumns="True" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Grid.Row="2"/>
 
-                    </DataGrid>
                 </Grid>
-
-
-
 
             </TabItem>
         </TabControl>
 
-
-
-
     </Grid>
 </Window>
+

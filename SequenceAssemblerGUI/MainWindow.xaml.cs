@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -345,7 +346,6 @@ namespace SequenceAssemblerGUI
             dataTable.Columns.Add("AlignedAA", typeof(int));
             dataTable.Columns.Add("Normalized AlignedAA", typeof(double));
             dataTable.Columns.Add("Gaps Used", typeof(int));
-            dataTable.Columns.Add("Start Positions", typeof(string));
             dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
             dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
 
@@ -360,9 +360,8 @@ namespace SequenceAssemblerGUI
                 newRow[4] = alignment.AlignedAA;
                 newRow[5] = alignment.NormalizedAlignedAA;
                 newRow[6] = alignment.GapsUsed;
-                newRow[7] = string.Join(",", alignment.StartPositions);
-                newRow[8] = alignment.AlignedLargeSequence;
-                newRow[9] = alignment.AlignedSmallSequence;
+                newRow[7] = alignment.AlignedLargeSequence;
+                newRow[8] = alignment.AlignedSmallSequence;
 
                 dataTable.Rows.Add(newRow);
             }
@@ -433,28 +432,41 @@ namespace SequenceAssemblerGUI
 
             if (openFileDialog.ShowDialog() == true)
             {
-                myFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
+                // Tenta carregar o arquivo FASTA selecionado
+                var loadedFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
+
+                // Verifica se o arquivo FASTA foi carregado corretamente
+                if (loadedFasta == null || !loadedFasta.Any())
+                {
+                    MessageBox.Show("Falha ao carregar o arquivo FASTA. O arquivo está vazio ou não é válido.", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return; // Sai do método para evitar mais processamento
+                }
+
+                myFasta = loadedFasta;
                 DataGridFasta.ItemsSource = myFasta;
 
-                // Assuming you have SequenceAlignment class and ProteinAlignment method
-                int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
-                int minIdentity = (int)NormalizedSimilarityUpDown.Value;
-                int minNormalizedSimilarity = (int)IdentityUpDown.Value;
-                SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps, gapPenalty: -2, ignoreILDifference: true);
+                // Verifica se existe alguma sequência contig para processar antes de proceder
+                if (myContigs != null && myContigs.Any())
+                {
+                    // Se houver contigs, proceda com o alinhamento e outras operações
+                    int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                    int minIdentity = (int)NormalizedSimilarityUpDown.Value;
+                    int minNormalizedSimilarity = (int)IdentityUpDown.Value;
+                    SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps, gapPenalty: -2, ignoreILDifference: true);
 
-                myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
+                    myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
+                    // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
+                    UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
 
-                // Call the UpdateAlignmentGrid method with the required parameters
-                UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
-
-                // After processing, enable the "Results" 
-                TabItemResults.IsEnabled = true;
-
-                // Abra o TabItemResults
-                TabControlMain.SelectedItem = TabItemResults;
-
-
+                    // Depois do processamento, habilita a aba "Resultados"
+                    TabItemResults.IsEnabled = true;
+                    TabControlMain.SelectedItem = TabItemResults;
+                }
+                else
+                {
+                    MessageBox.Show("Não há contigs para alinhar. Por favor, carregue os contigs antes de tentar processar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
 
@@ -500,73 +512,19 @@ namespace SequenceAssemblerGUI
             }
 
         }
-
-        //------------------------------------------------------------------------------------------------
-        private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
-        {
-            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
-        }
-
-        private void ButtonDownloadData_Click(object sender, RoutedEventArgs e)
-        {
-            // Use SaveFileDialog to allow the user to choose the location and name of the file
-            Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
-            saveFileDialog.Filter = "CSV Files (*.csv)|*.csv";
-            saveFileDialog.DefaultExt = "csv";
-            saveFileDialog.Title = "Save CSV File";
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                // Call a method to export data from DataGrids to CSV
-                ExportDataGridsToCSV(DataGridFasta, DataGridAlignments, saveFileDialog.FileName);
-            }
-        }
-
-        private void ExportDataGridsToCSV(DataGrid dataGridFasta, DataGrid dataGridAlignments, string filePath)
-        {
-            var lines = new List<string>();
-
-            // Add the DataGridFasta header
-            var headerFasta = new[] { "Description", "Template Sequence" };
-            lines.Add(string.Join(",", headerFasta));
-
-            // Add the DataGridFasta rows
-            foreach (var item in (IEnumerable<SequenceAssemblerLogic.Fasta>)dataGridFasta.ItemsSource)
-            {
-                var column1 = item.Description;
-                var column2 = item.Sequence;
-
-                // Add lines to the final result
-                lines.Add($"{column1},{column2}");
-            }
-
-            // Add a blank line between DataGrids
-            lines.Add(string.Empty);
-
-            // Add DataGridAlignments header
-            var headerAlignments = new[] { " Assembling Sequences" };
-            lines.Add(string.Join(",", headerAlignments));
-
-            // Add the DataGridAlignments lines
-            foreach (DataRowView dataItem in dataGridAlignments.ItemsSource)
-            {
-                var largeSequence = dataItem["Aligned Large Sequence"].ToString();
-                var smallSequence = dataItem["Aligned Small Sequence"].ToString();
-
-                // Add lines to the final result
-                lines.Add($"Large Sequence: {largeSequence}");
-                lines.Add($"Small Sequence: {smallSequence}");
-                lines.Add(string.Empty); // Blank line
-            }
-
-            // Save to file
-            System.IO.File.WriteAllLines(filePath, lines);
-        }
-
-
         private void TabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Implement as needed
         }
+        private void MenuItemCompareSequences_Click(object sender, RoutedEventArgs e)
+        {
+            CompareSequences cs = new CompareSequences();
+            cs.ShowDialog();
+
+        }
     }
+
+
 }
+
+

@@ -1,0 +1,48 @@
+﻿<Window x:Class="SequenceAssemblerGUI.CompareSequences"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SequenceAssemblerGUI"
+        mc:Ignorable="d"
+        Title="Compare Sequences" Height="600" Width="640"
+        FontFamily="Courier New">
+    <!-- Adicionado Courier New como fonte -->
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Sequence A -->
+            <RowDefinition Height="Auto"/>
+            <!-- Sequence B -->
+            <RowDefinition Height="Auto"/>
+            <!-- Novos controles de configuração -->
+            <RowDefinition Height="40"/>
+            <!-- Botão Execute -->
+            <RowDefinition Height="*"/>
+            <!-- Resultados -->
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Sequence A" Grid.Row="0">
+            <TextBox x:Name="TextBoxSequenceA" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="127" Text="TESTE"/>
+        </GroupBox>
+
+        <GroupBox Header="Sequence B" Grid.Row="1">
+            <TextBox x:Name="TextBoxSequenceB" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="127" Text="TSTE"/>
+        </GroupBox>
+
+        <!-- Novos controles de configuração de alinhamento -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Label Content="Max Gaps:"/>
+            <TextBox x:Name="TextBoxMaxGaps" Text="2" Width="20" Margin="5"/>
+            <Label Content="Gap Penalty:"/>
+            <TextBox x:Name="TextBoxGapPenalty" Text="-2" Width="20" Margin="5"/>
+            <CheckBox x:Name="CheckBoxIgnoreILDifference" Content="Ignore I/L Difference" Margin="5" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <Button Content="Execute" Grid.Row="3" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+
+        <GroupBox Header="Results" Grid.Row="4">
+            <TextBox x:Name="TextBoxResults" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+        </GroupBox>
+    </Grid>
+</Window>
