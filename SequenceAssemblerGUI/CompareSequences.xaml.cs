@@ -18,13 +18,13 @@ namespace SequenceAssemblerGUI
             var sequenceA = TextBoxSequenceA.Text;
             var sequenceB = TextBoxSequenceB.Text;
 
-            if (!int.TryParse(TextBoxMaxGaps.Text, out int maxGaps) || maxGaps < 0)
+            if (!int.TryParse(IntegerUpDownMaxGaps.Text, out int maxGaps) || maxGaps < 0)
             {
                 MessageBox.Show("Max Gaps must be a positive integer.");
                 return;
             }
 
-            if (!int.TryParse(TextBoxGapPenalty.Text, out int gapPenalty))
+            if (!int.TryParse(IntegerUpDowGapPenalty.Text, out int gapPenalty))
             {
                 MessageBox.Show("Gap Penalty must be an integer.");
                 return;
@@ -87,5 +87,6 @@ namespace SequenceAssemblerGUI
 
             return (alignmentA.ToString(), alignmentB.ToString(), score);
         }
+
     }
 }

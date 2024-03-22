@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SequenceAssemblerGUI"
+        xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         Title="Compare Sequences" Height="600" Width="640"
         FontFamily="Courier New">
@@ -33,10 +33,10 @@
         <!-- Novos controles de configuração de alinhamento -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
             <Label Content="Max Gaps:"/>
-            <TextBox x:Name="TextBoxMaxGaps" Text="2" Width="20" Margin="5"/>
+            <xctk:IntegerUpDown x:Name="IntegerUpDownMaxGaps" Value="4" Minimum="0" Maximum="100"/>
             <Label Content="Gap Penalty:"/>
-            <TextBox x:Name="TextBoxGapPenalty" Text="-2" Width="20" Margin="5"/>
-            <CheckBox x:Name="CheckBoxIgnoreILDifference" Content="Ignore I/L Difference" Margin="5" VerticalAlignment="Center"/>
+            <xctk:IntegerUpDown x:Name="IntegerUpDowGapPenalty" Value="-2" Minimum="-100" Maximum="100"/>
+            <CheckBox x:Name="CheckBoxIgnoreILDifference" Content="Ignore I/L Difference" Margin="5" IsChecked="True" VerticalAlignment="Center"/>
         </StackPanel>
 
         <Button Content="Execute" Grid.Row="3" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>

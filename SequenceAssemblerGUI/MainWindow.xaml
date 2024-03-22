@@ -23,113 +23,127 @@
         </Menu>
 
 
-        <TabControl x:Name="TabControlMain" Background="Beige" IsEnabled="False" Grid.Row="2" SelectionChanged="TabControlMain_SelectionChanged">
-            <TabItem Header="Assembler">
+        <Grid  Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
 
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="100"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="3*"/>
-                        <RowDefinition Height="2*"/>
-                    </Grid.RowDefinitions>
+            <WrapPanel Background ="Bisque" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="0">
+                <Label Content="PSMs: "/>
+                <Label x:Name="LabelPSMCount" Content="?"/>
+                <Label Content="DeNovo: "/>
+                <Label x:Name="LabelDeNovoCount" Content="?"/>
+            </WrapPanel>
 
-                    <WrapPanel Background ="Bisque" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="0">
-                        <Label Content="PSMs: "/>
-                        <Label x:Name="LabelPSMCount" Content="?"/>
-                        <Label Content="DeNovo: "/>
-                        <Label x:Name="LabelDeNovoCount" Content="?"/>
+            <StackPanel  Grid.Row="1">
+                <GroupBox Header="Novor-Peaks-PatternLab">
+                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Label Content="PSM Score"/>
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
+                        <Label Content="PSM MinLength"/>
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
+                        <Label Content="PSM MaxLength" />
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
+
+                        <Label Content="DeNovo AA Score"/>
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="50" Maximum="100"/>
+
+                        <Label Content="DeNovo MinLength" />
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
+                        <Label Content="DeNovo MaxLength" />
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                        <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
                     </WrapPanel>
+                </GroupBox>
 
-                    <StackPanel  Grid.Row="1">
-                        <GroupBox Header="Novor-Peaks-PatternLab">
-                            <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Label Content="PSM Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
-                                <Label Content="PSM MinLength"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
-                                <Label Content="PSM MaxLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
-
-                                <Label Content="DeNovo AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="50" Maximum="100"/>
-
-                                <Label Content="DeNovo MinLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
-                                <Label Content="DeNovo MaxLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
-                                <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,0,0,0"/>
-                            </WrapPanel>
-                        </GroupBox>
-
-                        <GroupBox Header="Contig Assembly">
-                            <WrapPanel HorizontalAlignment="Center">
-                                <Label Content="AA Overlap"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
-                                <Button Content="Debug" Click="Button_Click" Margin="2,2,2,2"/>
-                            </WrapPanel>
-                        </GroupBox>
-                    </StackPanel>
-
-                    <WrapPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
-                        <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
-                        <Label Content="Maximum Gaps"/>
-                        <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
-                        <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
-                    </WrapPanel>
-
-
-                    <GroupBox Grid.Row="3">
-                        <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
-                    </GroupBox>
-
-                    <TabControl Grid.Row="4" Grid.RowSpan="2">
-                        <TabItem Header="DeNovo">
-                            <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
-                        </TabItem>
-                        <TabItem  Header="PSM">
-                            <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
-                        </TabItem>
-                        <TabItem Header="Contig Assembly">
-                            <Grid>
-                                <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
-                                <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Grid>
-
-                        </TabItem>
-                    </TabControl>
-
-                </Grid>
-
-            </TabItem>
-
-            <TabItem x:Name="TabItemResults" Header="Results" IsEnabled="False" Height="20" VerticalAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="70"/>
-                        <RowDefinition Height="80*"/>
-                    </Grid.RowDefinitions>
-                    <WrapPanel Grid.Row="0" HorizontalAlignment="Center">
+                <GroupBox Header="Contig Assembly">
+                    <WrapPanel HorizontalAlignment="Center">
+                        <Label Content="AA Overlap"/>
+                        <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
+                        <Button Content="Debug" Click="Button_Click" Margin="2,2,2,2"/>
                         <Label Content="Minimum Identity"/>
                         <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
                         <Label Content="Minimum Normalized Similarity"/>
                         <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
-                        <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0"/>
-
-
                     </WrapPanel>
+                </GroupBox>
+            </StackPanel>
 
-                    <DataGrid x:Name="DataGridFasta" Grid.Row="1"/>
 
-                    <DataGrid x:Name="DataGridAlignments" AutoGenerateColumns="True" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" Grid.Row="2"/>
+            <WrapPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
+                <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
+                <Label Content="Maximum Gaps"/>
+                <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
+                <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
+                <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0" IsEnabled ="False"/>
+            </WrapPanel>
 
-                </Grid>
+            <TabControl Grid.Row="3">
+                <TabItem Header="De Novo Assembly">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
 
-            </TabItem>
-        </TabControl>
+                        <GroupBox>
+                            <oxy:PlotView x:Name="PlotViewEnzymeEfficiency" Visibility="Collapsed"/>
+                        </GroupBox>
+
+                        <TabControl Grid.Row="1" Grid.RowSpan="2">
+                            <TabItem Header="DeNovo">
+                                <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
+                            </TabItem>
+                            <TabItem  Header="PSM">
+                                <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
+                            </TabItem>
+
+                            <TabItem Header="Contig Assembly">
+                                <Grid>
+                                    <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
+                                    <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Grid>
+
+                            </TabItem>
+                        </TabControl>
+
+                    </Grid>
+
+                </TabItem>
+
+
+                    <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer">
+                        <Grid Background="WhiteSmoke">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <!-- Make this resizable -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- Adjusted for GridSplitter -->
+                                <RowDefinition Height="*"/>
+                                <!-- Make this resizable -->
+                            </Grid.RowDefinitions>
+
+                            <!-- First DataGrid -->
+                            <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
+
+                            <!-- GridSplitter for resizing. Set to Auto height to accommodate the splitter's height -->
+                            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+
+                            <!-- Second DataGrid, corrected to Grid.Row="2" -->
+
+                        <local:AlignmentViewer x:Name="MyAlignmentViewer"/>
+                        
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+
+
+
+        </Grid>
 
     </Grid>
 </Window>

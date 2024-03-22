@@ -148,7 +148,6 @@ namespace SequenceAssemblerGUI
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
 
-                TabControlMain.IsEnabled = true;
                 UpdateGeneral();
             }
 
@@ -328,48 +327,7 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Hidden;
         }
 
-        //---------------------------------------------------------
-
-        private void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity)
-        {
-            // Apply filters on the data
-            List<Alignment> filteredAlnResults = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-
-
-            DataTable dataTable = new DataTable();
-
-            // Define the DataTable columns with the appropriate data types
-            dataTable.Columns.Add("Identity", typeof(int));
-            dataTable.Columns.Add("Normalized Identity Score", typeof(double));
-            dataTable.Columns.Add("Similarity Score", typeof(int));
-            dataTable.Columns.Add("Normalized Similarity", typeof(double));
-            dataTable.Columns.Add("AlignedAA", typeof(int));
-            dataTable.Columns.Add("Normalized AlignedAA", typeof(double));
-            dataTable.Columns.Add("Gaps Used", typeof(int));
-            dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
-            dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
-
-            // Fill the DataTable with your data
-            foreach (var alignment in filteredAlnResults)
-            {
-                DataRow newRow = dataTable.NewRow();
-                newRow[0] = alignment.Identity;
-                newRow[1] = alignment.NormalizedIdentityScore;
-                newRow[2] = alignment.SimilarityScore;
-                newRow[3] = alignment.NormalizedSimilarity;
-                newRow[4] = alignment.AlignedAA;
-                newRow[5] = alignment.NormalizedAlignedAA;
-                newRow[6] = alignment.GapsUsed;
-                newRow[7] = alignment.AlignedLargeSequence;
-                newRow[8] = alignment.AlignedSmallSequence;
-
-                dataTable.Rows.Add(newRow);
-            }
-
-            // Set the DataTable as the data source for your control 
-            DataGridAlignments.ItemsSource = null; // Clear previous items
-            DataGridAlignments.ItemsSource = dataTable.DefaultView;
-        }
+        
 
         //---------------------------------------------------------
 
@@ -432,6 +390,8 @@ namespace SequenceAssemblerGUI
 
             if (openFileDialog.ShowDialog() == true)
             {
+
+
                 // Tenta carregar o arquivo FASTA selecionado
                 var loadedFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
 
@@ -457,11 +417,12 @@ namespace SequenceAssemblerGUI
                     myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
                     // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
-                    UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+                    MyAlignmentViewer.AlignmentList = myAlignment;
+                    MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
-                    // Depois do processamento, habilita a aba "Resultados"
-                    TabItemResults.IsEnabled = true;
-                    TabControlMain.SelectedItem = TabItemResults;
+                    ButtonUpdateResult.IsEnabled = true;
+                    TabItemResultBrowser.IsSelected = true;
+
                 }
                 else
                 {
@@ -481,9 +442,13 @@ namespace SequenceAssemblerGUI
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity);
+            MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
         }
+
+       
+
+
 
 
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
