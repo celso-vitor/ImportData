@@ -487,6 +487,13 @@ namespace SequenceAssemblerGUI
             cs.ShowDialog();
 
         }
+
+        private void MenuItemAssembly_Click(object sender, RoutedEventArgs e)
+        {
+            Assembly seq = new Assembly();
+            seq.ShowDialog();
+
+        }
     }
 
 

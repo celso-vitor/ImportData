@@ -1,0 +1,111 @@
+﻿<Window x:Class="SequenceAssemblerGUI.Assembly"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" 
+        Title="Assembly" Height="500" Width="640"
+        FontFamily="Courier New">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Reference Sequence" Grid.Row="0">
+            <TextBox x:Name="ReferenceSequence" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80" Text=">MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA"/>
+        </GroupBox>
+
+        <GroupBox Header="Contigs" Grid.Row="1">
+            <TextBox x:Name="ContigsSequence" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80" Text=">YLYEIAR"/>
+        </GroupBox>
+
+        <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+
+
+        <GroupBox Header="Results" Grid.Row="3">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Seção para Exibir o Rótulo 'Reference' e a Sequência de Referência Alinhada -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <!-- Coluna para o rótulo 'Template' -->
+                            <ColumnDefinition Width="*"/>
+                            <!-- Coluna para as células de referência -->
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Rótulo 'Template' -->
+                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center"
+                                   Visibility="{Binding IsReferenceSequenceAligned, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                   MinWidth="60" TextAlignment="Right"/>
+
+                        <!-- Células de referência alinhadas -->
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenciaAlinhamentoCelulas}" Margin="0,0,5,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
+                                        <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Grid>
+
+                    <!-- Seção para Exibir Contigs -->
+                    <ItemsControl ItemsSource="{Binding Contigs}" Margin="0,5,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <!-- Coluna para o ID do contig -->
+                                        <ColumnDefinition Width="*"/>
+                                        <!-- Coluna para os alinhamentos -->
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- ID do contig -->
+                                    <TextBlock Grid.Column="0" Text="{Binding Id}" MinWidth="60" Margin="0,0,5,0" TextAlignment="Right"/>
+
+                                    <!-- Alinhamentos -->
+                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Aligments}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
+                                                    <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </GroupBox>
+
+        <GroupBox Header="Assembly" Grid.Row="4" Visibility="{Binding IsAssemblyVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="30">
+
+                <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap"/>
+            </ScrollViewer>
+        </GroupBox>
+
+    </Grid>
+</Window>

@@ -19,9 +19,11 @@
 
             <MenuItem x:Name="MenuItemCompareSequences" Header="Compare Sequences" Click="MenuItemCompareSequences_Click"/>
 
+            <MenuItem x:Name="MenuItemAssembly" Header="Assembly" Click="MenuItemAssembly_Click"/>
 
         </Menu>
-
+        
+        
 
         <Grid  Grid.Row="2">
             <Grid.RowDefinitions>
@@ -139,7 +141,7 @@
                         
                         </Grid>
                     </TabItem>
-                </TabControl>
+            </TabControl>
 
 
 

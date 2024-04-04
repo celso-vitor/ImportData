@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,6 +11,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
     public class Alignment
     {
+
         public int Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }
         public int SimilarityScore { get; set; }
@@ -17,9 +21,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int GapsUsed { get; set; }
         public List<int> StartPositions { get; set; }
         public string AlignedLargeSequence { get; set; }
-        public string AlignedSmallSequence { get; set; }
+        public string AlignedSmallSequence { get; set; }       
 
     }
-
 }
 

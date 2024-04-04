@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SequenceAssemblerLogic.ContigCode;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int MaxGaps { get; set; }
         public int GapPenalty { get; set; }
         public bool IgnoreILDifference { get; set; }
+        
 
         public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreILDifference = true) 
         {
@@ -84,23 +86,46 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         }
 
 
+
         int GetSubstitutionScore(char a, char b)
         {
-            return SubstitutionMatrix[a.ToString() + b.ToString()];
+            // Se ignorar a diferença entre Isoleucina (I) e Leucina (L)
+            if (IgnoreILDifference && ((a == 'I' && b == 'L') || (a == 'L' && b == 'I')))
+            {
+                return SubstitutionMatrix.TryGetValue("IL", out int ilScore) ? ilScore : 0;
+            }
+
+            string key = a.ToString() + b.ToString();
+            // Retorna a pontuação da matriz ou uma penalidade padrão se não encontrar
+            return SubstitutionMatrix.TryGetValue(key, out int score) ? score : GapPenalty;
         }
+
+
 
         double GetMaximumSimilarity(string sequence)
         {
             double maxValue = 0;
 
-            for (int i = 0; i < sequence.Length; i++)
+            foreach (char aminoAcid in sequence)
             {
-                maxValue += SubstitutionMatrix[sequence[i].ToString() + sequence[i].ToString()];
+                string key = aminoAcid.ToString() + aminoAcid.ToString();
+
+                // Verifica se a chave (par de aminoácidos) existe na matriz de substituição.
+                if (SubstitutionMatrix.ContainsKey(key))
+                {
+                    maxValue += SubstitutionMatrix[key];
+                }
+                else
+                {
+                    // Opção para tratar caracteres não encontrados, como hifens.
+                    // Pode atribuir um valor padrão ou simplesmente ignorar.
+                    // Exemplo: maxValue += 0; // ou não faça nada.
+                }
             }
 
             return maxValue;
-
         }
+
 
         public Alignment AlignSequences(string largeSeq, string smallSeq)
         {
@@ -168,6 +193,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
 
+          
             string alignedPortion = alignedLarge.Replace("-", "");
             List<int> startPositions = new List<int>();
             int index = 0;
@@ -176,6 +202,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 startPositions.Add(index + 1);
                 index++;
             }
+
+
 
             //calculate identity
             int matchedIdentity = 0;
@@ -210,9 +238,10 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
                 AlignedAA = alignedAA,
                 NormalizedAlignedAA = Math.Round(((double)alignedAA / (double)alignedSmall.Length) * 100)
+                               
             };
-        }
 
+        }
     }
 }
 
