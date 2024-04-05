@@ -316,78 +316,50 @@ namespace SequenceAssemblerGUI
 
         private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, Dictionary<string, string> alignedContigs, List<int> startPositions, string referenceSequence)
         {
-            // Atualizar sequência de referência na UI
+            viewModel.ReferenciaAlinhamentoCelulas.Clear();
             foreach (char letra in referenceSequence)
             {
-                var corDeFundo = Brushes.White;
-                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = corDeFundo });
+                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
             }
 
-            // Atualizar contigs alinhados na UI
-            for (int contigIndex = 0; contigIndex < alignedContigs.Count; contigIndex++)
+            viewModel.Contigs.Clear();
+            foreach (var contigIndex in Enumerable.Range(0, alignedContigs.Count))
             {
                 var contigPair = alignedContigs.ElementAt(contigIndex);
                 var contigViewModel = new ContigViewModel { Id = contigPair.Key };
-                int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
 
-                // Aqui, você deve buscar o resultado do alinhamento para esse contig
-                SequenceAligner aligner = new SequenceAligner();
-                Alignment alignmentResult = aligner.AlignSequences(referenceSequence, contigPair.Value);
+                int penalty = contigPair.Value.StartsWith("-") ? 2 : 1;
+                int startPosition = startPositions[contigIndex] - penalty;
+                startPosition = Math.Max(startPosition, 0); // Evitar índices negativos
 
-                // Adicionar espaços vazios ou hífens até a posição de início do contig
-                for (int pos = 0; pos < startPosition; pos++)
+                for (int i = 0; i < referenceSequence.Length; i++)
                 {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
-                }
+                    Brush corDeFundo = Brushes.LightGray; // Default para posições fora do contig
+                    char contigChar = '-';
 
-                // Adiciona as letras do contig com a cor correspondente
-                for (int i = 0; i < alignmentResult.AlignedSmallSequence.Length; i++)
-                {
-                    Brush corDeFundo;
-
-                    // Checa se a posição não é um gap
-                    if (alignmentResult.AlignedSmallSequence[i] != '-')
+                    if (i >= startPosition && i < startPosition + contigPair.Value.Length)
                     {
-                        if (alignmentResult.AlignedLargeSequence[i] == alignmentResult.AlignedSmallSequence[i])
+                        contigChar = contigPair.Value[i - startPosition];
+                        if (contigChar == '-') // Se for um gap, colorir de amarelo
                         {
-                            corDeFundo = Brushes.LightGreen; // Cor para correspondência
+                            corDeFundo = Brushes.Orange;
                         }
-                        else
+                        else if (i < referenceSequence.Length) // Se não for um gap, verificar a correspondência
                         {
-                            corDeFundo = Brushes.LightCoral; // Cor para não correspondência
+                            corDeFundo = contigChar == referenceSequence[i] ? Brushes.LightGreen : Brushes.LightCoral;
                         }
                     }
-                    else
-                    {
-                        corDeFundo = Brushes.LightGray; // Cor para gaps
-                    }
 
-                    contigViewModel.Aligments.Add(new Aligment { Letra = alignmentResult.AlignedSmallSequence[i].ToString(), CorDeFundo = corDeFundo });
-                }
-
-                // Completar o resto da sequência com hífens se necessário
-                while (contigViewModel.Aligments.Count < referenceSequence.Length)
-                {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                    contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 viewModel.Contigs.Add(contigViewModel);
             }
 
-            // Atualizar a montagem na UI
+            // Atualizar a sequência de montagem, se necessário
             viewModel.AssemblySequence = GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
-
-            // Imprimir alinhamento para depuração
-            foreach (var contigViewModel in viewModel.Contigs)
-            {
-                Console.WriteLine($"Contig: {contigViewModel.Id}");
-                foreach (var aligment in contigViewModel.Aligments)
-                {
-                    Console.Write(aligment.Letra);
-                }
-                Console.WriteLine(); // Nova linha para separar os contigs
-            }
         }
+
     }
 }
 
