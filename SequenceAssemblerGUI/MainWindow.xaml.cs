@@ -2,10 +2,10 @@
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using SequenceAssemblerLogic;
 using SequenceAssemblerLogic.ContigCode;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
+using SequenceAssemblerLogic.Tools;
 using System;
 using System.Collections.Generic;
 using System.Data;

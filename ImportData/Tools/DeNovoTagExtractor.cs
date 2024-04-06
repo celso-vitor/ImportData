@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 
 
-namespace SequenceAssemblerLogic
+namespace SequenceAssemblerLogic.Tools
 {
     public class DeNovoTagExtractor
     {

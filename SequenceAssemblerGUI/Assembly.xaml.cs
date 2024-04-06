@@ -12,6 +12,9 @@ using System.Windows.Media;
 using SequenceAssemblerLogic.ContigCode;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using static SequenceAssemblerGUI.Assembly;
+using SequenceAssemblerLogic.Tools;
+using SequenceAssemblerLogic.AssemblyTools;
+
 
 namespace SequenceAssemblerGUI
 {
@@ -19,16 +22,18 @@ namespace SequenceAssemblerGUI
     {
         private SequenceAligner sequenceAligner;
 
+        private AssemblyParameters assemblyParameters;
 
         public Assembly()
         {
             InitializeComponent();
             sequenceAligner = new SequenceAligner();
-            DataContext = new SequenceViewModel();
+            DataContext = new SequenceViewModel(); 
+            assemblyParameters = new AssemblyParameters();
         }
 
 
-        //Alinhamento/Cores/Matchs/Gaps 
+        //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
         public class Aligment : INotifyPropertyChanged
         {
@@ -54,7 +59,7 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        //Contigs/Alinhamento/Template
+        //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
         public class ContigViewModel : INotifyPropertyChanged
         {
@@ -124,36 +129,97 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            private string _totalScore;
-            public string TotalScore
-            {
-                get { return _totalScore; }
-                set { _totalScore = value; OnPropertyChanged(); }
-            }
-
-            private string _totalIdentities;
-            public string TotalIdentities
-            {
-                get { return _totalIdentities; }
-                set { _totalIdentities = value; OnPropertyChanged(); }
-            }
-
-            private string _totalPositives;
-            public string TotalPositives
-            {
-                get { return _totalPositives; }
-                set { _totalPositives = value; OnPropertyChanged(); }
-            }
-
-            private string _totalGaps;
-            public string TotalGaps
-            {
-                get { return _totalGaps; }
-                set { _totalGaps = value; OnPropertyChanged(); }
-            }
+            
         }
 
+        //Alinhamento
+        //---------------------------------------------------------------------------------------------------------
 
+        (string alignedContigSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string contigSequence, string referenceSequence)
+        {
+            SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
+            Alignment alignmentResult = aligner.AlignSequences(referenceSequence, contigSequence); // Chame o método AlignSequences nessa instância
+
+            return (alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence);
+        }
+
+        //Uptade do Alinhamento com a Interface
+        //---------------------------------------------------------------------------------------------------------
+
+        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, Dictionary<string, string> alignedContigs, List<int> startPositions, string referenceSequence)
+        {
+            // Atualizar sequência de referência na UI
+            foreach (char letra in referenceSequence)
+            {
+                var corDeFundo = Brushes.White;
+                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = corDeFundo });
+            }
+
+            // Atualizar contigs alinhados na UI
+            for (int contigIndex = 0; contigIndex < alignedContigs.Count; contigIndex++)
+            {
+                var contigPair = alignedContigs.ElementAt(contigIndex);
+                var contigViewModel = new ContigViewModel { Id = contigPair.Key };
+                int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
+
+                // Aqui, você deve buscar o resultado do alinhamento para esse contig
+                SequenceAligner aligner = new SequenceAligner();
+                Alignment alignmentResult = aligner.AlignSequences(referenceSequence, contigPair.Value);
+
+                // Adicionar espaços vazios ou hífens até a posição de início do contig
+                for (int pos = 0; pos < startPosition; pos++)
+                {
+                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                }
+
+                // Adiciona as letras do contig com a cor correspondente
+                for (int i = 0; i < alignmentResult.AlignedSmallSequence.Length; i++)
+                {
+                    Brush corDeFundo;
+
+                    // Checa se a posição não é um gap
+                    if (alignmentResult.AlignedSmallSequence[i] != '-')
+                    {
+                        if (alignmentResult.AlignedLargeSequence[i] == alignmentResult.AlignedSmallSequence[i])
+                        {
+                            corDeFundo = Brushes.LightGreen; // Cor para correspondência
+                        }
+                        else
+                        {
+                            corDeFundo = Brushes.LightCoral; // Cor para não correspondência
+                        }
+                    }
+                    else
+                    {
+                        corDeFundo = Brushes.LightGray; // Cor para gaps
+                    }
+
+                    contigViewModel.Aligments.Add(new Aligment { Letra = alignmentResult.AlignedSmallSequence[i].ToString(), CorDeFundo = corDeFundo });
+                }
+
+                // Completar o resto da sequência com hífens se necessário
+                while (contigViewModel.Aligments.Count < referenceSequence.Length)
+                {
+                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                }
+
+                viewModel.Contigs.Add(contigViewModel);
+            }
+
+            // Atualizar a montagem na UI
+            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
+
+            // Imprimir alinhamento para depuração
+            foreach (var contigViewModel in viewModel.Contigs)
+            {
+                Console.WriteLine($"Contig: {contigViewModel.Id}");
+                foreach (var aligment in contigViewModel.Aligments)
+                {
+                    Console.Write(aligment.Letra);
+                }
+                Console.WriteLine(); // Nova linha para separar os contigs
+            }
+        }
 
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
@@ -162,8 +228,8 @@ namespace SequenceAssemblerGUI
             var referenceSequenceFasta = ReferenceSequence.Text;
             var contigsFasta = ContigsSequence.Text;
 
-            string referenceSequence = ReadFastaSequence(referenceSequenceFasta);
-            var contigs = ReadContigs(contigsFasta);
+            string referenceSequence = FastaFormat.ReadFastaSequence(referenceSequenceFasta);
+            var contigs = FastaFormat.ReadContigs(contigsFasta);
             var viewModel = (SequenceViewModel)DataContext;
 
             viewModel.Contigs.Clear();
@@ -171,18 +237,18 @@ namespace SequenceAssemblerGUI
 
             Dictionary<string, string> alignedContigs = new Dictionary<string, string>();
             List<int> startPositions = new List<int>(); // Lista para armazenar as posições de início
-
+            
             foreach (var contig in contigs)
             {
                 (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contig.Value, referenceSequence);
                 alignedContigs.Add(contig.Key, alignedContigSequence);
 
                 // Obter a posição correta de início com base no alinhamento
-                int startPosition = GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);
+                int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);
                 startPositions.Add(startPosition);
             }
 
-            viewModel.AssemblySequence = GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
+            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
 
             // Atualiza a UI com o alinhamento e a montagem
             UpdateUIWithAlignmentAndAssembly(viewModel, alignedContigs, startPositions, referenceSequence);
@@ -190,174 +256,12 @@ namespace SequenceAssemblerGUI
             // Definir IsReferenceSequenceAligned como true para garantir a visibilidade do rótulo "Reference"
             viewModel.IsReferenceSequenceAligned = true;
             viewModel.IsAssemblyVisible = true;
-        }
-
-        //Ajusta as posições reconhecendo os gaps
-        int GetCorrectStartPosition(string alignedRef, string alignedContig, string fullRef)
-        {
-            int firstNonGapIndex = alignedContig.IndexOf(alignedContig.TrimStart('-').First());
-
-            string nonGapContigStart = alignedContig.Substring(firstNonGapIndex).Replace("-", "");
-
-            int startPosition = -1;
-
-            for (int i = 0; i <= fullRef.Length - nonGapContigStart.Length; i++)
-            {
-                bool matchFound = true;
-                for (int j = 0; j < nonGapContigStart.Length; j++)
-                {
-                    if (alignedRef[firstNonGapIndex + j] != '-')
-                    {
-                        if (fullRef[i + j] != alignedRef[firstNonGapIndex + j])
-                        {
-                            matchFound = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (matchFound)
-                {
-                    startPosition = i - firstNonGapIndex;  // Corrigido para subtrair os índices dos gaps iniciais
-                    break;
-                }
-            }
-
-            if (startPosition == -1)
-            {
-                throw new InvalidOperationException("Não foi possível encontrar uma posição de início válida para o contig na sequência de referência.");
-            }
-
-            // Ajustar para a contagem começar em 1 se o seu sistema espera indexação base-1
-            return startPosition + 1;
-        }
 
 
-
-
-        //Leitura de formato fasta (>)
-        //---------------------------------------------------------------------------------------------------------
-        static string ReadFastaSequence(string fastaSequence)
-        {
-            int startIndex = fastaSequence.IndexOf('>');
-            string sequence = fastaSequence.Substring(startIndex + 1);
-            sequence = sequence.Replace("\r", "").Replace("\n", "");
-            return sequence;
-        }
-
-        static Dictionary<string, string> ReadContigs(string fastaContigs)
-        {
-            string[] contigEntries = fastaContigs.Split(new[] { '>' }, StringSplitOptions.RemoveEmptyEntries);
-
-            Dictionary<string, string> contigs = new Dictionary<string, string>();
-            int contigCount = 1;
-            foreach (string contigEntry in contigEntries)
-            {
-                string contigId = $"Contig{contigCount}";
-                StringBuilder sequence = new StringBuilder();
-                string[] lines = contigEntry.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string line in lines)
-                {
-                    sequence.Append(line.Trim());
-                }
-                if (sequence.Length > 0)
-                {
-                    contigs.Add(contigId, sequence.ToString());
-                    contigCount++;
-                }
-
-            }
-
-            return contigs;
-        }
-
-
-        //Assembly/Reference/Contigs
-        //---------------------------------------------------------------------------------------------------------
-        static (string alignedContigSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string contigSequence, string referenceSequence)
-        {
-            SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
-            Alignment alignmentResult = aligner.AlignSequences(referenceSequence, contigSequence); // Chame o método AlignSequences nessa instância
-
-            return (alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence);
-        }
-
-
-        private string GenerateAssemblyText(string referenceSequence, Dictionary<string, string> alignedContigs, List<int> startPositions)
-        {
-            // Cria uma sequência com o mesmo tamanho da sequência de referência, preenchida com hífens (representando gaps)
-            StringBuilder assembly = new StringBuilder(new string('-', referenceSequence.Length));
-
-            // Itera sobre cada contig alinhado
-            foreach (var contigPair in alignedContigs)
-            {
-                string contigKey = contigPair.Key;
-                string contigSequence = contigPair.Value;
-
-                // Obter a posição de início do contig atual (presumindo que a chave do contig corresponde ao índice na lista startPositions)
-                int startPosition = startPositions[int.Parse(contigKey.Replace("Contig", "")) - 1];
-
-                // Adiciona o contig na sequência de montagem na posição correta
-                int positionIndex = startPosition - 1; // Convertendo para índice base-0
-
-                for (int i = 0; i < contigSequence.Length; i++)
-                {
-                    // Apenas adiciona o contig se a posição atual não for um gap
-                    if (contigSequence[i] != '-')
-                    {
-                        assembly[positionIndex + i] = contigSequence[i];
-                    }
-                }
-            }
-            // Retorna a sequência de montagem como uma string
-            return assembly.ToString();
-
-        }
-
-        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, Dictionary<string, string> alignedContigs, List<int> startPositions, string referenceSequence)
-        {
-            viewModel.ReferenciaAlinhamentoCelulas.Clear();
-            foreach (char letra in referenceSequence)
-            {
-                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
-            }
-
-            viewModel.Contigs.Clear();
-            foreach (var contigIndex in Enumerable.Range(0, alignedContigs.Count))
-            {
-                var contigPair = alignedContigs.ElementAt(contigIndex);
-                var contigViewModel = new ContigViewModel { Id = contigPair.Key };
-
-                int penalty = contigPair.Value.StartsWith("-") ? 2 : 1;
-                int startPosition = startPositions[contigIndex] - penalty;
-                startPosition = Math.Max(startPosition, 0); // Evitar índices negativos
-
-                for (int i = 0; i < referenceSequence.Length; i++)
-                {
-                    Brush corDeFundo = Brushes.LightGray; // Default para posições fora do contig
-                    char contigChar = '-';
-
-                    if (i >= startPosition && i < startPosition + contigPair.Value.Length)
-                    {
-                        contigChar = contigPair.Value[i - startPosition];
-                        if (contigChar == '-') // Se for um gap, colorir de amarelo
-                        {
-                            corDeFundo = Brushes.Orange;
-                        }
-                        else if (i < referenceSequence.Length) // Se não for um gap, verificar a correspondência
-                        {
-                            corDeFundo = contigChar == referenceSequence[i] ? Brushes.LightGreen : Brushes.LightCoral;
-                        }
-                    }
-
-                    contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
-                }
-
-                viewModel.Contigs.Add(contigViewModel);
-            }
-
-            // Atualizar a sequência de montagem, se necessário
-            viewModel.AssemblySequence = GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
+            //Montagem de Grid
+            //---------------------------------------------------------------------------------------------------------
+          
+            MyAssemblyViewer.Display(referenceSequence, alignedContigs);
         }
 
     }

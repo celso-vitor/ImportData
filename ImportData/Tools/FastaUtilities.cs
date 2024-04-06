@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SequenceAssemblerLogic
+namespace SequenceAssemblerLogic.Tools
 {
     public class Fasta
     {
@@ -15,7 +15,7 @@ namespace SequenceAssemblerLogic
     }
 
 
-    public static class FastaParser
+    public class FastaParser
     {
         public static List<Fasta> ParseFastaFile(string filePath)
         {
@@ -54,10 +54,10 @@ namespace SequenceAssemblerLogic
             return sequences;
 
         }
-       
+
     }
 
-    public static class FastaFormat
+    public class FastaFormat
     {
         //Add fasta file 
         public static List<Fasta> LoadFasta(string fileName)
@@ -100,6 +100,42 @@ namespace SequenceAssemblerLogic
 
             return MyFasta;
 
+        }
+
+        // Índice formato Fasta - Assembly
+        public static string ReadFastaSequence(string fastaSequence)
+        {
+            int startIndex = fastaSequence.IndexOf('>');
+            string sequence = fastaSequence.Substring(startIndex + 1);
+            sequence = sequence.Replace("\r", "").Replace("\n", "");
+            return sequence;
+        }
+
+        // Leitura Fasta para contigs - Assembly
+        public static Dictionary<string, string> ReadContigs(string fastaContigs)
+        {
+            string[] contigEntries = fastaContigs.Split(new[] { '>' }, StringSplitOptions.RemoveEmptyEntries);
+
+            Dictionary<string, string> contigs = new Dictionary<string, string>();
+            int contigCount = 1;
+            foreach (string contigEntry in contigEntries)
+            {
+                string contigId = $"Contig{contigCount}";
+                StringBuilder sequence = new StringBuilder();
+                string[] lines = contigEntry.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string line in lines)
+                {
+                    sequence.Append(line.Trim());
+                }
+                if (sequence.Length > 0)
+                {
+                    contigs.Add(contigId, sequence.ToString());
+                    contigCount++;
+                }
+
+            }
+
+            return contigs;
         }
     }
 }

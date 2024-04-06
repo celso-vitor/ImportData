@@ -242,6 +242,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             };
 
         }
+     
     }
 }
 
