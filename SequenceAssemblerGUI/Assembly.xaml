@@ -1,13 +1,9 @@
-﻿<Window x:Class="SequenceAssemblerGUI.Assembly"
+﻿<UserControl x:Class="SequenceAssemblerGUI.Assembly"
                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:sequenceassemblergui="clr-namespace:SequenceAssemblerGUI" mc:Ignorable="av" 
-        Title="Assembly" Height="800" Width="640"
-        FontFamily="Courier New">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    </Window.Resources>
+        FontFamily="Courier New" Background="WhiteSmoke">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -42,9 +38,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Rótulo 'Template' -->
-                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center"
-                            Visibility="{Binding IsReferenceSequenceAligned, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            MinWidth="60" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Right"/>
 
                         <!-- Células de referência alinhadas -->
                         <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenciaAlinhamentoCelulas}" Margin="0,0,5,0">
@@ -71,7 +65,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <!-- Coluna para o ID do contig -->
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width=" *"/>
                                         <!-- Coluna para os alinhamentos -->
                                     </Grid.ColumnDefinitions>
 
@@ -101,7 +95,7 @@
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Header="Assembly" Grid.Row="4" Visibility="{Binding IsAssemblyVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <GroupBox Header="Assembly" Grid.Row="4">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="30">
 
                 <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap"/>
@@ -111,7 +105,7 @@
         <sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>
 
     </Grid>
-</Window>
+</UserControl>
 
 
 

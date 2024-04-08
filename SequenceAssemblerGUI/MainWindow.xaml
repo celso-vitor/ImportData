@@ -22,8 +22,8 @@
             <MenuItem x:Name="MenuItemAssembly" Header="Assembly" Click="MenuItemAssembly_Click"/>
 
         </Menu>
-        
-        
+
+
 
         <Grid  Grid.Row="2">
             <Grid.RowDefinitions>
@@ -118,30 +118,36 @@
                 </TabItem>
 
 
-                    <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer">
-                        <Grid Background="WhiteSmoke">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <!-- Make this resizable -->
-                                <RowDefinition Height="Auto"/>
-                                <!-- Adjusted for GridSplitter -->
-                                <RowDefinition Height="*"/>
-                                <!-- Make this resizable -->
-                            </Grid.RowDefinitions>
+                <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer">
+                    <Grid Background="WhiteSmoke">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <!-- Make this resizable -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Adjusted for GridSplitter -->
+                            <RowDefinition Height="*"/>
+                            <!-- Make this resizable -->
+                        </Grid.RowDefinitions>
 
-                            <!-- First DataGrid -->
-                            <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
+                        <!-- First DataGrid -->
+                        <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
 
-                            <!-- GridSplitter for resizing. Set to Auto height to accommodate the splitter's height -->
-                            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+                        <!-- GridSplitter for resizing. Set to Auto height to accommodate the splitter's height -->
+                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
 
-                            <!-- Second DataGrid, corrected to Grid.Row="2" -->
+                        <!-- Second DataGrid, corrected to Grid.Row="2" -->
 
                         <local:AlignmentViewer x:Name="MyAlignmentViewer"/>
-                        
-                        </Grid>
-                    </TabItem>
+
+                    </Grid>
+                </TabItem >
+
+                <TabItem Header="Alignment Viewer 2">
+                    <local:Assembly x:Name="MyAssembly"/>
+                </TabItem>
             </TabControl>
+
+
 
 
 

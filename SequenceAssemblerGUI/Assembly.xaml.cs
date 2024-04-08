@@ -14,12 +14,26 @@ using SequenceAssemblerLogic.ProteinAlignmentCode;
 using static SequenceAssemblerGUI.Assembly;
 using SequenceAssemblerLogic.Tools;
 using SequenceAssemblerLogic.AssemblyTools;
+using System.Windows.Controls;
 
 
 namespace SequenceAssemblerGUI
 {
-    public partial class Assembly : Window
+    public partial class Assembly : UserControl
     {
+
+        public TextBox MyReferenceSequences
+        {
+            get
+            {
+                return ReferenceSequence;
+            }
+
+            set
+            {
+                ReferenceSequence = value;
+            }
+        }
         private SequenceAligner sequenceAligner;
 
         private AssemblyParameters assemblyParameters;
@@ -148,23 +162,19 @@ namespace SequenceAssemblerGUI
 
         private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, Dictionary<string, string> alignedContigs, List<int> startPositions, string referenceSequence)
         {
-            // Atualizar sequência de referência na UI
+            viewModel.ReferenciaAlinhamentoCelulas.Clear();
             foreach (char letra in referenceSequence)
             {
                 var corDeFundo = Brushes.White;
                 viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = corDeFundo });
             }
 
-            // Atualizar contigs alinhados na UI
+            viewModel.Contigs.Clear();
             for (int contigIndex = 0; contigIndex < alignedContigs.Count; contigIndex++)
             {
                 var contigPair = alignedContigs.ElementAt(contigIndex);
                 var contigViewModel = new ContigViewModel { Id = contigPair.Key };
                 int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
-
-                // Aqui, você deve buscar o resultado do alinhamento para esse contig
-                SequenceAligner aligner = new SequenceAligner();
-                Alignment alignmentResult = aligner.AlignSequences(referenceSequence, contigPair.Value);
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
                 for (int pos = 0; pos < startPosition; pos++)
@@ -173,28 +183,31 @@ namespace SequenceAssemblerGUI
                 }
 
                 // Adiciona as letras do contig com a cor correspondente
-                for (int i = 0; i < alignmentResult.AlignedSmallSequence.Length; i++)
+                for (int i = 0; i < contigPair.Value.Length; i++)
                 {
                     Brush corDeFundo;
+                    char contigChar = contigPair.Value[i];
 
-                    // Checa se a posição não é um gap
-                    if (alignmentResult.AlignedSmallSequence[i] != '-')
+                    // Checa se a posição é um gap
+                    if (contigChar == '-')
                     {
-                        if (alignmentResult.AlignedLargeSequence[i] == alignmentResult.AlignedSmallSequence[i])
-                        {
-                            corDeFundo = Brushes.LightGreen; // Cor para correspondência
-                        }
-                        else
-                        {
-                            corDeFundo = Brushes.LightCoral; // Cor para não correspondência
-                        }
+                        corDeFundo = Brushes.Orange; // Cor laranja para gaps
                     }
                     else
                     {
-                        corDeFundo = Brushes.LightGray; // Cor para gaps
+                        // Posição na sequência de referência
+                        int refIndex = startPosition + i;
+                        if (refIndex < referenceSequence.Length)
+                        {
+                            corDeFundo = contigChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                        }
+                        else
+                        {
+                            corDeFundo = Brushes.LightGray; // Fora dos limites da referência
+                        }
                     }
 
-                    contigViewModel.Aligments.Add(new Aligment { Letra = alignmentResult.AlignedSmallSequence[i].ToString(), CorDeFundo = corDeFundo });
+                    contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 // Completar o resto da sequência com hífens se necessário
@@ -209,7 +222,7 @@ namespace SequenceAssemblerGUI
             // Atualizar a montagem na UI
             viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
 
-            // Imprimir alinhamento para depuração
+            // Imprimir alinhamento para depuração 
             foreach (var contigViewModel in viewModel.Contigs)
             {
                 Console.WriteLine($"Contig: {contigViewModel.Id}");
@@ -217,9 +230,10 @@ namespace SequenceAssemblerGUI
                 {
                     Console.Write(aligment.Letra);
                 }
-                Console.WriteLine(); // Nova linha para separar os contigs
+                Console.WriteLine();
             }
         }
+
 
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
