@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -398,7 +399,7 @@ namespace SequenceAssemblerGUI
                 // Verifica se o arquivo FASTA foi carregado corretamente
                 if (loadedFasta == null || !loadedFasta.Any())
                 {
-                    MessageBox.Show("Falha ao carregar o arquivo FASTA. O arquivo está vazio ou não é válido.", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Failed to load FASTA file. The file is empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return; // Sai do método para evitar mais processamento
                 }
 
@@ -426,7 +427,7 @@ namespace SequenceAssemblerGUI
                 }
                 else
                 {
-                    MessageBox.Show("Não há contigs para alinhar. Por favor, carregue os contigs antes de tentar processar.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("There are no contigs to line up. Please upload the contigs before attempting to process.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
@@ -447,9 +448,6 @@ namespace SequenceAssemblerGUI
         }
 
        
-
-
-
 
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
@@ -491,13 +489,19 @@ namespace SequenceAssemblerGUI
         private void MenuItemAssembly_Click(object sender, RoutedEventArgs e)
         {
 
-           //MyAssembly.MyReferenceSequences.Text = "Paulo";
-          
-            
+            //MyAssembly.MyReferenceSequences.Text = "Paulo";
+
+            // Concatenar e atualizar com novos valores
+            var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
+            MyAssembly.ReferenceSequence.Text = referenceString;
+
+            var contigsSting = string.Join("\n", myAlignment.Select(contigs => $">{contigs.AlignedSmallSequence}"));
+            MyAssembly.ContigsSequence.Text = contigsSting;
+
+
+
         }
     }
-
-
 }
 
 

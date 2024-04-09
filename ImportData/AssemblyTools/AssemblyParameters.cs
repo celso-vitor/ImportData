@@ -36,8 +36,6 @@ namespace SequenceAssemblerLogic.AssemblyTools
             }
             // Retorna a sequência de montagem como uma string
             return assembly.ToString();
-
-
         }
         //Ajusta as posições reconhecendo os gaps
         public int GetCorrectStartPosition(string alignedRef, string alignedContig, string fullRef)
