@@ -445,6 +445,7 @@ namespace SequenceAssemblerGUI
 
             MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
+            
         }
 
        
@@ -489,7 +490,7 @@ namespace SequenceAssemblerGUI
         private void MenuItemAssembly_Click(object sender, RoutedEventArgs e)
         {
 
-            //MyAssembly.MyReferenceSequences.Text = "Paulo";
+            //MyAssembly.MyReferenceSequences.Text = "";
 
             // Concatenar e atualizar com novos valores
             var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
@@ -497,9 +498,6 @@ namespace SequenceAssemblerGUI
 
             var contigsSting = string.Join("\n", myAlignment.Select(contigs => $">{contigs.AlignedSmallSequence}"));
             MyAssembly.ContigsSequence.Text = contigsSting;
-
-
-
         }
     }
 }

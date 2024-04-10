@@ -25,19 +25,18 @@ namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
-        public TextBox MyReferenceSequences
-        {
-            get
-            {
-                return ReferenceSequence;
-            }
+        //public TextBox MyReferenceSequences
+        //{
+        //    get
+        //    {
+        //        return ReferenceSequence;
+        //    }
 
-            set
-            {
-                ReferenceSequence = value;
-            }
-        }
-        private SequenceAligner sequenceAligner;
+        //    set
+        //    {
+        //        ReferenceSequence = value;
+        //    }
+        //}
 
         private AssemblyParameters assemblyParameters;
        
@@ -46,13 +45,12 @@ namespace SequenceAssemblerGUI
         public Assembly()
         {
             InitializeComponent();
-            sequenceAligner = new SequenceAligner();
             DataContext = new SequenceViewModel(); 
             assemblyParameters = new AssemblyParameters();
             alignmentViewer = new AlignmentViewer();
         }
 
-        // Método para acessar meu Fasta 
+        // Método para acessar meu DataGrid
         //---------------------------------------------------------------------------------------------------------
         public void UpdateAlignment(int minIdentity, int minNormalizedSimilarity, List<Fasta> myFasta)
         {
@@ -61,39 +59,36 @@ namespace SequenceAssemblerGUI
                 alignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
             }
 
-            // Apply filters on the data
-            List<Alignment> filteredAlnResults = alignmentViewer.AlignmentList.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-            
           
         }
 
        
 
-    //Visual/Cores 
-    //---------------------------------------------------------------------------------------------------------
-    public class Aligment : INotifyPropertyChanged
-        {
-            private string _letra;
-            private Brush _corDeFundo;
-
-            public string Letra
+        //Visual/Cores 
+        //---------------------------------------------------------------------------------------------------------
+        public class Aligment : INotifyPropertyChanged
             {
-                get { return _letra; }
-                set { _letra = value; OnPropertyChanged(); }
-            }
+                private string _letra;
+                private Brush _corDeFundo;
 
-            public Brush CorDeFundo
-            {
-                get { return _corDeFundo; }
-                set { _corDeFundo = value; OnPropertyChanged(); }
-            }
+                public string Letra
+                {
+                    get { return _letra; }
+                    set { _letra = value; OnPropertyChanged(); }
+                }
 
-            public event PropertyChangedEventHandler PropertyChanged;
-            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                public Brush CorDeFundo
+                {
+                    get { return _corDeFundo; }
+                    set { _corDeFundo = value; OnPropertyChanged(); }
+                }
+
+                public event PropertyChangedEventHandler PropertyChanged;
+                protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                }
             }
-        }
 
         //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
@@ -297,31 +292,11 @@ namespace SequenceAssemblerGUI
             //Montagem de Grid
             //---------------------------------------------------------------------------------------------------------
 
-            //MyAssemblyViewer.Display(dataGridAlignments)
+            //MyAssemblyViewer.Display(alignedContigs, referenceSequence)
         }
+
+       
 
     }
 }
-
-namespace SequenceAssemblerGUI.Converters
-{
-    public class BooleanToVisibilityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool && (bool)value)
-            {
-                return Visibility.Visible;
-            }
-            return Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value is Visibility && (Visibility)value == Visibility.Visible;
-        }
-    }
-
-}
-
 
