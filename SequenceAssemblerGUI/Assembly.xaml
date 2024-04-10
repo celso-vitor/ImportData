@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -103,13 +104,27 @@
             </ScrollViewer>
         </GroupBox>
 
-        <DataGrid x:Name="DataGridAlignments" Grid.Row="7"/>
+        <GroupBox Header="Contigs Ordenados" Grid.Row="6">
+            <DataGrid x:Name="ContigsDataGrid"
+              AutoGenerateColumns="False"
+              IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="*"/>
+                    <DataGridTextColumn Header="Contig" Binding="{Binding Contig}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
         
-        <GroupBox Header="Assembly" Grid.Row="6">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="30">
+        <GroupBox Header="Assembly" Grid.Row="7">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="40">
                 <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap"/>
             </ScrollViewer>
         </GroupBox>
+        
+        <DataGrid x:Name="DataGridAlignments" Grid.Row="9"/>
+
+        
+       
 
        
 

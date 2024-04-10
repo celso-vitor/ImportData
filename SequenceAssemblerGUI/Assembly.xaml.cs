@@ -98,7 +98,14 @@ namespace SequenceAssemblerGUI
 
             DataGridFasta.ItemsSource = MyFasta;
         }
-    
+
+        //DataGrid Ornenar Contigs
+        //---------------------------------------------------------------------------------------------------------
+        public class ContigData
+        {
+            public int Id { get; set; }
+            public string Contig { get; set; }
+        }
 
 
 
@@ -232,6 +239,9 @@ namespace SequenceAssemblerGUI
                 var contigViewModel = new ContigViewModel { Id = contigPair.Key };
                 int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
 
+                // Construir a linha para o contig atual
+                StringBuilder contigLine = new StringBuilder($"Contig {contigViewModel.Id}: ");
+
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
                 for (int pos = 0; pos < startPosition; pos++)
                 {
@@ -243,7 +253,6 @@ namespace SequenceAssemblerGUI
                 {
                     Brush corDeFundo;
                     char contigChar = contigPair.Value[i];
-
                     // Checa se a posição é um gap
                     if (contigChar == '-')
                     {
@@ -266,6 +275,7 @@ namespace SequenceAssemblerGUI
                     contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
+
                 // Completar o resto da sequência com hífens se necessário
                 while (contigViewModel.Aligments.Count < referenceSequence.Length)
                 {
@@ -274,6 +284,29 @@ namespace SequenceAssemblerGUI
 
                 viewModel.Contigs.Add(contigViewModel);
             }
+
+            // Criar uma lista para os dados do DataGrid
+            List<ContigData> contigDataList = new List<ContigData>();
+
+            foreach (var contigIndex in startPositions.Select((value, index) => new { value, index }))
+            {
+                // Pegar o par de contig correspondente à posição
+                var contigPair = alignedContigs.ElementAt(contigIndex.index);
+
+                // Filtrar os gaps do contig
+                var contigWithoutGaps = new string(contigPair.Value.Where(c => c != '-').ToArray());
+
+                // Adicionar o contig à lista de dados, incluindo a posição inicial
+                contigDataList.Add(new ContigData
+                {
+                    Id = contigIndex.value,
+                    Contig = contigWithoutGaps
+                });
+            }
+
+            // Configurar o DataGrid para usar a lista de contigs como sua fonte de dados
+            ContigsDataGrid.ItemsSource = contigDataList;
+
 
             // Atualizar a montagem na UI
             viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);

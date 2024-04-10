@@ -404,7 +404,7 @@ namespace SequenceAssemblerGUI
                 }
 
                 myFasta = loadedFasta;
-                DataGridFasta.ItemsSource = myFasta;
+                //DataGridFasta.ItemsSource = myFasta;
 
                 // Verifica se existe alguma sequência contig para processar antes de proceder
                 if (myContigs != null && myContigs.Any())
@@ -417,9 +417,9 @@ namespace SequenceAssemblerGUI
 
                     myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
-                    // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
-                    MyAlignmentViewer.AlignmentList = myAlignment;
-                    MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+                    //// Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
+                    //MyAlignmentViewer.AlignmentList = myAlignment;
+                    //MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
                     // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
                     MyAssembly.AlignmentList = myAlignment;
@@ -447,7 +447,7 @@ namespace SequenceAssemblerGUI
             int minIdentity = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+            //MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
             MyAssembly.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
             // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
