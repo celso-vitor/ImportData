@@ -421,6 +421,10 @@ namespace SequenceAssemblerGUI
                     MyAlignmentViewer.AlignmentList = myAlignment;
                     MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
+                    // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
+                    MyAssembly.AlignmentList = myAlignment;
+                    MyAssembly.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
 
@@ -444,13 +448,32 @@ namespace SequenceAssemblerGUI
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
             MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+            MyAssembly.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
 
-            
+            // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
+            var filteredAlignments = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+
+            // Concatena as informações dos alinhamentos filtrados
+            StringBuilder sb = new StringBuilder();
+            foreach (var alignment in filteredAlignments)
+            {
+                // Aqui você concatena as propriedades de interesse do alinhamento
+                // Exemplo: sb.AppendLine($"Identity: {alignment.Identity}, Similarity: {alignment.SimilarityScore}");
+                // Adapte esta linha conforme necessário para incluir as informações relevantes
+                sb.AppendLine($">{alignment.AlignedSmallSequence}");
+            }
+
+            // Atualiza o texto do TextBox com os valores dos alinhamentos
+            MyAssembly.ContigsSequence.Text = sb.ToString();
+            var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
+            MyAssembly.ReferenceSequence.Text = referenceString;
         }
 
-       
 
-        private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+
+
+
+            private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }

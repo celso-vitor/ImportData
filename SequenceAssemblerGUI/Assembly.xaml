@@ -10,23 +10,29 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="Reference Sequence" Grid.Row="0">
+        <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
+        <GroupBox Header="Reference Sequence" Grid.Row="1">
             <TextBox x:Name="ReferenceSequence" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80"/>
         </GroupBox>
 
-        <GroupBox Header="Contigs" Grid.Row="1">
+        <GroupBox Header="Contigs" Grid.Row="2">
             <TextBox x:Name="ContigsSequence" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80"/>
         </GroupBox>
 
-        <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+        <Button Content="Execute" Grid.Row="3" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
-        <GroupBox Header="Results" Grid.Row="3">
+        <GroupBox Header="Results" Grid.Row="4">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="300">
                 <!-- MaxHeight definido -->
                 <StackPanel>
@@ -97,11 +103,15 @@
             </ScrollViewer>
         </GroupBox>
 
-        <GroupBox Header="Assembly" Grid.Row="5">
+        <DataGrid x:Name="DataGridAlignments" Grid.Row="7"/>
+        
+        <GroupBox Header="Assembly" Grid.Row="6">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="30">
                 <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap"/>
             </ScrollViewer>
         </GroupBox>
+
+       
 
         <!--<sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>-->
 
