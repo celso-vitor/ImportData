@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using static SequenceAssemblerGUI.Assembly;
 
 namespace SequenceAssemblerGUI
 {
@@ -467,13 +468,16 @@ namespace SequenceAssemblerGUI
             MyAssembly.ContigsSequence.Text = sb.ToString();
             var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
             MyAssembly.ReferenceSequence.Text = referenceString;
+
         }
 
+    
 
 
 
 
-            private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
+
+        private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
@@ -515,12 +519,12 @@ namespace SequenceAssemblerGUI
 
             //MyAssembly.MyReferenceSequences.Text = "";
 
-            // Concatenar e atualizar com novos valores
-            var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
-            MyAssembly.ReferenceSequence.Text = referenceString;
+            //// Concatenar e atualizar com novos valores
+            //var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
+            //MyAssembly.ReferenceSequence.Text = referenceString;
 
-            var contigsSting = string.Join("\n", myAlignment.Select(contigs => $">{contigs.AlignedSmallSequence}"));
-            MyAssembly.ContigsSequence.Text = contigsSting;
+            //var contigsSting = string.Join("\n", myAlignment.Select(contigs => $">{contigs.AlignedSmallSequence}"));
+            //MyAssembly.ContigsSequence.Text = contigsSting;
         }
     }
 }
