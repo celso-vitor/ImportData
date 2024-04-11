@@ -428,6 +428,8 @@ namespace SequenceAssemblerGUI
 
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
+                    NormalizedSimilarityUpDown.IsEnabled= true;
+                    IdentityUpDown.IsEnabled= true;
 
                 }
                 else

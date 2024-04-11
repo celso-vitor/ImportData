@@ -67,9 +67,9 @@
                         <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
                         <Button Content="Debug" Click="Button_Click" Margin="2,2,2,2"/>
                         <Label Content="Minimum Identity"/>
-                        <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
+                        <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="0" Width="40" IsEnabled ="False"/>
                         <Label Content="Minimum Normalized Similarity"/>
-                        <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40"/>
+                        <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40" IsEnabled ="False"/>
                     </WrapPanel>
                 </GroupBox>
             </StackPanel>

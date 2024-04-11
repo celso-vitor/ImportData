@@ -304,8 +304,7 @@ namespace SequenceAssemblerGUI
                 });
             }
 
-            // Configurar o DataGrid para usar a lista de contigs como sua fonte de dados
-            ContigsDataGrid.ItemsSource = contigDataList;
+          ContigsDataGrid.ItemsSource = contigDataList;
 
 
             // Atualizar a montagem na UI
