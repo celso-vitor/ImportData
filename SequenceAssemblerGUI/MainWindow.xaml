@@ -142,7 +142,7 @@
                     <!--</Grid>
                 </TabItem >-->
 
-                <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer">
+                <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer" IsEnabled ="False">
                     <local:Assembly x:Name="MyAssembly"/>
                 </TabItem>
             </TabControl>

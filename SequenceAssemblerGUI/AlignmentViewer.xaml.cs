@@ -35,12 +35,12 @@ namespace SequenceAssemblerGUI
             InitializeComponent();
         }
 
-        public void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity, List<Fasta> myFasta)
+        public void UpdateAlignmentGrid(double NormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
         {
             MyFasta = myFasta;
 
             // Apply filters on the data
-            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= NormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
 
             DataTable dataTable = new DataTable();

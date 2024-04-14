@@ -7,6 +7,7 @@ using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 using SequenceAssemblerLogic.Tools;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -412,9 +413,9 @@ namespace SequenceAssemblerGUI
                 {
                     // Se houver contigs, proceda com o alinhamento e outras operações
                     int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
-                    int minIdentity = (int)NormalizedSimilarityUpDown.Value;
-                    int minNormalizedSimilarity = (int)IdentityUpDown.Value;
-                    SequenceAligner aligner = new SequenceAligner(maxGaps: maxGaps, gapPenalty: -2, ignoreILDifference: true);
+                    int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
+                    int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
+                    SequenceAligner aligner = new SequenceAligner();
 
                     myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
@@ -424,13 +425,13 @@ namespace SequenceAssemblerGUI
 
                     // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
                     MyAssembly.AlignmentList = myAlignment;
-                    MyAssembly.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+                    MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled= true;
                     IdentityUpDown.IsEnabled= true;
-
+                    TabItemResultBrowser.IsEnabled = true;
                 }
                 else
                 {
@@ -447,34 +448,26 @@ namespace SequenceAssemblerGUI
 
         private void ButtonUpdateResult_Click(object sender, RoutedEventArgs e)
         {
-            int minIdentity = IdentityUpDown.Value ?? 0;
+            int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            //MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
-            MyAssembly.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+            // Atualiza a grade de alinhamentos com os novos parâmetros de filtro
+            MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
             // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
-            var filteredAlignments = myAlignment.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
-            // Concatena as informações dos alinhamentos filtrados
-            StringBuilder sb = new StringBuilder();
-            foreach (var alignment in filteredAlignments)
-            {
-                // Aqui você concatena as propriedades de interesse do alinhamento
-                // Exemplo: sb.AppendLine($"Identity: {alignment.Identity}, Similarity: {alignment.SimilarityScore}");
-                // Adapte esta linha conforme necessário para incluir as informações relevantes
-                sb.AppendLine($">{alignment.AlignedSmallSequence}");
-            }
 
-            // Atualiza o texto do TextBox com os valores dos alinhamentos
-            MyAssembly.ContigsSequence.Text = sb.ToString();
-            var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
-            MyAssembly.ReferenceSequence.Text = referenceString;
+            // Prepara a lista de dados para o DataGrid dos contigs
+            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+            MyAssembly.DataGridContigs.ItemsSource = contigDataList;
 
+
+            // Concatena e atualiza o DataGrid com as sequências de referência
+            // (Aqui você precisaria ajustar de acordo com o que exatamente myFasta contém e como você deseja exibi-lo)
+            var referenceData = myFasta;
+            MyAssembly.DataGridFasta.ItemsSource = referenceData;
         }
-
-    
-
 
 
 

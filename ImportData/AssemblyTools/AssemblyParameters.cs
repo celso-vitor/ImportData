@@ -8,35 +8,40 @@ namespace SequenceAssemblerLogic.AssemblyTools
 {
     public class AssemblyParameters
     {
-        public string GenerateAssemblyText(string referenceSequence, Dictionary<string, string> alignedContigs, List<int> startPositions)
+        public string GenerateAssemblyText(string referenceSequence, List<string> alignedContigs, List<int> startPositions)
         {
             // Cria uma sequência com o mesmo tamanho da sequência de referência, preenchida com hífens (representando gaps)
             StringBuilder assembly = new StringBuilder(new string('-', referenceSequence.Length));
 
-            // Itera sobre cada contig alinhado
-            foreach (var contigPair in alignedContigs)
+            // Assume que o número de contigs alinhados é o mesmo que o número de posições de início
+            for (int contigIndex = 0; contigIndex < alignedContigs.Count; contigIndex++)
             {
-                string contigKey = contigPair.Key;
-                string contigSequence = contigPair.Value;
+                string contigSequence = alignedContigs[contigIndex];
 
-                // Obter a posição de início do contig atual (presumindo que a chave do contig corresponde ao índice na lista startPositions)
-                int startPosition = startPositions[int.Parse(contigKey.Replace("Contig", "")) - 1];
+                // Encontra o primeiro índice não-gap na sequência do contig
+                int firstNonGapIndex = contigSequence.IndexOf(contigSequence.TrimStart('-').First());
+
+                // Calcula a posição de início ajustada
+                int startPosition = startPositions[contigIndex] + firstNonGapIndex - 1; // Converte para índice base-0
 
                 // Adiciona o contig na sequência de montagem na posição correta
-                int positionIndex = startPosition - 1; // Convertendo para índice base-0
-
                 for (int i = 0; i < contigSequence.Length; i++)
                 {
-                    // Apenas adiciona o contig se a posição atual não for um gap
                     if (contigSequence[i] != '-')
                     {
-                        assembly[positionIndex + i] = contigSequence[i];
+                        if (startPosition + i < assembly.Length)
+                        {
+                            assembly[startPosition + i] = contigSequence[i];
+                        }
                     }
                 }
             }
+
             // Retorna a sequência de montagem como uma string
             return assembly.ToString();
         }
+
+
         //Ajusta as posições reconhecendo os gaps
         public int GetCorrectStartPosition(string alignedRef, string alignedContig, string fullRef)
         {
@@ -70,7 +75,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
             if (startPosition == -1)
             {
-                throw new InvalidOperationException("Não foi possível encontrar uma posição de início válida para o contig na sequência de referência.");
+                throw new InvalidOperationException("Could not find a valid start position for the contig in the reference sequence");
             }
 
             // Ajustar para a contagem começar em 1 se o seu sistema espera indexação base-1

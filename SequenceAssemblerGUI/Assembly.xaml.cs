@@ -54,12 +54,12 @@ namespace SequenceAssemblerGUI
         //// Método para acessar meu DataGrid
         ////---------------------------------------------------------------------------------------------------------
 
-        public void UpdateAlignmentGrid(int minIdentity, int minNormalizedSimilarity, List<Fasta> myFasta)
+        public void UpdateAlignmentGrid(double minNormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
         {
             MyFasta = myFasta;
 
             // Apply filters on the data
-            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.Identity >= minIdentity && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
 
             DataTable dataTable = new DataTable();
@@ -97,6 +97,8 @@ namespace SequenceAssemblerGUI
             DataGridAlignments.ItemsSource = dataTable.DefaultView;
 
             DataGridFasta.ItemsSource = MyFasta;
+
+
         }
 
         //DataGrid Ornenar Contigs
@@ -212,6 +214,29 @@ namespace SequenceAssemblerGUI
         //Alinhamento
         //---------------------------------------------------------------------------------------------------------
 
+        private void AlignSequencesFromDataGrids()
+        {
+            // Suponha que você tem dois DataGrids: DataGridContigs e DataGridReferences
+            // E ambos têm ItemsSource configurados para listas de objetos com propriedade Sequence
+            var contigs = DataGridContigs.ItemsSource as List<Contig>;
+            var references = DataGridFasta.ItemsSource as List<Fasta>; // Ajuste conforme sua implementação real
+
+            foreach (var contig in contigs)
+            {
+                foreach (var reference in references)
+                {
+                    // Perform the alignment
+                    var result = PerformAlignmentUsingAlignmentClass(contig.Sequence, reference.Sequence);
+
+                    // Agora você pode fazer algo com o resultado
+                    // Por exemplo, exibir em algum lugar ou armazenar para uso posterior
+                    Console.WriteLine($"Aligned Contig Sequence: {result.alignedContigSequence}");
+                    Console.WriteLine($"Aligned Reference Sequence: {result.alignedReferenceSequence}");
+                }
+            }
+        }
+
+        // Sua função de alinhamento existente
         (string alignedContigSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string contigSequence, string referenceSequence)
         {
             SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
@@ -220,10 +245,12 @@ namespace SequenceAssemblerGUI
             return (alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence);
         }
 
-        //Uptade do Alinhamento com a Interface
+
+
+        //Update interface
         //---------------------------------------------------------------------------------------------------------
 
-        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, Dictionary<string, string> alignedContigs, List<int> startPositions, string referenceSequence)
+        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedContigSequences, List<int> startPositions, string referenceSequence)
         {
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
             foreach (char letra in referenceSequence)
@@ -233,14 +260,22 @@ namespace SequenceAssemblerGUI
             }
 
             viewModel.Contigs.Clear();
-            for (int contigIndex = 0; contigIndex < alignedContigs.Count; contigIndex++)
+
+            // Determinar o comprimento necessário para alinhar os identificadores de contig e o cabeçalho "Template"
+            int maxLabelWidth = Math.Max("Template".Length, alignedContigSequences.Count.ToString().Length + "Contig ".Length);
+
+            for (int contigIndex = 0; contigIndex < alignedContigSequences.Count; contigIndex++)
             {
-                var contigPair = alignedContigs.ElementAt(contigIndex);
-                var contigViewModel = new ContigViewModel { Id = contigPair.Key };
+                string contigSequence = alignedContigSequences[contigIndex];
+
+                // PadRight garante que todos os identificadores de contig tenham o mesmo comprimento
+                string contigId = ("Contig " + (contigIndex + 1)).PadRight(maxLabelWidth);
+                var contigViewModel = new ContigViewModel { Id = contigId };
                 int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
 
                 // Construir a linha para o contig atual
-                StringBuilder contigLine = new StringBuilder($"Contig {contigViewModel.Id}: ");
+                // StringBuilder não é mais necessário porque o PadRight já alinha o texto
+                contigViewModel.Id = contigId;
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
                 for (int pos = 0; pos < startPosition; pos++)
@@ -249,10 +284,10 @@ namespace SequenceAssemblerGUI
                 }
 
                 // Adiciona as letras do contig com a cor correspondente
-                for (int i = 0; i < contigPair.Value.Length; i++)
+                for (int i = 0; i < contigSequence.Length; i++)
                 {
                     Brush corDeFundo;
-                    char contigChar = contigPair.Value[i];
+                    char contigChar = contigSequence[i];
                     // Checa se a posição é um gap
                     if (contigChar == '-')
                     {
@@ -275,7 +310,6 @@ namespace SequenceAssemblerGUI
                     contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
-
                 // Completar o resto da sequência com hífens se necessário
                 while (contigViewModel.Aligments.Count < referenceSequence.Length)
                 {
@@ -285,16 +319,19 @@ namespace SequenceAssemblerGUI
                 viewModel.Contigs.Add(contigViewModel);
             }
 
+
+
+
             // Criar uma lista para os dados do DataGrid
             List<ContigData> contigDataList = new List<ContigData>();
 
             foreach (var contigIndex in startPositions.Select((value, index) => new { value, index }))
             {
                 // Pegar o par de contig correspondente à posição
-                var contigPair = alignedContigs.ElementAt(contigIndex.index);
+                var contigPair = alignedContigSequences.ElementAt(contigIndex.index);
 
                 // Filtrar os gaps do contig
-                var contigWithoutGaps = new string(contigPair.Value.Where(c => c != '-').ToArray());
+                var contigWithoutGaps = new string(contigPair.Where(c => c != '-').ToArray());
 
                 // Adicionar o contig à lista de dados, incluindo a posição inicial
                 contigDataList.Add(new ContigData
@@ -304,11 +341,7 @@ namespace SequenceAssemblerGUI
                 });
             }
 
-          ContigsDataGrid.ItemsSource = contigDataList;
-
-
-            // Atualizar a montagem na UI
-            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
+            DataGridContigID.ItemsSource = contigDataList;
 
             // Imprimir alinhamento para depuração 
             foreach (var contigViewModel in viewModel.Contigs)
@@ -327,47 +360,46 @@ namespace SequenceAssemblerGUI
         //---------------------------------------------------------------------------------------------------------
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
-            var referenceSequenceFasta = ReferenceSequence.Text;
-            var contigsFasta = ContigsSequence.Text;
+            var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
+            var contigItems = (List<ContigData>)DataGridContigs.ItemsSource;
 
-            string referenceSequence = FastaFormat.ReadFastaSequence(referenceSequenceFasta);
-            var contigs = FastaFormat.ReadContigs(contigsFasta);
+            string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
+
             var viewModel = (SequenceViewModel)DataContext;
 
             viewModel.Contigs.Clear();
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
 
-            Dictionary<string, string> alignedContigs = new Dictionary<string, string>();
+            List<string> alignedContigSequences = new List<string>(); // Lista para armazenar sequências alinhadas
             List<int> startPositions = new List<int>(); // Lista para armazenar as posições de início
-            
-            foreach (var contig in contigs)
-            {
-                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contig.Value, referenceSequence);
-                alignedContigs.Add(contig.Key, alignedContigSequence);
 
-                // Obter a posição correta de início com base no alinhamento
+            foreach (var contigItem in contigItems)
+            {
+                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contigItem.Contig, referenceSequence);
+                alignedContigSequences.Add(alignedContigSequence);
+
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);
                 startPositions.Add(startPosition);
             }
 
-            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigs, startPositions);
+            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigSequences, startPositions);
 
-            // Atualiza a UI com o alinhamento e a montagem
-            UpdateUIWithAlignmentAndAssembly(viewModel, alignedContigs, startPositions, referenceSequence);
+            UpdateUIWithAlignmentAndAssembly(viewModel, alignedContigSequences, startPositions, referenceSequence);
 
-            // Definir IsReferenceSequenceAligned como true para garantir a visibilidade do rótulo "Reference"
             viewModel.IsReferenceSequenceAligned = true;
             viewModel.IsAssemblyVisible = true;
-
-
-            //Montagem de Grid
-            //---------------------------------------------------------------------------------------------------------
-
-            //MyAssemblyViewer.Display(alignedContigs, referenceSequence)
         }
 
-       
 
+
+        //Montagem de Grid
+        //---------------------------------------------------------------------------------------------------------
+
+        //MyAssemblyViewer.Display(alignedContigs, referenceSequence)
     }
+
+
+
 }
+
 

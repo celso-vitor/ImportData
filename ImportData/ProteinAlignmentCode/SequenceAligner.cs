@@ -12,14 +12,15 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public Dictionary<string, int> SubstitutionMatrix { get; set; }
         public int MaxGaps { get; set; }
         public int GapPenalty { get; set; }
-        public bool IgnoreILDifference { get; set; }
-        
+        public bool IgnoreDifference { get; set; }
+       
 
-        public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreILDifference = true) 
+
+        public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreDifference = true )
         {
             MaxGaps = maxGaps;
             GapPenalty = gapPenalty;
-            IgnoreILDifference = ignoreILDifference;
+            IgnoreDifference = ignoreDifference;
             InitializeSubstitutionMatrix();
         }
 
@@ -60,6 +61,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
             string[] headers = lines[0].Split(' ');
 
+            // Initialize substitution matrix with scores from provided data
             for (int i = 1; i < lines.Length; i++)
             {
                 string[] values = lines[i].Split(' ');
@@ -72,11 +74,11 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     string key1 = rowChar.ToString() + colChar.ToString();
                     string key2 = colChar.ToString() + rowChar.ToString();
 
+                    // Add each score to the dictionary, ensuring no duplicates
                     if (!SubstitutionMatrix.ContainsKey(key1))
                     {
                         SubstitutionMatrix.Add(key1, score);
                     }
-
                     if (!SubstitutionMatrix.ContainsKey(key2))
                     {
                         SubstitutionMatrix.Add(key2, score);
@@ -85,45 +87,104 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             }
         }
 
-
-
         int GetSubstitutionScore(char a, char b)
         {
-            // Se ignorar a diferença entre Isoleucina (I) e Leucina (L)
-            if (IgnoreILDifference && ((a == 'I' && b == 'L') || (a == 'L' && b == 'I')))
+            // Check if specific amino acid differences should be ignored and return the substitution score
+            if (IgnoreDifference)
             {
-                return SubstitutionMatrix.TryGetValue("IL", out int ilScore) ? ilScore : 0;
+                // Handling grouped amino acids that are considered similar due to their properties
+                // For example, Isoleucine, Leucine, and Valine are all hydrophobic and often interchangeable in protein structures
+                if ((a == 'I' && b == 'L') || (a == 'L' && b == 'I') ||
+                    (a == 'V' && (b == 'I' || b == 'L')) || (b == 'V' && (a == 'I' || a == 'L')))
+                {
+                    return SubstitutionMatrix.TryGetValue("ILV", out int ilvScore) ? ilvScore : 0;
+                }
+                // Additional groups with similar handling based on chemical properties or common substitution in evolutionary history
+                else if ((a == 'M' && b == 'I') || (a == 'I' && b == 'M'))
+                {
+                    return SubstitutionMatrix.TryGetValue("MI", out int miScore) ? miScore : 0;
+                }
+                else if ((a == 'M' && b == 'L') || (a == 'L' && b == 'M'))
+                {
+                    return SubstitutionMatrix.TryGetValue("ML", out int mlScore) ? mlScore : 0;
+                }
+                else if ((a == 'F' && b == 'Y') || (a == 'Y' && b == 'F'))
+                {
+                    return SubstitutionMatrix.TryGetValue("FY", out int fyScore) ? fyScore : 0;
+                }
+                else if ((a == 'N' && b == 'D') || (a == 'D' && b == 'N'))
+                {
+                    return SubstitutionMatrix.TryGetValue("ND", out int ndScore) ? ndScore : 0;
+                }
+                else if ((a == 'E' && b == 'D') || (a == 'D' && b == 'E'))
+                {
+                    return SubstitutionMatrix.TryGetValue("ED", out int edScore) ? edScore : 0;
+                }
+                else if ((a == 'S' && b == 'T') || (a == 'T' && b == 'S'))
+                {
+                    return SubstitutionMatrix.TryGetValue("ST", out int stScore) ? stScore : 0;
+                }
+                else if ((a == 'K' && b == 'R') || (a == 'R' && b == 'K'))
+                {
+                    return SubstitutionMatrix.TryGetValue("KR", out int krScore) ? krScore : 0;
+                }
+                else if ((a == 'Q' && b == 'N') || (a == 'N' && b == 'Q'))
+                {
+                    return SubstitutionMatrix.TryGetValue("QN", out int qnScore) ? qnScore : 0;
+                }
+                else if ((a == 'C' && b == 'S') || (a == 'S' && b == 'C'))
+                {
+                    return SubstitutionMatrix.TryGetValue("CS", out int csScore) ? csScore : 0;
+                }
+                else if ((a == 'A' && b == 'V') || (a == 'V' && b == 'A') ||
+                         (a == 'A' && b == 'L') || (a == 'L' && b == 'A') ||
+                         (a == 'A' && b == 'I') || (a == 'I' && b == 'A') ||
+                         (a == 'V' && b == 'L') || (a == 'L' && b == 'V') ||
+                         (a == 'I' && b == 'L') || (a == 'L' && b == 'I') ||
+                         (a == 'V' && b == 'I') || (a == 'I' && b == 'V'))
+                {
+                    return SubstitutionMatrix.TryGetValue("ALIV", out int alivScore) ? alivScore : 0;
+                }
+
+            }
+            // Default logic if no special substitution rule applies
+            if (SubstitutionMatrix.TryGetValue($"{a}{b}", out int defaultScore))
+            {
+                return defaultScore;
             }
 
-            string key = a.ToString() + b.ToString();
-            // Retorna a pontuação da matriz ou uma penalidade padrão se não encontrar
-            return SubstitutionMatrix.TryGetValue(key, out int score) ? score : GapPenalty;
+            // Return a default or error value if no score is found, perhaps -1 or throw an exception
+            return -1; // Or handle this scenario appropriately
         }
 
 
 
         double GetMaximumSimilarity(string sequence)
         {
-            double maxValue = 0;
+            double maxValue = 0; // Initialize the maximum value to zero.
 
+            // Iterate through each character in the sequence.
             foreach (char aminoAcid in sequence)
             {
-                string key = aminoAcid.ToString() + aminoAcid.ToString();
+                string key = aminoAcid.ToString() + aminoAcid.ToString(); // Create a key for the substitution matrix.
 
-                // Verifica se a chave (par de aminoácidos) existe na matriz de substituição.
+                // Check if the key (amino acid pair) exists in the substitution matrix.
                 if (SubstitutionMatrix.ContainsKey(key))
                 {
-                    maxValue += SubstitutionMatrix[key];
+                    maxValue += SubstitutionMatrix[key]; // Add the score to the total value.
                 }
                 else
                 {
-                    // Opção para tratar caracteres não encontrados, como hifens.
-                    // Pode atribuir um valor padrão ou simplesmente ignorar.
-                    // Exemplo: maxValue += 0; // ou não faça nada.
+                    // Option to handle characters not found, such as dashes.
+                    // Can assign a default value or simply ignore.
+                    // Example: maxValue += 0; // or do nothing.
+                    // This decision depends on how you want to treat gaps or unknown amino acids.
+                    // For example, in some contexts, you might want to penalize gaps or unknowns:
+                    // maxValue -= 1; // Penalize unknown characters or gaps.
                 }
             }
 
-            return maxValue;
+            return maxValue; // Return the total similarity score.
         }
 
 
