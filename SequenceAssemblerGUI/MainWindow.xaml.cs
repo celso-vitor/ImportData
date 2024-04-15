@@ -286,7 +286,7 @@ namespace SequenceAssemblerGUI
             List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).ToList();
 
 
-            // Disable the DataGridContig to prevent user interaction while data is being loaded.
+            // Enabled the DataGridContig 
             DataGridContig.IsEnabled = true;
 
             // Make a loading label visible to inform the user that data is being loaded.
@@ -299,7 +299,7 @@ namespace SequenceAssemblerGUI
         {
 
             // How many amino acids should overlap for contigs (partially overlapping sequences).
-            int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
+            int minOverlap = (int)IntegerUpDownAAOverlap.Value;
 
             // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
             myContigs = await Task.Run
@@ -318,7 +318,7 @@ namespace SequenceAssemblerGUI
                                          select r).ToList();
 
 
-                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
+                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), minOverlap);
                 });
 
             ButtonProcess.IsEnabled = true;
@@ -385,6 +385,7 @@ namespace SequenceAssemblerGUI
 
 
         //Method is a open fasta file 
+        //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
@@ -429,8 +430,8 @@ namespace SequenceAssemblerGUI
 
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
-                    NormalizedSimilarityUpDown.IsEnabled= true;
-                    IdentityUpDown.IsEnabled= true;
+                    NormalizedSimilarityUpDown.IsEnabled = true;
+                    IdentityUpDown.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
                 }
                 else
@@ -460,7 +461,7 @@ namespace SequenceAssemblerGUI
 
             // Prepara a lista de dados para o DataGrid dos contigs
             var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
-            MyAssembly.DataGridContigs.ItemsSource = contigDataList;
+            MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
 
 
             // Concatena e atualiza o DataGrid com as sequências de referência
@@ -468,7 +469,6 @@ namespace SequenceAssemblerGUI
             var referenceData = myFasta;
             MyAssembly.DataGridFasta.ItemsSource = referenceData;
         }
-
 
 
 

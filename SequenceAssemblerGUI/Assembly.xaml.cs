@@ -44,6 +44,8 @@ namespace SequenceAssemblerGUI
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
 
+        public List<Contig> Contigs { get; set; }
+
         public Assembly()
         {
             InitializeComponent();
@@ -101,6 +103,7 @@ namespace SequenceAssemblerGUI
 
         }
 
+
         //DataGrid Ornenar Contigs
         //---------------------------------------------------------------------------------------------------------
         public class ContigData
@@ -115,28 +118,28 @@ namespace SequenceAssemblerGUI
         //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
         public class Aligment : INotifyPropertyChanged
-                    {
-                        private string _letra;
-                        private Brush _corDeFundo;
+        {
+            private string _letra;
+            private Brush _corDeFundo;
 
-                        public string Letra
-                        {
-                            get { return _letra; }
-                            set { _letra = value; OnPropertyChanged(); }
-                        }
+            public string Letra
+            {
+                get { return _letra; }
+                set { _letra = value; OnPropertyChanged(); }
+            }
 
-                        public Brush CorDeFundo
-                        {
-                            get { return _corDeFundo; }
-                            set { _corDeFundo = value; OnPropertyChanged(); }
-                        }
+            public Brush CorDeFundo
+            {
+                get { return _corDeFundo; }
+                set { _corDeFundo = value; OnPropertyChanged(); }
+            }
 
-                        public event PropertyChangedEventHandler PropertyChanged;
-                        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-                        {
-                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                        }
-                    }
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
         //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
@@ -208,7 +211,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            
+
         }
 
         //Alinhamento
@@ -218,7 +221,7 @@ namespace SequenceAssemblerGUI
         {
             // Suponha que você tem dois DataGrids: DataGridContigs e DataGridReferences
             // E ambos têm ItemsSource configurados para listas de objetos com propriedade Sequence
-            var contigs = DataGridContigs.ItemsSource as List<Contig>;
+            var contigs = DataGridContigsAssembly.ItemsSource as List<Contig>;
             var references = DataGridFasta.ItemsSource as List<Fasta>; // Ajuste conforme sua implementação real
 
             foreach (var contig in contigs)
@@ -361,7 +364,7 @@ namespace SequenceAssemblerGUI
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
             var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
-            var contigItems = (List<ContigData>)DataGridContigs.ItemsSource;
+            var contigItems = (List<ContigData>)DataGridContigsAssembly.ItemsSource;
 
             string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
 

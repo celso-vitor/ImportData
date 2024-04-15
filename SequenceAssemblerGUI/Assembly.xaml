@@ -10,7 +10,7 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            
+
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="Auto"/>
@@ -24,36 +24,36 @@
             <DataGrid x:Name="DataGridFasta" AutoGenerateColumns="True">
             </DataGrid>
         </GroupBox>
-        
+
         <GroupBox Header="Contigs" Grid.Row="1">
-            <DataGrid x:Name="DataGridContigs" Height="150" AutoGenerateColumns="False">
+            <DataGrid x:Name="DataGridContigsAssembly" Height="140" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Contig" Binding="{Binding Contig}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
-                      
+
         </GroupBox>
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
         <GroupBox Header="Results" Grid.Row="4" Height="150">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="300">
-            <!-- Definir o escopo de tamanho compartilhado para todo o conteúdo do ScrollViewer -->
-            <StackPanel Grid.IsSharedSizeScope="True">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="300">
+                <!-- Definir o escopo de tamanho compartilhado para todo o conteúdo do ScrollViewer -->
+                <StackPanel Grid.IsSharedSizeScope="True">
 
-                <!-- Grid para o cabeçalho 'Template' -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <!-- Coluna para o rótulo 'Template' com SharedSizeGroup -->
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
-                        <!-- Coluna para as células de referência -->
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <!-- Grid para o cabeçalho 'Template' -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <!-- Coluna para o rótulo 'Template' com SharedSizeGroup -->
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
+                            <!-- Coluna para as células de referência -->
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <!-- Rótulo 'Template' -->
-                    <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Right"/>
+                        <!-- Rótulo 'Template' -->
+                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Right"/>
 
-                    <!-- Células de referência alinhadas -->
+                        <!-- Células de referência alinhadas -->
                         <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenciaAlinhamentoCelulas}" Margin="0,0,5,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -68,21 +68,21 @@
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
-                 </Grid>
+                    </Grid>
 
                     <!-- Seção para Exibir Contigs -->
-                <ItemsControl ItemsSource="{Binding Contigs}" Margin="0,5,0,0">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <!-- Coluna para o ID do contig com SharedSizeGroup -->
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
-                                    <!-- Coluna para os alinhamentos -->
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                    <ItemsControl ItemsSource="{Binding Contigs}" Margin="0,5,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <!-- Coluna para o ID do contig com SharedSizeGroup -->
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
+                                        <!-- Coluna para os alinhamentos -->
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- ID do contig -->
+                                    <!-- ID do contig -->
                                     <TextBlock Grid.Column="0" Text="{Binding Id}" MinWidth="60" Margin="0,0,5,0" TextAlignment="Right"/>
 
                                     <!-- Alinhamentos -->
@@ -100,12 +100,12 @@
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                     </ItemsControl>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </GroupBox>
 
         <GroupBox Header="Contigs Ordenados" Grid.Row="5" Height="120">
@@ -126,11 +126,10 @@
         </GroupBox>
 
         <DataGrid x:Name="DataGridAlignments" Grid.Row="7" Height="200"/>
-  
+
 
         <!--<sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>-->
 
     </Grid>
 </UserControl>
-
 

@@ -9,6 +9,7 @@ namespace SequenceAssemblerLogic.ContigCode
 {
     public class Contig
     {
+        public int Id { get; set; }
         public string Sequence { get; set; }
         public List<IDResult> IDs { get; set; }
        
