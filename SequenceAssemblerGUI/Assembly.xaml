@@ -30,7 +30,7 @@
         <GroupBox Header="Contigs" Grid.Row="1">
             <DataGrid x:Name="DataGridContigsAssembly" Height="140" AutoGenerateColumns="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Position" Binding="{Binding Id}" Width="80"/>
+                    <DataGridTextColumn Header="Position" Binding="{Binding Id}" Width="*"/>
                     <DataGridTextColumn Header="Contig" Binding="{Binding Contig}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>

@@ -35,7 +35,7 @@ namespace SequenceAssemblerGUI
             InitializeComponent();
         }
 
-        public void UpdateAlignmentGrid(double NormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
+        public void UpdateAlignmentSequences(double NormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
         {
             MyFasta = myFasta;
 

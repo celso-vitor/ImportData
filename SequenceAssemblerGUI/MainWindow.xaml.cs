@@ -385,7 +385,6 @@ namespace SequenceAssemblerGUI
 
 
         //Method is a open fasta file 
-        //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
@@ -428,11 +427,13 @@ namespace SequenceAssemblerGUI
                     MyAssembly.AlignmentList = myAlignment;
                     MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
+                    MyAlignmentViewer2.DataGridAlignments
+
                     // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
                     var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
                     //// Prepara a lista de dados para o DataGrid dos contigs
-                    var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
-                    MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
+                    //var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
+                    ////MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
 
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
@@ -464,9 +465,9 @@ namespace SequenceAssemblerGUI
             // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
             var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
             // Prepara a lista de dados para o DataGrid dos contigs
-            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
+            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
             MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
-        
+
 
             // Concatena e atualiza o DataGrid com as sequências de referência
             // (Aqui você precisaria ajustar de acordo com o que exatamente myFasta contém e como você deseja exibi-lo)

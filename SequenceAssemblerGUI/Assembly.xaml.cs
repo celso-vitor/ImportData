@@ -78,6 +78,7 @@ namespace SequenceAssemblerGUI
             dataTable.Columns.Add("Gaps Used", typeof(int));
             dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
             dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
+          
 
             // Fill the DataTable with your data
             foreach (var alignment in filteredAlnResults)
@@ -92,6 +93,7 @@ namespace SequenceAssemblerGUI
                 newRow[6] = alignment.GapsUsed;
                 newRow[7] = alignment.AlignedLargeSequence;
                 newRow[8] = alignment.AlignedSmallSequence;
+               
 
                 dataTable.Rows.Add(newRow);
             }
