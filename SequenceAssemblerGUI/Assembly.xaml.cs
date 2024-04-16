@@ -17,7 +17,9 @@ using SequenceAssemblerLogic.AssemblyTools;
 using System.Windows.Controls;
 using System.Data;
 using System.Windows.Data; 
-using System.Globalization; 
+using System.Globalization;
+using System.CodeDom.Compiler;
+using System.Windows.Threading;
 
 
 
@@ -361,8 +363,17 @@ namespace SequenceAssemblerGUI
 
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
+        public static void DoEvents()
+        {
+            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(delegate { }));
+        }
+
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
+            // Mostrar a label "Loading..."
+            loadingLabel.Visibility = Visibility.Visible;
+            DoEvents();
+
             var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
             var contigItems = (List<ContigData>)DataGridContigsAssembly.ItemsSource;
 
@@ -373,8 +384,8 @@ namespace SequenceAssemblerGUI
             viewModel.Contigs.Clear();
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
 
-            List<string> alignedContigSequences = new List<string>(); // Lista para armazenar sequências alinhadas
-            List<int> startPositions = new List<int>(); // Lista para armazenar as posições de início
+            List<string> alignedContigSequences = new List<string>();
+            List<int> startPositions = new List<int>();
 
             foreach (var contigItem in contigItems)
             {
@@ -391,7 +402,11 @@ namespace SequenceAssemblerGUI
 
             viewModel.IsReferenceSequenceAligned = true;
             viewModel.IsAssemblyVisible = true;
+
+            // Agora que os dados foram carregados, ocultar a label "Loading..."
+            loadingLabel.Visibility = Visibility.Hidden;
         }
+
 
 
 

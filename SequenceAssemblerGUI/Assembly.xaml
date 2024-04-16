@@ -10,14 +10,17 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+
         </Grid.RowDefinitions>
 
         <GroupBox Header="Reference Sequence" Grid.Row="0">
@@ -36,8 +39,10 @@
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
-        <GroupBox Header="Results" Grid.Row="4" Height="150">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="300">
+        <GroupBox Header="Results" Grid.Row="4" Height="300">
+            <Grid>
+                <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="300">
                 <!-- Definir o escopo de tamanho compartilhado para todo o conteúdo do ScrollViewer -->
                 <StackPanel Grid.IsSharedSizeScope="True">
 
@@ -105,10 +110,12 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-            </ScrollViewer>
+                </ScrollViewer>
+                <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>      
+            </Grid>
         </GroupBox>
 
-        <GroupBox Header="Contigs Ordenados" Grid.Row="5" Height="120">
+        <GroupBox Header="Contigs Ordenados" Grid.Row="6" Height="200">
             <DataGrid x:Name="DataGridContigID"
               AutoGenerateColumns="False"
               IsReadOnly="True">
@@ -119,13 +126,13 @@
             </DataGrid>
         </GroupBox>
 
-        <GroupBox Header="Assembly" Grid.Row="6" Height="50">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="40">
-                <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap"/>
+        <GroupBox Header="Assembly" Grid.Row="8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" >
+                <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap" Height="40"/>
             </ScrollViewer>
         </GroupBox>
 
-        <DataGrid x:Name="DataGridAlignments" Grid.Row="7" Height="200"/>
+        <DataGrid x:Name="DataGridAlignments" Grid.Row="10" Height="300"/>
 
 
         <!--<sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>-->
