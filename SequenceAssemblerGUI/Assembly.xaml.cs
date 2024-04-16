@@ -346,7 +346,7 @@ namespace SequenceAssemblerGUI
                 });
             }
 
-            DataGridContigID.ItemsSource = contigDataList;
+            DataGridContigsAssembly.ItemsSource = contigDataList;
 
             // Imprimir alinhamento para depuração 
             foreach (var contigViewModel in viewModel.Contigs)

@@ -431,7 +431,7 @@ namespace SequenceAssemblerGUI
                     // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
                     var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
                     //// Prepara a lista de dados para o DataGrid dos contigs
-                    var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+                    var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
                     MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
 
                     ButtonUpdateResult.IsEnabled = true;
@@ -463,12 +463,10 @@ namespace SequenceAssemblerGUI
 
             // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
             var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-
-
             // Prepara a lista de dados para o DataGrid dos contigs
-            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
             MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
-
+        
 
             // Concatena e atualiza o DataGrid com as sequências de referência
             // (Aqui você precisaria ajustar de acordo com o que exatamente myFasta contém e como você deseja exibi-lo)
