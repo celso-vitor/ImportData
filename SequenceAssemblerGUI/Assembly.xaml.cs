@@ -361,6 +361,7 @@ namespace SequenceAssemblerGUI
         }
 
 
+
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
         public static void DoEvents()
@@ -406,8 +407,6 @@ namespace SequenceAssemblerGUI
             // Agora que os dados foram carregados, ocultar a label "Loading..."
             loadingLabel.Visibility = Visibility.Hidden;
         }
-
-
 
 
         //Montagem de Grid

@@ -428,6 +428,12 @@ namespace SequenceAssemblerGUI
                     MyAssembly.AlignmentList = myAlignment;
                     MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
+                    // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
+                    var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+                    //// Prepara a lista de dados para o DataGrid dos contigs
+                    var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+                    MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
+
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;

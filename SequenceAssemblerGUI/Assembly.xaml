@@ -111,7 +111,7 @@
                     </ItemsControl>
                 </StackPanel>
                 </ScrollViewer>
-                <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>      
+                <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>      
             </Grid>
         </GroupBox>
 
