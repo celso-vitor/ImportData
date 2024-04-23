@@ -30,6 +30,8 @@ namespace SequenceAssemblerGUI
         List<Contig> myContigs;
         List<Fasta> myFasta;
         List<Alignment> myAlignment;
+        List<Alignment> alignments = new List<Alignment>();
+
 
         DataTable dtDenovo = new DataTable
         {
@@ -56,7 +58,7 @@ namespace SequenceAssemblerGUI
                 new DataColumn("ScanNumber", typeof(int))
             }
         };
-
+        private List<string> filteredSequences;
 
         public MainWindow()
         {
@@ -269,68 +271,81 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
-
-            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
-            List<string> sequencesNovorPSM =
+            void UpdateSequencesFromDictionaries()
+            {
+                // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
+                List<IDResult> sequencesNovorPSM =
                 (from s in psmDictTemp.Values
                  from psmID in s
-                 select psmID.CleanPeptide).Distinct().ToList();
+                 select new IDResult
+                 {
+                     Peptide = psmID.CleanPeptide,
+                     Source = "PSM"
+                 }).Distinct().ToList();
 
-            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-            List<string> sequencesNovorDeNovo =
+                // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
+                List<IDResult> sequencesNovorDeNovo =
                 (from s in deNovoDictTemp.Values
                  from denovoID in s
-                 select denovoID.CleanPeptide).Distinct().ToList();
+                 select new IDResult
+                 {
+                     Peptide = denovoID.CleanPeptide,
+                     Source = "DeNovo"
+                 }).Distinct().ToList();
 
-            // Concatenate the PSM and deNovo sequence lists into a single list named filteredSequences.
-            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).ToList();
+                List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo)
+                              .Select(seq => seq.CleanPeptide).Distinct().ToList();
 
-
+            }
+           
             // Enabled the DataGridContig 
             DataGridContig.IsEnabled = true;
 
             // Make a loading label visible to inform the user that data is being loaded.
             loadingLabel.Visibility = Visibility.Visible;
 
-            UptadeContig();
+            UpdateContig();
         }
 
-        async void UptadeContig()
+        async void UpdateContig()
         {
-
-            // How many amino acids should overlap for contigs (partially overlapping sequences).
             int minOverlap = (int)IntegerUpDownAAOverlap.Value;
-
-            // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
-            myContigs = await Task.Run
-            (
-                () =>
+            try
+            {
+                myContigs = await Task.Run(() =>
                 {
                     ContigAssembler ca = new ContigAssembler();
-                    List<IDResult> results = new List<IDResult>();
+                    List<IDResult> combinedResults = new List<IDResult>();
 
-                    var resultsPSM = (from kvp in psmDictTemp
-                                      from r in kvp.Value
-                                      select r).ToList();
+                    var resultsPSM = psmDictTemp.Values.SelectMany(v => v).ToList();
+                    var resultsDenovo = deNovoDictTemp.Values.SelectMany(v => v).ToList();
 
-                    var resultsDenovo = (from kvp in deNovoDictTemp
-                                         from r in kvp.Value
-                                         select r).ToList();
+                    combinedResults.AddRange(resultsPSM.Select(r => { r.Source = "PSM"; return r; }));
+                    combinedResults.AddRange(resultsDenovo.Select(r => { r.Source = "DeNovo"; return r; }));
 
-
-                    return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), minOverlap);
+                    return ca.AssembleContigSequences(combinedResults, minOverlap);
                 });
 
-            ButtonProcess.IsEnabled = true;
+                DataGridContig.ItemsSource = myContigs.Select(contig => new
+                {
+                    Sequence = contig.Sequence,
+                    IDTotal = contig.IDs.Count,
+                    IDsDenovo = contig.IDs.Count(id => id.Source == "DeNovo"),
+                    IDsPSM = contig.IDs.Count(id => id.Source == "PSM")
+                }).ToList();
 
-            // Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-            DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
-
-            // Hide the loading label as the data has now been loaded.
-            loadingLabel.Visibility = Visibility.Hidden;
+                ButtonProcess.IsEnabled = true; // Assegurar que o botão é habilitado após a tarefa ser concluída
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to assemble contigs: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                loadingLabel.Visibility = Visibility.Hidden;
+            }
         }
 
-        
 
         //---------------------------------------------------------
 
@@ -381,9 +396,23 @@ namespace SequenceAssemblerGUI
             UpdateDataView();
         }
 
+        public void UpdateSequencesFromDictionaries()
+        {
+            List<string> sequencesNovorPSM =
+                (from s in psmDictTemp.Values
+                 from psmID in s
+                 select psmID.CleanPeptide).Distinct().ToList();
+
+            List<string> sequencesNovorDeNovo =
+                (from s in deNovoDictTemp.Values
+                 from denovoID in s
+                 select denovoID.CleanPeptide).Distinct().ToList();
+
+            filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).Distinct().ToList();
+        }
+
+
         //---------------------------------------------------------
-
-
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
@@ -406,8 +435,8 @@ namespace SequenceAssemblerGUI
                 }
 
                 myFasta = loadedFasta;
-                //DataGridFasta.ItemsSource = myFasta;
-
+                DataGridFasta.ItemsSource = myFasta;
+                UpdateSequencesFromDictionaries();
                 // Verifica se existe alguma sequência contig para processar antes de proceder
                 if (myContigs != null && myContigs.Any())
                 {
@@ -417,23 +446,25 @@ namespace SequenceAssemblerGUI
                     int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                     SequenceAligner aligner = new SequenceAligner();
 
+                    //Contigs
                     myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
 
-                    //// Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
-                    //MyAlignmentViewer.AlignmentList = myAlignment;
-                    //MyAlignmentViewer.UpdateAlignmentGrid(minIdentity, minNormalizedSimilarity, myFasta);
+                    // PSM/deNovo
+                    alignments = filteredSequences.Select(seq => aligner.AlignSequences(myFasta[0].Sequence, seq)).ToList();
 
                     // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
-                    MyAssembly.AlignmentList = myAlignment;
+                    MyAssembly.AlignmentList = alignments;
                     MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
-                    MyAlignmentViewer2.DataGridAlignments
 
                     // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
-                    var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-                    //// Prepara a lista de dados para o DataGrid dos contigs
-                    //var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
-                    ////MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
+                    var filteredAlignments = alignments.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+                    ////// Prepara a lista de dados para o DataGrid dos contigs
+                    var dataTable = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
+                    //MyAssembly.DataGridAlignments.ItemsSource = contigDataList;
+
+                    MyAssembly.DataGridAlignments.ItemsSource = dataTable;
+
 
                     ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
@@ -443,11 +474,12 @@ namespace SequenceAssemblerGUI
                 }
                 else
                 {
-                    MessageBox.Show("There are no contigs to line up. Please upload the contigs before attempting to process.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("There are no sequences to line up. Please upload the correct sequences before attempting to process.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
 
+       
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
@@ -459,21 +491,19 @@ namespace SequenceAssemblerGUI
             int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            // Atualiza a grade de alinhamentos com os novos parâmetros de filtro
+            // Updates the alignment grid with the new filter parameters
             MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
-            // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
-            var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-            // Prepara a lista de dados para o DataGrid dos contigs
-            var contigDataList = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
-            MyAssembly.DataGridContigsAssembly.ItemsSource = contigDataList;
+            // Filters the alignment list based on identity and similarity criteria
+            var filteredAlignments = alignments.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            var dataTable = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+            MyAssembly.DataGridAlignments.ItemsSource = dataTable;
 
-
-            // Concatena e atualiza o DataGrid com as sequências de referência
-            // (Aqui você precisaria ajustar de acordo com o que exatamente myFasta contém e como você deseja exibi-lo)
+            // Refreshes the DataGrid with the reference sequences
             var referenceData = myFasta;
             MyAssembly.DataGridFasta.ItemsSource = referenceData;
         }
+
 
 
 
@@ -492,7 +522,7 @@ namespace SequenceAssemblerGUI
 
             if (myContigs != null)
             {
-                UptadeContig();
+                UpdateContig();
 
             }
             else

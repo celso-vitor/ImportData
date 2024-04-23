@@ -21,7 +21,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int GapsUsed { get; set; }
         public List<int> StartPositions { get; set; }
         public string AlignedLargeSequence { get; set; }
-        public string AlignedSmallSequence { get; set; }       
+        public string AlignedSmallSequence { get; set; }
 
     }
 }

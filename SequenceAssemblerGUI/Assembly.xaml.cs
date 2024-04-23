@@ -114,6 +114,16 @@ namespace SequenceAssemblerGUI
         {
             public int Id { get; set; }
             public string Contig { get; set; }
+            public int Identity { get; set; }
+            public double NormalizedIdentityScore { get; set; }
+            public int SimilarityScore { get; set; }
+            public double NormalizedSimilarity { get; set; }
+            public int AlignedAA { get; set; }
+            public double NormalizedAlignedAA { get; set; }
+            public int GapsUsed { get; set; }
+            public List<int> StartPositions { get; set; }
+            public string AlignedLargeSequence { get; set; }
+            public string AlignedSmallSequence { get; set; }
         }
 
 
@@ -225,7 +235,7 @@ namespace SequenceAssemblerGUI
         {
             // Suponha que você tem dois DataGrids: DataGridContigs e DataGridReferences
             // E ambos têm ItemsSource configurados para listas de objetos com propriedade Sequence
-            var contigs = DataGridContigsAssembly.ItemsSource as List<Contig>;
+            var contigs = DataGridAlignments.ItemsSource as List<Contig>;
             var references = DataGridFasta.ItemsSource as List<Fasta>; // Ajuste conforme sua implementação real
 
             foreach (var contig in contigs)
@@ -262,48 +272,43 @@ namespace SequenceAssemblerGUI
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
             foreach (char letra in referenceSequence)
             {
-                var corDeFundo = Brushes.White;
-                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = corDeFundo });
+                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
             }
 
             viewModel.Contigs.Clear();
 
-            // Determinar o comprimento necessário para alinhar os identificadores de contig e o cabeçalho "Template"
-            int maxLabelWidth = Math.Max("Template".Length, alignedContigSequences.Count.ToString().Length + "Contig ".Length);
+            // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
+            var contigsWithPositions = startPositions
+                .Select((start, index) => new { ID = $"Positions {start}", Sequence = alignedContigSequences[index], StartPosition = start - 1 })
+                .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
+                .ToList();
 
-            for (int contigIndex = 0; contigIndex < alignedContigSequences.Count; contigIndex++)
+            // Determinar o comprimento necessário para alinhar os identificadores de contig
+            int maxLabelWidth = contigsWithPositions.Max(c => c.ID.Length);
+
+            foreach (var contig in contigsWithPositions)
             {
-                string contigSequence = alignedContigSequences[contigIndex];
-
-                // PadRight garante que todos os identificadores de contig tenham o mesmo comprimento
-                string contigId = ("Contig " + (contigIndex + 1)).PadRight(maxLabelWidth);
+                string contigId = contig.ID.PadRight(maxLabelWidth);
                 var contigViewModel = new ContigViewModel { Id = contigId };
-                int startPosition = startPositions[contigIndex] - 1; // Ajuste para índice base-0
-
-                // Construir a linha para o contig atual
-                // StringBuilder não é mais necessário porque o PadRight já alinha o texto
-                contigViewModel.Id = contigId;
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
-                for (int pos = 0; pos < startPosition; pos++)
+                for (int pos = 0; pos < contig.StartPosition; pos++)
                 {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                    contigViewModel.Aligments.Add(new Aligment { Letra = " ", CorDeFundo = Brushes.LightGray });
                 }
 
                 // Adiciona as letras do contig com a cor correspondente
-                for (int i = 0; i < contigSequence.Length; i++)
+                for (int i = 0; i < contig.Sequence.Length; i++)
                 {
                     Brush corDeFundo;
-                    char contigChar = contigSequence[i];
-                    // Checa se a posição é um gap
+                    char contigChar = contig.Sequence[i];
                     if (contigChar == '-')
                     {
                         corDeFundo = Brushes.Orange; // Cor laranja para gaps
                     }
                     else
                     {
-                        // Posição na sequência de referência
-                        int refIndex = startPosition + i;
+                        int refIndex = contig.StartPosition + i;
                         if (refIndex < referenceSequence.Length)
                         {
                             corDeFundo = contigChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
@@ -313,47 +318,34 @@ namespace SequenceAssemblerGUI
                             corDeFundo = Brushes.LightGray; // Fora dos limites da referência
                         }
                     }
-
                     contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 // Completar o resto da sequência com hífens se necessário
                 while (contigViewModel.Aligments.Count < referenceSequence.Length)
                 {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                    contigViewModel.Aligments.Add(new Aligment { Letra = " ", CorDeFundo = Brushes.LightGray });
                 }
 
                 viewModel.Contigs.Add(contigViewModel);
             }
 
-
-
-
-            // Criar uma lista para os dados do DataGrid
+            // Atualizar o DataGrid, se aplicável
             List<ContigData> contigDataList = new List<ContigData>();
-
-            foreach (var contigIndex in startPositions.Select((value, index) => new { value, index }))
+            foreach (var contig in contigsWithPositions)
             {
-                // Pegar o par de contig correspondente à posição
-                var contigPair = alignedContigSequences.ElementAt(contigIndex.index);
-
-                // Filtrar os gaps do contig
-                var contigWithoutGaps = new string(contigPair.Where(c => c != '-').ToArray());
-
-                // Adicionar o contig à lista de dados, incluindo a posição inicial
-                contigDataList.Add(new ContigData
-                {
-                    Id = contigIndex.value,
-                    Contig = contigWithoutGaps
-                });
+                var contigWithoutGaps = new string(contig.Sequence.Where(c => c != '-').ToArray());
+                contigDataList.Add(new ContigData { Id = contig.StartPosition, AlignedSmallSequence = contigWithoutGaps });
             }
 
-            DataGridContigsAssembly.ItemsSource = contigDataList;
+            DataGridAlignments.ItemsSource = contigDataList;
+        
+
 
             // Imprimir alinhamento para depuração 
             foreach (var contigViewModel in viewModel.Contigs)
             {
-                Console.WriteLine($"Contig: {contigViewModel.Id}");
+                Console.WriteLine($"Position ID: {contigViewModel.Id}");
                 foreach (var aligment in contigViewModel.Aligments)
                 {
                     Console.Write(aligment.Letra);
@@ -378,7 +370,7 @@ namespace SequenceAssemblerGUI
             DoEvents();
 
             var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
-            var contigItems = (List<ContigData>)DataGridContigsAssembly.ItemsSource;
+            var contigItems = (List<ContigData>)DataGridAlignments.ItemsSource;
 
             string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
 

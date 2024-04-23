@@ -9,9 +9,11 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class IDResult
     {
+        private string peptide;
+
         public bool IsPSM { get; set; } = true;
         public bool IsTag { get; set; } = false;
-
+        public string Source { get; set; } // "PSM" ou "DeNovo"
         public short File { get; set; }
         public int ScanNumber { get; set; }
         public double RT { get; set; }
@@ -20,17 +22,19 @@ namespace SequenceAssemblerLogic.ResultParser
         public double PepMass { get; set; }
         public double Err { get; set; }
         public double Score { get; set; }
-        public string Peptide { get; set; }
         public List<int> AaScore { get; set; }
-        
-        public string CleanPeptide
+
+        public string Peptide
         {
-            get
+            get => peptide;
+            set
             {
-                return Regex.Replace(Peptide, @"\([^)]*\)", "");
+                peptide = value;
+                CleanPeptide = Regex.Replace(value, @"\([^)]*\)", "");  // Clean the peptide when it's set
             }
         }
 
-
+        public string CleanPeptide { get; private set; }  // CleanPeptide is now read-only
     }
+
 }

@@ -27,7 +27,10 @@
             </DataGrid>
         </GroupBox>
 
-        <GroupBox Header="Contigs" Grid.Row="1">
+        <DataGrid x:Name="DataGridAlignments" Grid.Row="1" Height="200"/>
+
+
+        <!--<GroupBox Header="Contigs" Grid.Row="1">
             <DataGrid x:Name="DataGridContigsAssembly" Height="140" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Position" Binding="{Binding Id}" Width="*"/>
@@ -35,11 +38,11 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-        </GroupBox>
+        </GroupBox>-->
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
-        <GroupBox Header="Results" Grid.Row="4" Height="500">
+        <GroupBox Header="Alignments" Grid.Row="4" Height="350">
             <Grid>
                 <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="500">
@@ -56,7 +59,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Rótulo 'Template' -->
-                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Center"/>
 
                         <!-- Células de referência alinhadas -->
                         <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenciaAlinhamentoCelulas}" Margin="0,0,5,0">
@@ -120,8 +123,6 @@
                 <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap" Height="40"/>
             </ScrollViewer>
         </GroupBox>
-
-        <DataGrid x:Name="DataGridAlignments" Grid.Row="9" Height="300"/>
 
 
         <!--<sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>-->
