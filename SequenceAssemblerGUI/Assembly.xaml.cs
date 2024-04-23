@@ -20,6 +20,7 @@ using System.Windows.Data;
 using System.Globalization;
 using System.CodeDom.Compiler;
 using System.Windows.Threading;
+using SequenceAssemblerLogic.ResultParser;
 
 
 
@@ -235,7 +236,7 @@ namespace SequenceAssemblerGUI
         {
             // Suponha que você tem dois DataGrids: DataGridContigs e DataGridReferences
             // E ambos têm ItemsSource configurados para listas de objetos com propriedade Sequence
-            var contigs = DataGridAlignments.ItemsSource as List<Contig>;
+            var contigs = DataGridAlignments.ItemsSource as List<Alignment>;
             var references = DataGridFasta.ItemsSource as List<Fasta>; // Ajuste conforme sua implementação real
 
             foreach (var contig in contigs)
@@ -243,7 +244,7 @@ namespace SequenceAssemblerGUI
                 foreach (var reference in references)
                 {
                     // Perform the alignment
-                    var result = PerformAlignmentUsingAlignmentClass(contig.Sequence, reference.Sequence);
+                    var result = PerformAlignmentUsingAlignmentClass(contig.AlignedSmallSequence, reference.Sequence);
 
                     // Agora você pode fazer algo com o resultado
                     // Por exemplo, exibir em algum lugar ou armazenar para uso posterior
@@ -331,6 +332,12 @@ namespace SequenceAssemblerGUI
             }
 
             // Atualizar o DataGrid, se aplicável
+            List<IDResult> result = new List<IDResult>();
+            foreach (var seq in contigsWithPositions)
+            {
+                var contigWithoutGaps = new string(seq.Sequence.Where(d => d != '-').ToArray());
+                result.Add(new IDResult { Id = seq.StartPosition, Peptide = contigWithoutGaps});
+            }
             List<ContigData> contigDataList = new List<ContigData>();
             foreach (var contig in contigsWithPositions)
             {
@@ -338,7 +345,7 @@ namespace SequenceAssemblerGUI
                 contigDataList.Add(new ContigData { Id = contig.StartPosition, AlignedSmallSequence = contigWithoutGaps });
             }
 
-            DataGridAlignments.ItemsSource = contigDataList;
+            DataGridAlignments.ItemsSource = result;
         
 
 
@@ -370,7 +377,7 @@ namespace SequenceAssemblerGUI
             DoEvents();
 
             var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
-            var contigItems = (List<ContigData>)DataGridAlignments.ItemsSource;
+            var contigItems = (List<IDResult>)DataGridAlignments.ItemsSource;
 
             string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
 
@@ -384,7 +391,7 @@ namespace SequenceAssemblerGUI
 
             foreach (var contigItem in contigItems)
             {
-                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contigItem.Contig, referenceSequence);
+                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contigItem.Peptide, referenceSequence);
                 alignedContigSequences.Add(alignedContigSequence);
 
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);

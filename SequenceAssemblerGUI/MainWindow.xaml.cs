@@ -271,80 +271,82 @@ namespace SequenceAssemblerGUI
                 DataGridPSM.ItemsSource = dvPSM;
             }
 
-            void UpdateSequencesFromDictionaries()
-            {
-                // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
-                List<IDResult> sequencesNovorPSM =
-                (from s in psmDictTemp.Values
-                 from psmID in s
-                 select new IDResult
-                 {
-                     Peptide = psmID.CleanPeptide,
-                     Source = "PSM"
-                 }).Distinct().ToList();
 
-                // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-                List<IDResult> sequencesNovorDeNovo =
-                (from s in deNovoDictTemp.Values
-                 from denovoID in s
-                 select new IDResult
-                 {
-                     Peptide = denovoID.CleanPeptide,
-                     Source = "DeNovo"
-                 }).Distinct().ToList();
+            UpdateSequencesFromDictionaries();
+            //// Enabled the DataGridContig 
+            //DataGridContig.IsEnabled = true;
 
-                List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo)
-                              .Select(seq => seq.CleanPeptide).Distinct().ToList();
+            //// Make a loading label visible to inform the user that data is being loaded.
+            //loadingLabel.Visibility = Visibility.Visible;
 
-            }
-           
-            // Enabled the DataGridContig 
-            DataGridContig.IsEnabled = true;
-
-            // Make a loading label visible to inform the user that data is being loaded.
-            loadingLabel.Visibility = Visibility.Visible;
-
-            UpdateContig();
+            //UpdateContig();
         }
 
-        async void UpdateContig()
+        public void UpdateSequencesFromDictionaries()
         {
-            int minOverlap = (int)IntegerUpDownAAOverlap.Value;
-            try
-            {
-                myContigs = await Task.Run(() =>
-                {
-                    ContigAssembler ca = new ContigAssembler();
-                    List<IDResult> combinedResults = new List<IDResult>();
+            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
+            List<IDResult> sequencesNovorPSM =
+            (from s in psmDictTemp.Values
+             from psmID in s
+             select new IDResult
+             {
+                 Peptide = psmID.CleanPeptide,
+                 Source = "PSM"
+             }).Distinct().ToList();
 
-                    var resultsPSM = psmDictTemp.Values.SelectMany(v => v).ToList();
-                    var resultsDenovo = deNovoDictTemp.Values.SelectMany(v => v).ToList();
+            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
+            List<IDResult> sequencesNovorDeNovo =
+            (from s in deNovoDictTemp.Values
+             from denovoID in s
+             select new IDResult
+             {
+                 Peptide = denovoID.CleanPeptide,
+                 Source = "DeNovo"
+             }).Distinct().ToList();
 
-                    combinedResults.AddRange(resultsPSM.Select(r => { r.Source = "PSM"; return r; }));
-                    combinedResults.AddRange(resultsDenovo.Select(r => { r.Source = "DeNovo"; return r; }));
+            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo)
+                          .Select(seq => seq.CleanPeptide).Distinct().ToList();
 
-                    return ca.AssembleContigSequences(combinedResults, minOverlap);
-                });
-
-                DataGridContig.ItemsSource = myContigs.Select(contig => new
-                {
-                    Sequence = contig.Sequence,
-                    IDTotal = contig.IDs.Count,
-                    IDsDenovo = contig.IDs.Count(id => id.Source == "DeNovo"),
-                    IDsPSM = contig.IDs.Count(id => id.Source == "PSM")
-                }).ToList();
-
-                ButtonProcess.IsEnabled = true; // Assegurar que o botão é habilitado após a tarefa ser concluída
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed to assemble contigs: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                loadingLabel.Visibility = Visibility.Hidden;
-            }
         }
+
+        //async void UpdateContig()
+        //{
+        //    int minOverlap = (int)IntegerUpDownAAOverlap.Value;
+        //    try
+        //    {
+        //        myContigs = await Task.Run(() =>
+        //        {
+        //            ContigAssembler ca = new ContigAssembler();
+        //            List<IDResult> combinedResults = new List<IDResult>();
+
+        //            var resultsPSM = psmDictTemp.Values.SelectMany(v => v).ToList();
+        //            var resultsDenovo = deNovoDictTemp.Values.SelectMany(v => v).ToList();
+
+        //            combinedResults.AddRange(resultsPSM.Select(r => { r.Source = "PSM"; return r; }));
+        //            combinedResults.AddRange(resultsDenovo.Select(r => { r.Source = "DeNovo"; return r; }));
+
+        //            return ca.AssembleContigSequences(combinedResults, minOverlap);
+        //        });
+
+        //        DataGridContig.ItemsSource = myContigs.Select(contig => new
+        //        {
+        //            Sequence = contig.Sequence,
+        //            IDTotal = contig.IDs.Count,
+        //            IDsDenovo = contig.IDs.Count(id => id.Source == "DeNovo"),
+        //            IDsPSM = contig.IDs.Count(id => id.Source == "PSM")
+        //        }).ToList();
+
+        //        ButtonProcess.IsEnabled = true; // Assegurar que o botão é habilitado após a tarefa ser concluída
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Failed to assemble contigs: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //    finally
+        //    {
+        //        loadingLabel.Visibility = Visibility.Hidden;
+        //    }
+        //}
 
 
         //---------------------------------------------------------
@@ -396,90 +398,92 @@ namespace SequenceAssemblerGUI
             UpdateDataView();
         }
 
-        public void UpdateSequencesFromDictionaries()
-        {
-            List<string> sequencesNovorPSM =
-                (from s in psmDictTemp.Values
-                 from psmID in s
-                 select psmID.CleanPeptide).Distinct().ToList();
-
-            List<string> sequencesNovorDeNovo =
-                (from s in deNovoDictTemp.Values
-                 from denovoID in s
-                 select denovoID.CleanPeptide).Distinct().ToList();
-
-            filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).Distinct().ToList();
-        }
 
 
         //---------------------------------------------------------
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
-            VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
-            openFileDialog.Multiselect = false;
-            openFileDialog.Filter = "Fasta Files (*.fasta)|*.fasta";
+            UpdateSequencesFromDictionaries(); // Atualiza os dados dos dicionários
+
+            VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
+            {
+                Multiselect = false,
+                Filter = "Fasta Files (*.fasta)|*.fasta"
+            };
 
             if (openFileDialog.ShowDialog() == true)
             {
-
-
-                // Tenta carregar o arquivo FASTA selecionado
-                var loadedFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
-
-                // Verifica se o arquivo FASTA foi carregado corretamente
-                if (loadedFasta == null || !loadedFasta.Any())
+                try
                 {
-                    MessageBox.Show("Failed to load FASTA file. The file is empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return; // Sai do método para evitar mais processamento
+                    ProcessFastaFile(openFileDialog.FileName);
                 }
-
-                myFasta = loadedFasta;
-                DataGridFasta.ItemsSource = myFasta;
-                UpdateSequencesFromDictionaries();
-                // Verifica se existe alguma sequência contig para processar antes de proceder
-                if (myContigs != null && myContigs.Any())
+                catch (Exception ex)
                 {
-                    // Se houver contigs, proceda com o alinhamento e outras operações
-                    int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
-                    int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
-                    int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
+                    MessageBox.Show("Failed to load or process FASTA file: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
+
+            ButtonUpdateResult.IsEnabled = true;
+            TabItemResultBrowser.IsSelected = true;
+            NormalizedSimilarityUpDown.IsEnabled = true;
+            IdentityUpDown.IsEnabled = true;
+        }
+
+        private async void ProcessFastaFile(string filePath)
+        {
+            var loadedFasta = FastaFormat.LoadFasta(filePath);
+
+            if (loadedFasta == null || !loadedFasta.Any())
+            {
+                MessageBox.Show("Failed to load FASTA file. The file is empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            myFasta = loadedFasta; // Armazena a sequência carregada
+            await AlignSequencesToReference();
+        }
+
+        private async Task AlignSequencesToReference()
+        {
+            try
+            {
+                var alignmentResults = await Task.Run(() =>
+                {
                     SequenceAligner aligner = new SequenceAligner();
+                    var resultsPSM = psmDictTemp.Values.SelectMany(v => v).ToList();
+                    var resultsDenovo = deNovoDictTemp.Values.SelectMany(v => v).ToList();
 
-                    //Contigs
-                    myAlignment = myContigs.Select(a => aligner.AlignSequences(myFasta[0].Sequence, a.Sequence)).ToList();
+                    List<IDResult> combinedResults = resultsPSM.Concat(resultsDenovo).ToList();
+                    string referenceSequence = myFasta[0].Sequence; // Assume que sempre haverá pelo menos uma sequência na lista
 
-                    // PSM/deNovo
-                    alignments = filteredSequences.Select(seq => aligner.AlignSequences(myFasta[0].Sequence, seq)).ToList();
+                    // Utiliza CleanPeptide diretamente para o alinhamento
+                    return combinedResults.Select(r =>
+                    {
+                        return aligner.AlignSequences(r.CleanPeptide, referenceSequence);
+                    }).ToList();
+                });
 
-                    // Chama o método para atualizar a grade de alinhamento com os parâmetros necessários
-                    MyAssembly.AlignmentList = alignments;
-                    MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
-
-
-                    // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
-                    var filteredAlignments = alignments.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-                    ////// Prepara a lista de dados para o DataGrid dos contigs
-                    var dataTable = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence}).ToList();
-                    //MyAssembly.DataGridAlignments.ItemsSource = contigDataList;
-
-                    MyAssembly.DataGridAlignments.ItemsSource = dataTable;
-
-
-                    ButtonUpdateResult.IsEnabled = true;
-                    TabItemResultBrowser.IsSelected = true;
-                    NormalizedSimilarityUpDown.IsEnabled = true;
-                    IdentityUpDown.IsEnabled = true;
-                    TabItemResultBrowser.IsEnabled = true;
-                }
-                else
-                {
-                    MessageBox.Show("There are no sequences to line up. Please upload the correct sequences before attempting to process.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
+                MyAssembly.AlignmentList = alignmentResults; // Prepara os resultados para uso no UpdateAlignmentGrid
+                UpdateAlignmentGridUI();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to align sequences: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-       
+
+        private void UpdateAlignmentGridUI()
+        {
+            double minNormalizedIdentityScore = (double)IdentityUpDown.Value;
+            int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
+
+            // Atualiza o DataGrid com os resultados do alinhamento
+            MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
+        }
+
 
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
@@ -488,7 +492,7 @@ namespace SequenceAssemblerGUI
 
         private void ButtonUpdateResult_Click(object sender, RoutedEventArgs e)
         {
-            int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
+            double minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
             // Updates the alignment grid with the new filter parameters
@@ -496,16 +500,11 @@ namespace SequenceAssemblerGUI
 
             // Filters the alignment list based on identity and similarity criteria
             var filteredAlignments = alignments.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-            var dataTable = filteredAlignments.Select(a => new ContigData { Contig = a.AlignedSmallSequence }).ToList();
+            var dataTable = filteredAlignments.Select(a => new IDResult { Peptide = a.AlignedSmallSequence }).ToList();
             MyAssembly.DataGridAlignments.ItemsSource = dataTable;
 
-            // Refreshes the DataGrid with the reference sequences
-            var referenceData = myFasta;
-            MyAssembly.DataGridFasta.ItemsSource = referenceData;
+            MyAssembly.DataGridFasta.ItemsSource = myFasta;
         }
-
-
-
 
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
@@ -520,17 +519,17 @@ namespace SequenceAssemblerGUI
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
-            if (myContigs != null)
-            {
-                UpdateContig();
+            //if (myContigs != null)
+            //{
+            //    UpdateContig();
 
-            }
-            else
-            {
+            //}
+            //else
+            //{
 
-                Console.WriteLine("Contigs is null");
+            //    Console.WriteLine("Contigs is null");
 
-            }
+            //}
 
         }
         private void TabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -544,18 +543,7 @@ namespace SequenceAssemblerGUI
 
         }
 
-        private void MenuItemAssembly_Click(object sender, RoutedEventArgs e)
-        {
-
-            //MyAssembly.MyReferenceSequences.Text = "";
-
-            //// Concatenar e atualizar com novos valores
-            //var referenceString = string.Join("\n", myFasta.Select(fasta => $">{fasta.Sequence}"));
-            //MyAssembly.ReferenceSequence.Text = referenceString;
-
-            //var contigsSting = string.Join("\n", myAlignment.Select(contigs => $">{contigs.AlignedSmallSequence}"));
-            //MyAssembly.ContigsSequence.Text = contigsSting;
-        }
+      
     }
 }
 

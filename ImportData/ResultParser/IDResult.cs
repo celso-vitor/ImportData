@@ -10,10 +10,10 @@ namespace SequenceAssemblerLogic.ResultParser
     public class IDResult
     {
         private string peptide;
-
+        public int Id { get; set; } // Position Alignments
         public bool IsPSM { get; set; } = true;
         public bool IsTag { get; set; } = false;
-        public string Source { get; set; } // "PSM" ou "DeNovo"
+        public string Source { get; set; } // "PSM" / "DeNovo"
         public short File { get; set; }
         public int ScanNumber { get; set; }
         public double RT { get; set; }
