@@ -30,7 +30,14 @@ namespace SequenceAssemblerLogic.ResultParser
             set
             {
                 peptide = value;
-                CleanPeptide = Regex.Replace(value, @"\([^)]*\)", "");  // Clean the peptide when it's set
+                if (value != null)
+                {
+                    CleanPeptide = Regex.Replace(value, @"\([^)]*\)", "");  // Clean the peptide when it's set
+                }
+                else
+                {
+                    CleanPeptide = null;
+                }
             }
         }
 

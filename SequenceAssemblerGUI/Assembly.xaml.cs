@@ -28,26 +28,14 @@ namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
-        //public TextBox MyReferenceSequences
-        //{
-        //    get
-        //    {
-        //        return ReferenceSequence;
-        //    }
-
-        //    set
-        //    {
-        //        ReferenceSequence = value;
-        //    }
-        //}
+        
 
         private AssemblyParameters assemblyParameters;
       
-
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
-
         public List<Contig> Contigs { get; set; }
+        public List<IDResult> Results { get; set; }
 
         public Assembly()
         {
@@ -100,7 +88,7 @@ namespace SequenceAssemblerGUI
             }
 
             // Set the DataTable as the data source for your control 
-            DataGridAlignments.ItemsSource = null; // Clear previous items
+            //DataGridAlignments.ItemsSource = null; // Clear previous items
             DataGridAlignments.ItemsSource = dataTable.DefaultView;
 
             DataGridFasta.ItemsSource = MyFasta;
@@ -109,30 +97,10 @@ namespace SequenceAssemblerGUI
         }
 
 
-        //DataGrid Ornenar Contigs
-        //---------------------------------------------------------------------------------------------------------
-        public class ContigData
-        {
-            public int Id { get; set; }
-            public string Contig { get; set; }
-            public int Identity { get; set; }
-            public double NormalizedIdentityScore { get; set; }
-            public int SimilarityScore { get; set; }
-            public double NormalizedSimilarity { get; set; }
-            public int AlignedAA { get; set; }
-            public double NormalizedAlignedAA { get; set; }
-            public int GapsUsed { get; set; }
-            public List<int> StartPositions { get; set; }
-            public string AlignedLargeSequence { get; set; }
-            public string AlignedSmallSequence { get; set; }
-        }
-
-
-
-
+      
         //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
-        public class Aligment : INotifyPropertyChanged
+        public class VisualAlignment : INotifyPropertyChanged
         {
             private string _letra;
             private Brush _corDeFundo;
@@ -158,10 +126,10 @@ namespace SequenceAssemblerGUI
 
         //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
-        public class ContigViewModel : INotifyPropertyChanged
+        public class SequencesViewModel : INotifyPropertyChanged
         {
             public string Id { get; set; }
-            public ObservableCollection<Aligment> Aligments { get; set; } = new ObservableCollection<Aligment>();
+            public ObservableCollection<VisualAlignment> VisualAligment { get; set; } = new ObservableCollection<VisualAlignment>();
 
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -176,8 +144,8 @@ namespace SequenceAssemblerGUI
         {
             private bool _isReferenceSequenceAligned;
 
-            public ObservableCollection<Aligment> ReferenciaAlinhamentoCelulas { get; set; } = new ObservableCollection<Aligment>();
-            public ObservableCollection<ContigViewModel> Contigs { get; set; } = new ObservableCollection<ContigViewModel>();
+            public ObservableCollection<VisualAlignment> ReferenciaAlinhamentoCelulas { get; set; } = new ObservableCollection<VisualAlignment>();
+            public ObservableCollection<SequencesViewModel> Seq { get; set; } = new ObservableCollection<SequencesViewModel>();
 
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -229,6 +197,7 @@ namespace SequenceAssemblerGUI
 
         }
 
+
         //Alinhamento
         //---------------------------------------------------------------------------------------------------------
 
@@ -273,14 +242,14 @@ namespace SequenceAssemblerGUI
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
             foreach (char letra in referenceSequence)
             {
-                viewModel.ReferenciaAlinhamentoCelulas.Add(new Aligment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
+                viewModel.ReferenciaAlinhamentoCelulas.Add(new VisualAlignment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
             }
 
-            viewModel.Contigs.Clear();
+            viewModel.Seq.Clear();
 
             // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
             var contigsWithPositions = startPositions
-                .Select((start, index) => new { ID = $"Positions {start}", Sequence = alignedContigSequences[index], StartPosition = start - 1 })
+                .Select((start, index) => new { ID = $"Position {start}", Sequence = alignedContigSequences[index], StartPosition = start - 1 })
                 .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
                 .ToList();
 
@@ -290,12 +259,12 @@ namespace SequenceAssemblerGUI
             foreach (var contig in contigsWithPositions)
             {
                 string contigId = contig.ID.PadRight(maxLabelWidth);
-                var contigViewModel = new ContigViewModel { Id = contigId };
+                var contigViewModel = new SequencesViewModel { Id = contigId };
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
                 for (int pos = 0; pos < contig.StartPosition; pos++)
                 {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = " ", CorDeFundo = Brushes.LightGray });
+                    contigViewModel.VisualAligment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
                 }
 
                 // Adiciona as letras do contig com a cor correspondente
@@ -319,46 +288,41 @@ namespace SequenceAssemblerGUI
                             corDeFundo = Brushes.LightGray; // Fora dos limites da referência
                         }
                     }
-                    contigViewModel.Aligments.Add(new Aligment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
+                    contigViewModel.VisualAligment.Add(new VisualAlignment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 // Completar o resto da sequência com hífens se necessário
-                while (contigViewModel.Aligments.Count < referenceSequence.Length)
+                while (contigViewModel.VisualAligment.Count < referenceSequence.Length)
                 {
-                    contigViewModel.Aligments.Add(new Aligment { Letra = " ", CorDeFundo = Brushes.LightGray });
+                    contigViewModel.VisualAligment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
                 }
 
-                viewModel.Contigs.Add(contigViewModel);
+                viewModel.Seq.Add(contigViewModel);
             }
 
             // Atualizar o DataGrid, se aplicável
-            List<IDResult> result = new List<IDResult>();
-            foreach (var seq in contigsWithPositions)
-            {
-                var contigWithoutGaps = new string(seq.Sequence.Where(d => d != '-').ToArray());
-                result.Add(new IDResult { Id = seq.StartPosition, Peptide = contigWithoutGaps});
-            }
-            List<ContigData> contigDataList = new List<ContigData>();
+            List<Alignment> contigDataList = new List<Alignment>();
             foreach (var contig in contigsWithPositions)
             {
                 var contigWithoutGaps = new string(contig.Sequence.Where(c => c != '-').ToArray());
-                contigDataList.Add(new ContigData { Id = contig.StartPosition, AlignedSmallSequence = contigWithoutGaps });
+                contigDataList.Add(new Alignment { Id = contig.StartPosition, AlignedSmallSequence = contigWithoutGaps });
             }
 
-            DataGridAlignments.ItemsSource = result;
-        
+            DataGridAlignments.ItemsSource = contigDataList;
+
 
 
             // Imprimir alinhamento para depuração 
-            foreach (var contigViewModel in viewModel.Contigs)
+            foreach (var contigViewModel in viewModel.Seq)
             {
                 Console.WriteLine($"Position ID: {contigViewModel.Id}");
-                foreach (var aligment in contigViewModel.Aligments)
+                foreach (var aligment in contigViewModel.VisualAligment)
                 {
                     Console.Write(aligment.Letra);
                 }
                 Console.WriteLine();
             }
+
         }
 
 
@@ -372,18 +336,32 @@ namespace SequenceAssemblerGUI
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
+            if (DataGridFasta.ItemsSource == null || DataGridAlignments.ItemsSource == null)
+            {
+                // Verifica se as fontes de itens estão definidas
+                MessageBox.Show("Please load data into the DataGrids before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             // Mostrar a label "Loading..."
             loadingLabel.Visibility = Visibility.Visible;
             DoEvents();
 
-            var referenceItems = (List<Fasta>)DataGridFasta.ItemsSource;
-            var contigItems = (List<IDResult>)DataGridAlignments.ItemsSource;
+            var referenceItems = DataGridFasta.ItemsSource as List<Fasta>;
+            var contigItems = DataGridAlignments.ItemsSource as List<Alignment>;
+
+            if (referenceItems == null || contigItems == null || !referenceItems.Any() || !contigItems.Any())
+            {
+                // Verifica se as listas de itens estão vazias ou nulas
+                MessageBox.Show("No data found in the DataGrids. Please load data before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
 
             var viewModel = (SequenceViewModel)DataContext;
 
-            viewModel.Contigs.Clear();
+            viewModel.Seq.Clear();
             viewModel.ReferenciaAlinhamentoCelulas.Clear();
 
             List<string> alignedContigSequences = new List<string>();
@@ -391,7 +369,7 @@ namespace SequenceAssemblerGUI
 
             foreach (var contigItem in contigItems)
             {
-                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contigItem.Peptide, referenceSequence);
+                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(contigItem.AlignedSmallSequence, referenceSequence);
                 alignedContigSequences.Add(alignedContigSequence);
 
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);
@@ -410,10 +388,7 @@ namespace SequenceAssemblerGUI
         }
 
 
-        //Montagem de Grid
-        //---------------------------------------------------------------------------------------------------------
 
-        //MyAssemblyViewer.Display(alignedContigs, referenceSequence)
     }
 
 

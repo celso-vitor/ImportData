@@ -79,7 +79,7 @@
                     </Grid>
 
                     <!-- Seção para Exibir Contigs -->
-                    <ItemsControl ItemsSource="{Binding Contigs}" Margin="0,5,0,0">
+                        <ItemsControl ItemsSource="{Binding Seq}" Margin="0,5,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
