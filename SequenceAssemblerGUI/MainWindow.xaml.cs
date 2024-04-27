@@ -276,91 +276,67 @@ namespace SequenceAssemblerGUI
             }
 
 
-            UpdateSequencesFromDictionaries();
-            //// Enabled the DataGridContig 
+
+
+            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
+            List<string> sequencesNovorPSM =
+                (from s in psmDictTemp.Values
+                 from psmID in s
+                 select psmID.CleanPeptide).Distinct().ToList();
+
+            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
+            List<string> sequencesNovorDeNovo =
+                (from s in deNovoDictTemp.Values
+                 from denovoID in s
+                 select denovoID.CleanPeptide).Distinct().ToList();
+
+            // Concatenate the PSM and deNovo sequence lists into a single list named filteredSequences.
+            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).ToList();
+
+
+            //// Disable the DataGridContig to prevent user interaction while data is being loaded.
             //DataGridContig.IsEnabled = true;
 
             //// Make a loading label visible to inform the user that data is being loaded.
             //loadingLabel.Visibility = Visibility.Visible;
 
-            //UpdateContig();
-            //UpdateSequences();
+            //UptadeContig();
         }
 
-        public void UpdateSequencesFromDictionaries()
-        {
-            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
-            List<IDResult> sequencesNovorPSM =
-            (from s in psmDictTemp.Values
-             from psmID in s
-             select new IDResult
-             {
-                 Peptide = psmID.CleanPeptide,
-                 Source = "PSM"
-             }).Distinct().ToList();
+        //async void UptadeContig()
+        //{
 
-            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-            List<IDResult> sequencesNovorDeNovo =
-            (from s in deNovoDictTemp.Values
-             from denovoID in s
-             select new IDResult
-             {
-                 Peptide = denovoID.CleanPeptide,
-                 Source = "DeNovo"
-             }).Distinct().ToList();
+        //    // How many amino acids should overlap for contigs (partially overlapping sequences).
+        //    int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
 
-            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo)
-                          .Select(seq => seq.CleanPeptide).Distinct().ToList();
+        //    // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
+        //    myContigs = await Task.Run
+        //    (
+        //        () =>
+        //        {
+        //            ContigAssembler ca = new ContigAssembler();
+        //            List<IDResult> results = new List<IDResult>();
 
-        }
+        //            var resultsPSM = (from kvp in psmDictTemp
+        //                              from r in kvp.Value
+        //                              select r).ToList();
 
-        async void UpdateSequences()
-        {
-            int minOverlap = (int)IntegerUpDownAAOverlap.Value;
-            try
-            {
-                List<IDResult> combinedResults = new List<IDResult>();
+        //            var resultsDenovo = (from kvp in deNovoDictTemp
+        //                                 from r in kvp.Value
+        //                                 select r).ToList();
 
-                // Adicionar sequências filtradas à lista combinada com sua origem identificada
-                combinedResults.AddRange(filteredSequences.Select(seq => new IDResult { Peptide = seq, Source = "Filtered" }));
 
-                // Aqui você pode adicionar suas sequências de PSM e de Novo se necessário
-                // Por exemplo:
-                combinedResults.AddRange(sequencesNovorPSM.Select(seq => new IDResult { Peptide = seq.CleanPeptide, Source = "PSM" }));
-                combinedResults.AddRange(sequencesNovorDeNovo.Select(seq => new IDResult { Peptide = seq.CleanPeptide, Source = "DeNovo" }));
+        //            return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
+        //        });
 
-                // Se necessário, você pode adicionar mais processamento antes de montar os contigs
-                // Por exemplo, alinhar sequências com uma sequência fasta.
+            //ButtonProcess.IsEnabled = true;
 
-                // Montar os contigs
-                //myContigs = await Task.Run(() =>
-                //{
-                //    ContigAssembler ca = new ContigAssembler();
-                //    return ca.AssembleContigSequences(combinedResults, minOverlap);
-                //});
+            //// Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
+            //DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
-                //// Atualizar a exibição dos contigs na interface do usuário
-                //DataGridContig.ItemsSource = myContigs.Select(contig => new
-                //{
-                //    Sequence = contig.Sequence,
-                //    IDTotal = contig.IDs.Count,
-                //    IDsFiltered = contig.IDs.Count(id => id.Source == "Filtered"),
-                //    // Se quiser contar IDs de PSM e de Novo, descomente as linhas abaixo:
-                //    IDsPSM = contig.IDs.Count(id => id.Source == "PSM"),
-                //    IDsDeNovo = contig.IDs.Count(id => id.Source == "DeNovo")
-                //}).ToList();
-
-                //ButtonProcess.IsEnabled = true; // Assegurar que o botão é habilitado após a tarefa ser concluída
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Failed to process sequences: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            //finally
-            //{
-            //    loadingLabel.Visibility = Visibility.Hidden;
-            //}
-        }
+            //// Hide the loading label as the data has now been loaded.
+            //loadingLabel.Visibility = Visibility.Hidden;
+        //}
 
 
         //---------------------------------------------------------

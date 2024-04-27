@@ -144,7 +144,7 @@ namespace SequenceAssemblerGUI
         {
             private bool _isReferenceSequenceAligned;
 
-            public ObservableCollection<VisualAlignment> ReferencieAlignments { get; set; } = new ObservableCollection<VisualAlignment>();
+            public ObservableCollection<VisualAlignment> ReferenceAlignments { get; set; } = new ObservableCollection<VisualAlignment>();
             public ObservableCollection<SequencesViewModel> Seq { get; set; } = new ObservableCollection<SequencesViewModel>();
 
             public event PropertyChangedEventHandler PropertyChanged;
@@ -200,30 +200,6 @@ namespace SequenceAssemblerGUI
 
         //Alinhamento
         //---------------------------------------------------------------------------------------------------------
-
-        private void AlignSequencesFromDataGrids()
-        {
-            // Suponha que você tem dois DataGrids: DataGridContigs e DataGridReferences
-            // E ambos têm ItemsSource configurados para listas de objetos com propriedade Sequence
-            var sequences = DataGridAlignments.ItemsSource as List<Alignment>;
-            var references = DataGridFasta.ItemsSource as List<Fasta>; // Ajuste conforme sua implementação real
-
-            foreach (var seq in sequences)
-            {
-                foreach (var reference in references)
-                {
-                    // Perform the alignment
-                    var result = PerformAlignmentUsingAlignmentClass(seq.AlignedSmallSequence, reference.Sequence);
-
-                    // Agora você pode fazer algo com o resultado
-                    // Por exemplo, exibir em algum lugar ou armazenar para uso posterior
-                    Console.WriteLine($"Aligned Contig Sequence: {result.alignedSequence}");
-                    Console.WriteLine($"Aligned Reference Sequence: {result.alignedReferenceSequence}");
-                }
-            }
-        }
-
-        // Sua função de alinhamento existente
         (string alignedSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string sequence, string referenceSequence)
         {
             SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
@@ -239,10 +215,10 @@ namespace SequenceAssemblerGUI
 
         private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedSequences, List<int> startPositions, string referenceSequence)
         {
-            viewModel.ReferencieAlignments.Clear();
+            viewModel.ReferenceAlignments.Clear();
             foreach (char letra in referenceSequence)
             {
-                viewModel.ReferencieAlignments.Add(new VisualAlignment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
+                viewModel.ReferenceAlignments.Add(new VisualAlignment { Letra = letra.ToString(), CorDeFundo = Brushes.White });
             }
 
             viewModel.Seq.Clear();
@@ -352,23 +328,23 @@ namespace SequenceAssemblerGUI
             var viewModel = (SequenceViewModel)DataContext;
 
             viewModel.Seq.Clear();
-            viewModel.ReferencieAlignments.Clear();
+            viewModel.ReferenceAlignments.Clear();
 
-            List<string> alignedContigSequences = new List<string>();
+            List<string> alignedSequences = new List<string>();
             List<int> startPositions = new List<int>();
 
             foreach (var sequenceItem in sequencesItems)
             {
-                (string alignedContigSequence, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence);
-                alignedContigSequences.Add(alignedContigSequence);
+                (string alignmentSequences, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence);
+                alignedSequences.Add(alignmentSequences);
 
-                int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignedContigSequence, referenceSequence);
+                int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignmentSequences, referenceSequence);
                 startPositions.Add(startPosition);
             }
 
-            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedContigSequences, startPositions);
+            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedSequences, startPositions);
 
-            UpdateUIWithAlignmentAndAssembly(viewModel, alignedContigSequences, startPositions, referenceSequence);
+            UpdateUIWithAlignmentAndAssembly(viewModel, alignedSequences, startPositions, referenceSequence);
 
             viewModel.IsReferenceSequenceAligned = true;
             viewModel.IsAssemblyVisible = true;

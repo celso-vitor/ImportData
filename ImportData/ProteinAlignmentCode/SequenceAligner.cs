@@ -299,6 +299,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
                 AlignedAA = alignedAA,
                 NormalizedAlignedAA = Math.Round(((double)alignedAA / (double)alignedSmall.Length) * 100)
+                
                                
             };
 

@@ -32,7 +32,7 @@
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
-        <GroupBox Header="Alignments" Grid.Row="4" Height="350">
+        <GroupBox Header="Alignments" Grid.Row="4" Height="250">
             <Grid>
                 <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="500">
@@ -52,7 +52,7 @@
                         <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Center"/>
 
                         <!-- Células de referência alinhadas -->
-                        <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferencieAlignments}" Margin="0,0,5,0">
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenceAlignments}" Margin="0,0,5,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
@@ -68,19 +68,19 @@
                         </ItemsControl>
                     </Grid>
 
-                    <!-- Seção para Exibir Contigs -->
+                    <!-- Seção para Exibir Sequences -->
                         <ItemsControl ItemsSource="{Binding Seq}" Margin="0,5,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <!-- Coluna para o ID do contig com SharedSizeGroup -->
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
+                                        <!-- Coluna para o ID da sequence com SharedSizeGroup -->
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="SequenceLabelColumn"/>
                                         <!-- Coluna para os alinhamentos -->
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- ID do contig -->
+                                    <!-- ID da seqeunce-->
                                     <TextBlock Grid.Column="0" Text="{Binding Id}" MinWidth="60" Margin="0,0,5,0" TextAlignment="Right"/>
 
                                     <!-- Alinhamentos -->
@@ -113,9 +113,6 @@
                 <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap" Height="40"/>
             </ScrollViewer>
         </GroupBox>
-
-
-        <!--<sequenceassemblergui:AssemblyViewer x:Name="MyAssemblyViewer" Grid.Row="5"/>-->
 
     </Grid>
 </UserControl>

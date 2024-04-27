@@ -11,8 +11,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
     public class Alignment
     {
-
-        public int Id { get; set; } // Position Alignments
         public int Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }
         public int SimilarityScore { get; set; }
