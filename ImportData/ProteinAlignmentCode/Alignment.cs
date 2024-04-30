@@ -11,6 +11,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
     public class Alignment
     {
+       
         public string SourceOrigin { get; set; } // Propriedade para armazenar a origem da sequência (0 para PSM, 1 para DENOVO)
         public int Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }

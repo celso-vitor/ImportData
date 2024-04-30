@@ -180,12 +180,22 @@ namespace SequenceAssemblerGUI
 
         //Alinhamento
         //---------------------------------------------------------------------------------------------------------
-        (string alignedSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string sequence, string referenceSequence, string sourceOrigin)
+        public (string, string) PerformAlignmentUsingAlignmentClass(string alignedSmallSequence, string referenceSequence, List<(string sequence, string sourceOrigin, string peptide, string folder)> sequenceOrigins)
         {
-            SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
-            Alignment alignmentResult = aligner.AlignSequences(referenceSequence, sequence, sourceOrigin); // Chame o método AlignSequences nessa instância
+            SequenceAligner aligner = new SequenceAligner();
+            List<(string AlignedSmallSequence, string AlignedLargeSequence)> results = new List<(string, string)>();
 
-            return (alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence);
+            // Processa cada origem de sequência individualmente
+            foreach (var origin in sequenceOrigins)
+            {
+                // Usando o campo sourceOrigin para alinhamento
+                Alignment alignmentResult = aligner.AlignSequences(referenceSequence, alignedSmallSequence, origin.sourceOrigin);
+                results.Add((alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence));
+            }
+
+            // Se você quer retornar apenas um resultado, precisa decidir qual retornar
+            // Aqui, estou assumindo que você quer o primeiro, mas você pode ajustar conforme necessário
+            return results.FirstOrDefault();
         }
 
 
@@ -193,7 +203,7 @@ namespace SequenceAssemblerGUI
         //Update interface
         //---------------------------------------------------------------------------------------------------------
 
-        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedSequences, List<int> startPositions, string referenceSequence, List<(string sequence, string sourceOrigin)> sequenceOrigins)
+        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedSequences, List<int> startPositions, string referenceSequence, List<(string sequence, string sourceOrigin, string peptides, string folder)> sequenceOrigins)
         {
             viewModel.ReferenceAlignments.Clear();
             foreach (char letra in referenceSequence)
@@ -205,7 +215,7 @@ namespace SequenceAssemblerGUI
 
             // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
             var contigsWithPositions = startPositions
-                .Select((start, index) => new { ID = $"Position {start}", Sequence = alignedSequences[index], StartPosition = start - 1 })
+                .Select((start, index) => new { ID = $"{start}", Sequence = alignedSequences[index], StartPosition = start - 1 })
                 .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
                 .ToList();
 
@@ -217,13 +227,15 @@ namespace SequenceAssemblerGUI
                 var sequences = contigsWithPositions[i];
                 string sequencesId = sequences.ID.PadRight(maxLabelWidth);
 
-                // Encontre o sourceOrigin associado à sequência atual
-                string sourceOrigin = sequenceOrigins[i].sourceOrigin;
+                // Encontre a origem associada à sequência atual
+                var sequenceOrigin = sequenceOrigins[i];
+                string sourceOrigin = sequenceOrigin.sourceOrigin;
+                
 
                 var sequencesViewModel = new SequencesViewModel
                 {
                     Id = sequencesId,
-                    ToolTipContent = $"Position ID: {sequences.ID}, Source Origin: {sourceOrigin}" // Adicionando a origem da sequência ao tooltip
+                    ToolTipContent = $"Position: {sequences.ID}, Source: {sourceOrigin}" // Adicionando a origem da sequência, Peptide e Folder ao tooltip
                 };
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
@@ -321,27 +333,36 @@ namespace SequenceAssemblerGUI
 
             List<string> alignedSequences = new List<string>();
             List<int> startPositions = new List<int>();
-            List<(string sequence, string sourceOrigin)> sequenceOrigins = new List<(string sequence, string sourceOrigin)>();
-
+            List<(string sequence, string sourceOrigin, string peptide, string folder)> sequenceOrigins = new List<(string sequence, string sourceOrigin, string peptide, string folder)>();
+            Console.WriteLine(sequenceOrigins);
             foreach (var sequenceItem in sequencesItems)
             {
-                string sourceOrigin = sequenceItem.SourceOrigin;
-                sequenceOrigins.Add((sequenceItem.AlignedSmallSequence, sourceOrigin)); // Adiciona a sequência e seu sourceOrigin associado à lista
-                (string alignmentSequences, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence, sourceOrigin);
+
+                // Exemplo de como você poderia dividir a string SourceOrigin
+                string[] parts = sequenceItem.SourceOrigin.Split(','); // Ajuste o delimitador conforme necessário
+                string peptide = parts.Length > 0 ? parts[0] : "";
+                string folder = parts.Length > 1 ? parts[1] : "";
+
+                sequenceOrigins.Add((sequenceItem.AlignedSmallSequence, sequenceItem.SourceOrigin, peptide, folder));
+
+
+                // Prossiga com os cálculos e ajustes de alinhamento
+                (string alignmentSequences, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence, sequenceOrigins);
                 alignedSequences.Add(alignmentSequences);
 
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignmentSequences, referenceSequence);
                 startPositions.Add(startPosition);
             }
-
+            Console.WriteLine();
             // Ordene a lista de sequências e sourceOrigins com base na posição inicial das sequências em relação à referência
             sequenceOrigins = sequenceOrigins.OrderBy(seq => startPositions[alignedSequences.IndexOf(seq.sequence)]).ToList();
 
-            UpdateUIWithAlignmentAndAssembly(viewModel, alignedSequences, startPositions, referenceSequence, sequenceOrigins);      
+            UpdateUIWithAlignmentAndAssembly(viewModel, alignedSequences, startPositions, referenceSequence, sequenceOrigins);
 
             // Agora que os dados foram carregados, ocultar a label "Loading..."
             loadingLabel.Visibility = Visibility.Hidden;
         }
+
     }
 
 

@@ -419,7 +419,6 @@ namespace SequenceAssemblerGUI
 
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
-
             // Atualiza a lista de sequências filtradas
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                     .Union(psmDictTemp.Values.SelectMany(v => v))
@@ -427,32 +426,13 @@ namespace SequenceAssemblerGUI
                                     .Distinct()
                                     .ToList();
 
-            // Obtém as origens das sequências filtradas
-            List<string> sourceOrigins = new List<string>();
-            foreach (var seq in filteredSequences)
-            {
-                if (deNovoDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
-                {
-                    sourceOrigins.Add("DeNovo");
-                }
-                else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
-                {
-                    sourceOrigins.Add("PSM");
-                }
-                else
-                {
-                    // Define uma origem padrão, caso não seja encontrada em deNovoDictTemp nem em psmDictTemp
-                    sourceOrigins.Add("Unknown");
-                }
-            }
             // Atualiza a variável myAlignment para refletir os alinhamentos atualizados
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
+       
 
             // Update the GUI
             UpdatePlot();
             UpdateDataView();
-            Console.WriteLine(filteredSequences);
-            Console.WriteLine(sourceOrigins);
         }
 
         
@@ -480,6 +460,8 @@ namespace SequenceAssemblerGUI
                 myFasta = loadedFasta;
 
 
+                // Declare myAlignment antes deste bloco de código se ainda não tiver sido declarado
+
                 // Verifica se existem sequências de PSM e de Novo para processar antes de prosseguir
                 if (filteredSequences != null && filteredSequences.Any())
                 {
@@ -489,11 +471,19 @@ namespace SequenceAssemblerGUI
                     {
                         if (deNovoDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
                         {
-                            sourceOrigins.Add("DeNovo");
+                            var peptideorigin = deNovoDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
+                            var folder = deNovoDictTemp.Keys.First(key => deNovoDictTemp[key].Any(item => item.CleanPeptide == seq));
+
+                            // Adiciona Peptide e Folder ao sourceOrigins
+                            sourceOrigins.Add($"DeNovo - Peptide: {peptideorigin} - Folder: {folder}");
                         }
                         else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
                         {
-                            sourceOrigins.Add("PSM");
+                            var peptideorigin = psmDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
+                            var folder = psmDictTemp.Keys.First(key => psmDictTemp[key].Any(item => item.CleanPeptide == seq));
+
+                            // Adiciona Peptide e Folder ao sourceOrigins
+                            sourceOrigins.Add($"PSM - Peptide: {peptideorigin} - Folder: {folder}");
                         }
                         else
                         {
@@ -539,15 +529,11 @@ namespace SequenceAssemblerGUI
             int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
 
-            //// Atualiza a grade de alinhamentos com os novos parâmetros de filtro
-            MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
-
-            // Filtra a lista de alinhamentos com base nos critérios de identidade e similaridade
+            // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
             var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-            
-            MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
 
-            MyAssembly.DataGridFasta.ItemsSource = myFasta;
+            // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
+            MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
         }
 
         
