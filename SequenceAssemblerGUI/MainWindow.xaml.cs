@@ -23,6 +23,7 @@ namespace SequenceAssemblerGUI
 {
     public partial class MainWindow : Window
     {
+
         Parser newParser;
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
@@ -30,12 +31,6 @@ namespace SequenceAssemblerGUI
         List<Contig> myContigs;
         List<Fasta> myFasta;
         List<Alignment> myAlignment;
-        List<Alignment> alignments = new List<Alignment>();
-        List<IDResult> sequencesNovorDeNovo;
-        List<IDResult> sequencesNovorPSM;
-
-
-
 
         DataTable dtDenovo = new DataTable
         {
@@ -47,7 +42,7 @@ namespace SequenceAssemblerGUI
                 new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
                 new DataColumn("AAScores"),
-                new DataColumn("ScanNumber", typeof(int))
+                new DataColumn("ScanNumber", typeof(int)),
             }
         };
 
@@ -59,7 +54,7 @@ namespace SequenceAssemblerGUI
                 new DataColumn("File"),
                 new DataColumn("Sequence"),
                 new DataColumn("Score", typeof(double)),
-                new DataColumn("ScanNumber", typeof(int))
+                new DataColumn("ScanNumber", typeof(int)),
             }
         };
         private List<string> filteredSequences;
@@ -83,6 +78,9 @@ namespace SequenceAssemblerGUI
 
                 // Create a list to store the sequences for ContigAssembler
                 List<string> sequencesForAssembly = new();
+                //Dictionary<string, List<string>> sequenceOriginMap = new Dictionary<string, List<string>>();
+                Dictionary<string, List<string>> sequenceOriginMap = new Dictionary<string, List<string>>();
+                
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
@@ -120,8 +118,14 @@ namespace SequenceAssemblerGUI
 
                         dtDenovo.Rows.Add(row);
 
+                        // Adiciona a sequência e o local de origem ao dicionário
+                        string sequenceKey = $"{denovo.Peptide}|DeNovo"; // Key format: "Sequence|Type"
+                        if (!sequenceOriginMap.ContainsKey(sequenceKey))
+                        {
+                            sequenceOriginMap[sequenceKey] = new List<string>();
+                        }
+                        sequenceOriginMap[sequenceKey].Add(folderName);
                     }
-
                     foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
@@ -134,18 +138,26 @@ namespace SequenceAssemblerGUI
                         dtPSM.Rows.Add(row);
 
                         sequencesForAssembly.Add(psm.Peptide);
-                    }
+
+                        // Adiciona a sequência e o local de origem ao dicionário
+                        string sequenceKey = $"{psm.Peptide}|PSM"; // Key format: "Sequence|Type"
+                        if (!sequenceOriginMap.ContainsKey(sequenceKey))
+                        {
+                            sequenceOriginMap[sequenceKey] = new List<string>();
+                        }
+                        sequenceOriginMap[sequenceKey].Add(folderName);
+                    }   
 
                 }
 
-
-
                 DataView dvDenovo = new DataView(dtDenovo);
                 DataGridDeNovo.ItemsSource = dvDenovo;
+               
+
 
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
-
+             
 
 
                 int totalPsmRegistries = newParser.DictPsm.Values.Sum(list => list.Count);
@@ -156,11 +168,19 @@ namespace SequenceAssemblerGUI
 
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
+                
+                
+                MyAssembly.SequenceOrigin = sequenceOriginMap;
 
+                Console.WriteLine(sequenceOriginMap);
+          
                 UpdateGeneral();
+
             }
 
+          
         }
+
 
         private void UpdatePlot()
         {
@@ -212,7 +232,8 @@ namespace SequenceAssemblerGUI
             PlotViewEnzymeEfficiency.Model = plotModel1;
 
         }
-        private async void UpdateDataView()
+
+        public async void UpdateDataView()
         {
 
             dtDenovo.Clear();
@@ -243,6 +264,7 @@ namespace SequenceAssemblerGUI
                         row["Score"] = denovo.Score;
                         row["AAScores"] = string.Join("-", denovo.AaScore);
 
+
                         dtDenovo.Rows.Add(row);
                     }
                 }
@@ -267,6 +289,7 @@ namespace SequenceAssemblerGUI
                         row["Sequence"] = psm.Peptide;
                         row["Score"] = psm.Score;
 
+
                         dtPSM.Rows.Add(row);
                     }
                 }
@@ -277,21 +300,38 @@ namespace SequenceAssemblerGUI
 
 
 
+            //// From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, store them in a dictionary with their source.
+            //Dictionary<string, string> sequencesNovorPSM =
+            //    (from s in psmDictTemp.Values
+            //     from psmID in s
+            //     select new { psmID.CleanPeptide, Source = "PSM" })
+            //    .Distinct()
+            //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
 
-            // From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, remove duplicates, and store them in a list named sequencesPSM.
-            List<string> sequencesNovorPSM =
-                (from s in psmDictTemp.Values
-                 from psmID in s
-                 select psmID.CleanPeptide).Distinct().ToList();
+            //// From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, store them in a dictionary with their source.
+            //Dictionary<string, string> sequencesNovorDeNovo =
+            //    (from s in deNovoDictTemp.Values
+            //     from denovoID in s
+            //     select new { denovoID.CleanPeptide, Source = "DeNovo" })
+            //    .Distinct()
+            //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
 
-            // From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, remove duplicates, and store them in a list named sequencesDeNovo.
-            List<string> sequencesNovorDeNovo =
-                (from s in deNovoDictTemp.Values
-                 from denovoID in s
-                 select denovoID.CleanPeptide).Distinct().ToList();
+            //// Optionally, merge the dictionaries while preserving sources.
+            //var allSequencesWithSources = new Dictionary<string, string>(sequencesNovorPSM);
+            //foreach (var item in sequencesNovorDeNovo)
+            //{
+            //    if (!allSequencesWithSources.ContainsKey(item.Key))
+            //    {
+            //        allSequencesWithSources[item.Key] = item.Value;
+            //    }
+            //}
 
-            // Concatenate the PSM and deNovo sequence lists into a single list named filteredSequences.
-            List<string> filteredSequences = sequencesNovorPSM.Concat(sequencesNovorDeNovo).ToList();
+            //// Convert to list if needed for further processing
+            //List<string> filteredSequences = allSequencesWithSources.Keys.ToList();
+
+            //// Assign the dictionary to MyAssembly.cleanValues
+            //MyAssembly.denovoValue.Add("DeNovo", sequencesNovorDeNovo.Keys.ToList());
+            //MyAssembly.psmValue.Add("PSM", sequencesNovorPSM.Keys.ToList());
 
 
             //// Disable the DataGridContig to prevent user interaction while data is being loaded.
@@ -329,13 +369,13 @@ namespace SequenceAssemblerGUI
         //            return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
         //        });
 
-            //ButtonProcess.IsEnabled = true;
+        //ButtonProcess.IsEnabled = true;
 
-            //// Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-            //DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
+        //// Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
+        //DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
 
-            //// Hide the loading label as the data has now been loaded.
-            //loadingLabel.Visibility = Visibility.Hidden;
+        //// Hide the loading label as the data has now been loaded.
+        //loadingLabel.Visibility = Visibility.Hidden;
         //}
 
 
@@ -387,16 +427,35 @@ namespace SequenceAssemblerGUI
                                     .Distinct()
                                     .ToList();
 
+            // Obtém as origens das sequências filtradas
+            List<string> sourceOrigins = new List<string>();
+            foreach (var seq in filteredSequences)
+            {
+                if (deNovoDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
+                {
+                    sourceOrigins.Add("DeNovo");
+                }
+                else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
+                {
+                    sourceOrigins.Add("PSM");
+                }
+                else
+                {
+                    // Define uma origem padrão, caso não seja encontrada em deNovoDictTemp nem em psmDictTemp
+                    sourceOrigins.Add("Unknown");
+                }
+            }
             // Atualiza a variável myAlignment para refletir os alinhamentos atualizados
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
-
 
             // Update the GUI
             UpdatePlot();
             UpdateDataView();
+            Console.WriteLine(filteredSequences);
+            Console.WriteLine(sourceOrigins);
         }
 
-
+        
         //---------------------------------------------------------
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
@@ -420,16 +479,36 @@ namespace SequenceAssemblerGUI
                 // Armazena o arquivo FASTA carregado
                 myFasta = loadedFasta;
 
+
                 // Verifica se existem sequências de PSM e de Novo para processar antes de prosseguir
                 if (filteredSequences != null && filteredSequences.Any())
                 {
+                    // Obtém as origens das sequências filtradas
+                    List<string> sourceOrigins = new List<string>();
+                    foreach (var seq in filteredSequences)
+                    {
+                        if (deNovoDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
+                        {
+                            sourceOrigins.Add("DeNovo");
+                        }
+                        else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
+                        {
+                            sourceOrigins.Add("PSM");
+                        }
+                        else
+                        {
+                            // Define uma origem padrão, caso não seja encontrada em deNovoDictTemp nem em psmDictTemp
+                            sourceOrigins.Add("Unknown");
+                        }
+                    }
+
                     int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                     int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                     SequenceAligner aligner = new SequenceAligner();
 
                     // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
-                    myAlignment = filteredSequences.Select(seq => aligner.AlignSequences(myFasta[0].Sequence, seq)).ToList();
+                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).ToList();
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;

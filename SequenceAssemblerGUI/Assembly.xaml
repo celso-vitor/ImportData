@@ -35,75 +35,64 @@
         <GroupBox Header="Alignments" Grid.Row="4" Height="250">
             <Grid>
                 <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="500">
-                <!-- Definir o escopo de tamanho compartilhado para todo o conteúdo do ScrollViewer -->
-                <StackPanel Grid.IsSharedSizeScope="True">
-
-                    <!-- Grid para o cabeçalho 'Template' -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <!-- Coluna para o rótulo 'Template' com SharedSizeGroup -->
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="ContigLabelColumn"/>
-                            <!-- Coluna para as células de referência -->
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Rótulo 'Template' -->
-                        <TextBlock Grid.Column="0" Text="Template" Margin="0,0,5,0" VerticalAlignment="Center" MinWidth="60" TextAlignment="Center"/>
-
-                        <!-- Células de referência alinhadas -->
-                            <ItemsControl Grid.Column="1" ItemsSource="{Binding ReferenceAlignments}" Margin="0,0,5,0">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Exibe a sequência de referência -->
+                        <StackPanel Orientation="Horizontal" Background="LightBlue" Margin="4">
+                            <ItemsControl ItemsSource="{Binding ReferenceAlignments}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
+                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </StackPanel>
+                        <!-- Exibe as sequências de alinhamento -->
+                        <ItemsControl ItemsSource="{Binding Seq}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
-                                        <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- Adicione a dica de ferramenta à sequência de contig -->
+                                        <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock Text="{Binding ToolTipContent}" />
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <ItemsControl ItemsSource="{Binding VisualAlignment}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Width="20" Height="20" Margin="1"
+                                                         Background="{Binding CorDeFundo}">
+                                                        <TextBlock Text="{Binding Letra}"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                            </ItemsControl>
+                                        </Border>
+                                        <!-- Adicione o texto Tipo de Sequência abaixo da sequência alinhada -->
+                                        <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
                         </ItemsControl>
-                    </Grid>
-
-                    <!-- Seção para Exibir Sequences -->
-                        <ItemsControl ItemsSource="{Binding Seq}" Margin="0,5,0,0">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <!-- Coluna para o ID da sequence com SharedSizeGroup -->
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="SequenceLabelColumn"/>
-                                        <!-- Coluna para os alinhamentos -->
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- ID da seqeunce-->
-                                    <TextBlock Grid.Column="0" Text="{Binding Id}" MinWidth="60" Margin="0,0,5,0" TextAlignment="Right"/>
-
-                                    <!-- Alinhamentos -->
-                                        <ItemsControl Grid.Column="1" ItemsSource="{Binding VisualAlignment}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
-                                                    <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                    </ItemsControl>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
+
                 <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>      
             </Grid>
         </GroupBox>

@@ -21,39 +21,46 @@ using System.Globalization;
 using System.CodeDom.Compiler;
 using System.Windows.Threading;
 using SequenceAssemblerLogic.ResultParser;
-
+using System.ComponentModel;
 
 
 namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
-        
 
         private AssemblyParameters assemblyParameters;
-      
+
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
         public List<Contig> Contigs { get; set; }
-        public List<IDResult> Results { get; set; }
+
+        public Dictionary<string, List<string>> SequenceOrigin = new Dictionary<string, List<string>>();
+
+        public Dictionary<string, List<string>> denovoValue = new Dictionary<string, List<string>>();
+
+        public Dictionary<string, List<string>> psmValue = new Dictionary<string, List<string>>();
 
         public Assembly()
         {
             InitializeComponent();
-            DataContext = new SequenceViewModel(); 
+            DataContext = new SequenceViewModel();
             assemblyParameters = new AssemblyParameters();
+            SequenceOrigin = new Dictionary<string, List<string>>();
+            denovoValue = new Dictionary<string, List<string>>();
+            psmValue = new Dictionary<string, List<string>>();
+
         }
 
         //// Método para acessar meu DataGrid
         ////---------------------------------------------------------------------------------------------------------
-
         public void UpdateAlignmentGrid(double minNormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
         {
             MyFasta = myFasta;
 
+
             // Apply filters on the data
             List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
-
 
             DataTable dataTable = new DataTable();
 
@@ -67,37 +74,33 @@ namespace SequenceAssemblerGUI
             dataTable.Columns.Add("Gaps Used", typeof(int));
             dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
             dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
-          
 
             // Fill the DataTable with your data
             foreach (var alignment in filteredAlnResults)
             {
+
                 DataRow newRow = dataTable.NewRow();
-                newRow[0] = alignment.Identity;
-                newRow[1] = alignment.NormalizedIdentityScore;
-                newRow[2] = alignment.SimilarityScore;
-                newRow[3] = alignment.NormalizedSimilarity;
-                newRow[4] = alignment.AlignedAA;
-                newRow[5] = alignment.NormalizedAlignedAA;
-                newRow[6] = alignment.GapsUsed;
-                newRow[7] = alignment.AlignedLargeSequence;
-                newRow[8] = alignment.AlignedSmallSequence;
-               
+                newRow["Identity"] = alignment.Identity;
+                newRow["Normalized Identity Score"] = alignment.NormalizedIdentityScore;
+                newRow["Similarity Score"] = alignment.SimilarityScore;
+                newRow["Normalized Similarity"] = alignment.NormalizedSimilarity;
+                newRow["AlignedAA"] = alignment.AlignedAA;
+                newRow["Normalized AlignedAA"] = alignment.NormalizedAlignedAA;
+                newRow["Gaps Used"] = alignment.GapsUsed;
+                newRow["Aligned Large Sequence"] = alignment.AlignedLargeSequence;
+                newRow["Aligned Small Sequence"] = alignment.AlignedSmallSequence;
+
 
                 dataTable.Rows.Add(newRow);
             }
 
             // Set the DataTable as the data source for your control 
-            //DataGridAlignments.ItemsSource = null; // Clear previous items
             DataGridAlignments.ItemsSource = dataTable.DefaultView;
-
             DataGridFasta.ItemsSource = MyFasta;
-
-
         }
 
 
-      
+
         //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
         public class VisualAlignment : INotifyPropertyChanged
@@ -124,12 +127,28 @@ namespace SequenceAssemblerGUI
             }
         }
 
+
         //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
         public class SequencesViewModel : INotifyPropertyChanged
         {
             public string Id { get; set; }
+
+            private string _toolTipContent;
             public ObservableCollection<VisualAlignment> VisualAlignment { get; set; } = new ObservableCollection<VisualAlignment>();
+
+            public string ToolTipContent
+            {
+                get { return _toolTipContent; }
+                set
+                {
+                    if (_toolTipContent != value)
+                    {
+                        _toolTipContent = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
 
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -138,11 +157,13 @@ namespace SequenceAssemblerGUI
             }
         }
 
+
+
         //Visual/Interface
         //---------------------------------------------------------------------------------------------------------
         public class SequenceViewModel : INotifyPropertyChanged
         {
-            private bool _isReferenceSequenceAligned;
+            
 
             public ObservableCollection<VisualAlignment> ReferenceAlignments { get; set; } = new ObservableCollection<VisualAlignment>();
             public ObservableCollection<SequencesViewModel> Seq { get; set; } = new ObservableCollection<SequencesViewModel>();
@@ -153,57 +174,16 @@ namespace SequenceAssemblerGUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
 
-            public bool IsReferenceSequenceAligned
-            {
-                get => _isReferenceSequenceAligned;
-                set
-                {
-                    if (_isReferenceSequenceAligned != value)
-                    {
-                        _isReferenceSequenceAligned = value;
-                        OnPropertyChanged();
-                    }
-                }
-            }
-
-            private bool _isAssemblyVisible;
-            public bool IsAssemblyVisible
-            {
-                get { return _isAssemblyVisible; }
-                set
-                {
-                    if (_isAssemblyVisible != value)
-                    {
-                        _isAssemblyVisible = value;
-                        OnPropertyChanged();
-                    }
-                }
-            }
-
-            private string _assemblySequence;
-            public string AssemblySequence
-            {
-                get { return _assemblySequence; }
-                set
-                {
-                    if (_assemblySequence != value)
-                    {
-                        _assemblySequence = value;
-                        OnPropertyChanged();
-                    }
-                }
-            }
-
 
         }
 
 
         //Alinhamento
         //---------------------------------------------------------------------------------------------------------
-        (string alignedSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string sequence, string referenceSequence)
+        (string alignedSequence, string alignedReferenceSequence) PerformAlignmentUsingAlignmentClass(string sequence, string referenceSequence, string sourceOrigin)
         {
             SequenceAligner aligner = new SequenceAligner(); // Crie uma instância de SequenceAligner
-            Alignment alignmentResult = aligner.AlignSequences(referenceSequence, sequence); // Chame o método AlignSequences nessa instância
+            Alignment alignmentResult = aligner.AlignSequences(referenceSequence, sequence, sourceOrigin); // Chame o método AlignSequences nessa instância
 
             return (alignmentResult.AlignedSmallSequence, alignmentResult.AlignedLargeSequence);
         }
@@ -213,7 +193,7 @@ namespace SequenceAssemblerGUI
         //Update interface
         //---------------------------------------------------------------------------------------------------------
 
-        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedSequences, List<int> startPositions, string referenceSequence)
+        private void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<string> alignedSequences, List<int> startPositions, string referenceSequence, List<(string sequence, string sourceOrigin)> sequenceOrigins)
         {
             viewModel.ReferenceAlignments.Clear();
             foreach (char letra in referenceSequence)
@@ -223,19 +203,28 @@ namespace SequenceAssemblerGUI
 
             viewModel.Seq.Clear();
 
-            // Criar uma lista de sequences com suas posições iniciais e IDs correspondentes
-            var sequencesWithPositions = startPositions
+            // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
+            var contigsWithPositions = startPositions
                 .Select((start, index) => new { ID = $"Position {start}", Sequence = alignedSequences[index], StartPosition = start - 1 })
                 .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
                 .ToList();
 
             // Determinar o comprimento necessário para alinhar os identificadores de contig
-            int maxLabelWidth = sequencesWithPositions.Max(c => c.ID.Length);
+            int maxLabelWidth = contigsWithPositions.Max(c => c.ID.Length);
 
-            foreach (var sequences in sequencesWithPositions)
+            for (int i = 0; i < contigsWithPositions.Count; i++)
             {
+                var sequences = contigsWithPositions[i];
                 string sequencesId = sequences.ID.PadRight(maxLabelWidth);
-                var sequencesViewModel = new SequencesViewModel { Id = sequencesId };
+
+                // Encontre o sourceOrigin associado à sequência atual
+                string sourceOrigin = sequenceOrigins[i].sourceOrigin;
+
+                var sequencesViewModel = new SequencesViewModel
+                {
+                    Id = sequencesId,
+                    ToolTipContent = $"Position ID: {sequences.ID}, Source Origin: {sourceOrigin}" // Adicionando a origem da sequência ao tooltip
+                };
 
                 // Adicionar espaços vazios ou hífens até a posição de início do contig
                 for (int pos = 0; pos < sequences.StartPosition; pos++)
@@ -244,27 +233,27 @@ namespace SequenceAssemblerGUI
                 }
 
                 // Adiciona as letras do contig com a cor correspondente
-                for (int i = 0; i < sequences.Sequence.Length; i++)
+                for (int j = 0; j < sequences.Sequence.Length; j++)
                 {
                     Brush corDeFundo;
-                    char sequencesChar = sequences.Sequence[i];
-                    if (sequencesChar == '-')
+                    char contigChar = sequences.Sequence[j];
+                    if (contigChar == '-')
                     {
                         corDeFundo = Brushes.Orange; // Cor laranja para gaps
                     }
                     else
                     {
-                        int refIndex = sequences.StartPosition + i;
+                        int refIndex = sequences.StartPosition + j;
                         if (refIndex < referenceSequence.Length)
                         {
-                            corDeFundo = sequencesChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                            corDeFundo = contigChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
                         }
                         else
                         {
                             corDeFundo = Brushes.LightGray; // Fora dos limites da referência
                         }
                     }
-                    sequencesViewModel.VisualAlignment.Add(new VisualAlignment { Letra = sequencesChar.ToString(), CorDeFundo = corDeFundo });
+                    sequencesViewModel.VisualAlignment.Add(new VisualAlignment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 // Completar o resto da sequência com hífens se necessário
@@ -276,8 +265,6 @@ namespace SequenceAssemblerGUI
                 viewModel.Seq.Add(sequencesViewModel);
             }
 
-            
-
             // Imprimir alinhamento para depuração 
             foreach (var sequencesViewModel in viewModel.Seq)
             {
@@ -288,8 +275,10 @@ namespace SequenceAssemblerGUI
                 }
                 Console.WriteLine();
             }
-
         }
+
+
+
 
 
 
@@ -332,29 +321,27 @@ namespace SequenceAssemblerGUI
 
             List<string> alignedSequences = new List<string>();
             List<int> startPositions = new List<int>();
+            List<(string sequence, string sourceOrigin)> sequenceOrigins = new List<(string sequence, string sourceOrigin)>();
 
             foreach (var sequenceItem in sequencesItems)
             {
-                (string alignmentSequences, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence);
+                string sourceOrigin = sequenceItem.SourceOrigin;
+                sequenceOrigins.Add((sequenceItem.AlignedSmallSequence, sourceOrigin)); // Adiciona a sequência e seu sourceOrigin associado à lista
+                (string alignmentSequences, string alignedReferenceSequence) = PerformAlignmentUsingAlignmentClass(sequenceItem.AlignedSmallSequence, referenceSequence, sourceOrigin);
                 alignedSequences.Add(alignmentSequences);
 
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignmentSequences, referenceSequence);
                 startPositions.Add(startPosition);
             }
 
-            viewModel.AssemblySequence = assemblyParameters.GenerateAssemblyText(referenceSequence, alignedSequences, startPositions);
+            // Ordene a lista de sequências e sourceOrigins com base na posição inicial das sequências em relação à referência
+            sequenceOrigins = sequenceOrigins.OrderBy(seq => startPositions[alignedSequences.IndexOf(seq.sequence)]).ToList();
 
-            UpdateUIWithAlignmentAndAssembly(viewModel, alignedSequences, startPositions, referenceSequence);
-
-            viewModel.IsReferenceSequenceAligned = true;
-            viewModel.IsAssemblyVisible = true;
+            UpdateUIWithAlignmentAndAssembly(viewModel, alignedSequences, startPositions, referenceSequence, sequenceOrigins);      
 
             // Agora que os dados foram carregados, ocultar a label "Loading..."
             loadingLabel.Visibility = Visibility.Hidden;
         }
-
-
-
     }
 
 

@@ -1,12 +1,14 @@
 ﻿using SequenceAssemblerLogic.ContigCode;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
+
     public class SequenceAligner
     {
         public Dictionary<string, int> SubstitutionMatrix { get; set; }
@@ -188,8 +190,9 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         }
 
 
-        public Alignment AlignSequences(string largeSeq, string smallSeq)
+        public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)
         {
+
             int largeLen = largeSeq.Length;
             int smallLen = smallSeq.Length;
             int[,] dp = new int[largeLen + 1, smallLen + 1];
@@ -286,9 +289,9 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             double normalizedIdentityScore = (double)matchedIdentity / (double)alignedSmall.Length * 100;
 
 
-
             return new SequenceAssemblerLogic.ProteinAlignmentCode.Alignment
             {
+                SourceOrigin = sourceOrigin, // Usar a origem passada como parâmetro
                 Identity = matchedIdentity,
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmall,
