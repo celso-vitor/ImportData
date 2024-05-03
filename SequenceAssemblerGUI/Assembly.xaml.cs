@@ -66,14 +66,14 @@ namespace SequenceAssemblerGUI
 
             // Define the DataTable columns with the appropriate data types
             dataTable.Columns.Add("Identity", typeof(int));
-            dataTable.Columns.Add("Normalized Identity Score", typeof(double));
-            dataTable.Columns.Add("Similarity Score", typeof(int));
-            dataTable.Columns.Add("Normalized Similarity", typeof(double));
+            dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
+            dataTable.Columns.Add("SimilarityScore", typeof(int));
+            dataTable.Columns.Add("NormalizedSimilarity", typeof(double));
             dataTable.Columns.Add("AlignedAA", typeof(int));
-            dataTable.Columns.Add("Normalized AlignedAA", typeof(double));
-            dataTable.Columns.Add("Gaps Used", typeof(int));
-            dataTable.Columns.Add("Aligned Large Sequence", typeof(string));
-            dataTable.Columns.Add("Aligned Small Sequence", typeof(string));
+            dataTable.Columns.Add("NormalizedAlignedAA", typeof(double));
+            dataTable.Columns.Add("GapsUsed", typeof(int));
+            dataTable.Columns.Add("AlignedLargeSequence", typeof(string));
+            dataTable.Columns.Add("AlignedSmallSequence", typeof(string));
 
             // Fill the DataTable with your data
             foreach (var alignment in filteredAlnResults)
@@ -81,14 +81,14 @@ namespace SequenceAssemblerGUI
 
                 DataRow newRow = dataTable.NewRow();
                 newRow["Identity"] = alignment.Identity;
-                newRow["Normalized Identity Score"] = alignment.NormalizedIdentityScore;
-                newRow["Similarity Score"] = alignment.SimilarityScore;
-                newRow["Normalized Similarity"] = alignment.NormalizedSimilarity;
+                newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
+                newRow["SimilarityScore"] = alignment.SimilarityScore;
+                newRow["NormalizedSimilarity"] = alignment.NormalizedSimilarity;
                 newRow["AlignedAA"] = alignment.AlignedAA;
-                newRow["Normalized AlignedAA"] = alignment.NormalizedAlignedAA;
-                newRow["Gaps Used"] = alignment.GapsUsed;
-                newRow["Aligned Large Sequence"] = alignment.AlignedLargeSequence;
-                newRow["Aligned Small Sequence"] = alignment.AlignedSmallSequence;
+                newRow["NormalizedAlignedAA"] = alignment.NormalizedAlignedAA;
+                newRow["GapsUsed"] = alignment.GapsUsed;
+                newRow["AlignedLargeSequence"] = alignment.AlignedLargeSequence;
+                newRow["AlignedSmallSequence"] = alignment.AlignedSmallSequence;
 
 
                 dataTable.Rows.Add(newRow);
@@ -214,17 +214,17 @@ namespace SequenceAssemblerGUI
             viewModel.Seq.Clear();
 
             // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
-            var contigsWithPositions = startPositions
+            var seqeuncesWithPositions = startPositions
                 .Select((start, index) => new { ID = $"{start}", Sequence = alignedSequences[index], StartPosition = start - 1 })
                 .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
                 .ToList();
 
-            // Determinar o comprimento necessário para alinhar os identificadores de contig
-            int maxLabelWidth = contigsWithPositions.Max(c => c.ID.Length);
+            // Determinar o comprimento necessário para alinhar os identificadores das sequências
+            int maxLabelWidth = seqeuncesWithPositions.Max(c => c.ID.Length);
 
-            for (int i = 0; i < contigsWithPositions.Count; i++)
+            for (int i = 0; i < seqeuncesWithPositions.Count; i++)
             {
-                var sequences = contigsWithPositions[i];
+                var sequences = seqeuncesWithPositions[i];
                 string sequencesId = sequences.ID.PadRight(maxLabelWidth);
 
                 // Encontre a origem associada à sequência atual
@@ -235,21 +235,21 @@ namespace SequenceAssemblerGUI
                 var sequencesViewModel = new SequencesViewModel
                 {
                     Id = sequencesId,
-                    ToolTipContent = $"Position: {sequences.ID}, Source: {sourceOrigin}" // Adicionando a origem da sequência, Peptide e Folder ao tooltip
+                    ToolTipContent = $"Position: {sequences.ID} - Source: {sourceOrigin}" // Adicionando a origem da sequência, Peptide e Folder ao tooltip
                 };
 
-                // Adicionar espaços vazios ou hífens até a posição de início do contig
+                // Adicionar espaços vazios ou hífens até a posição de início da sequência
                 for (int pos = 0; pos < sequences.StartPosition; pos++)
                 {
                     sequencesViewModel.VisualAlignment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
                 }
 
-                // Adiciona as letras do contig com a cor correspondente
+                // Adiciona as letras das sequências com as cores correspondentes
                 for (int j = 0; j < sequences.Sequence.Length; j++)
                 {
                     Brush corDeFundo;
-                    char contigChar = sequences.Sequence[j];
-                    if (contigChar == '-')
+                    char seqChar = sequences.Sequence[j];
+                    if (seqChar == '-')
                     {
                         corDeFundo = Brushes.Orange; // Cor laranja para gaps
                     }
@@ -258,14 +258,14 @@ namespace SequenceAssemblerGUI
                         int refIndex = sequences.StartPosition + j;
                         if (refIndex < referenceSequence.Length)
                         {
-                            corDeFundo = contigChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                            corDeFundo = seqChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
                         }
                         else
                         {
                             corDeFundo = Brushes.LightGray; // Fora dos limites da referência
                         }
                     }
-                    sequencesViewModel.VisualAlignment.Add(new VisualAlignment { Letra = contigChar.ToString(), CorDeFundo = corDeFundo });
+                    sequencesViewModel.VisualAlignment.Add(new VisualAlignment { Letra = seqChar.ToString(), CorDeFundo = corDeFundo });
                 }
 
                 // Completar o resto da sequência com hífens se necessário
@@ -281,9 +281,9 @@ namespace SequenceAssemblerGUI
             foreach (var sequencesViewModel in viewModel.Seq)
             {
                 Console.WriteLine($"Position ID: {sequencesViewModel.Id}");
-                foreach (var aligment in sequencesViewModel.VisualAlignment)
+                foreach (var alignment in sequencesViewModel.VisualAlignment)
                 {
-                    Console.Write(aligment.Letra);
+                    Console.Write(alignment.Letra);
                 }
                 Console.WriteLine();
             }
@@ -353,7 +353,6 @@ namespace SequenceAssemblerGUI
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignmentSequences, referenceSequence);
                 startPositions.Add(startPosition);
             }
-            Console.WriteLine();
             // Ordene a lista de sequências e sourceOrigins com base na posição inicial das sequências em relação à referência
             sequenceOrigins = sequenceOrigins.OrderBy(seq => startPositions[alignedSequences.IndexOf(seq.sequence)]).ToList();
 
