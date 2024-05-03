@@ -2,6 +2,7 @@
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using SequenceAssemblerLogic;
 using SequenceAssemblerLogic.ContigCode;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
@@ -78,8 +79,7 @@ namespace SequenceAssemblerGUI
 
                 // Create a list to store the sequences for ContigAssembler
                 List<string> sequencesForAssembly = new();
-                //Dictionary<string, List<string>> sequenceOriginMap = new Dictionary<string, List<string>>();
-                Dictionary<string, List<string>> sequenceOriginMap = new Dictionary<string, List<string>>();
+               
                 
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
@@ -118,13 +118,6 @@ namespace SequenceAssemblerGUI
 
                         dtDenovo.Rows.Add(row);
 
-                        // Adiciona a sequência e o local de origem ao dicionário
-                        string sequenceKey = $"{denovo.Peptide}|DeNovo"; // Key format: "Sequence|Type"
-                        if (!sequenceOriginMap.ContainsKey(sequenceKey))
-                        {
-                            sequenceOriginMap[sequenceKey] = new List<string>();
-                        }
-                        sequenceOriginMap[sequenceKey].Add(folderName);
                     }
                     foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
                     {
@@ -139,13 +132,7 @@ namespace SequenceAssemblerGUI
 
                         sequencesForAssembly.Add(psm.Peptide);
 
-                        // Adiciona a sequência e o local de origem ao dicionário
-                        string sequenceKey = $"{psm.Peptide}|PSM"; // Key format: "Sequence|Type"
-                        if (!sequenceOriginMap.ContainsKey(sequenceKey))
-                        {
-                            sequenceOriginMap[sequenceKey] = new List<string>();
-                        }
-                        sequenceOriginMap[sequenceKey].Add(folderName);
+                    
                     }   
 
                 }
@@ -169,10 +156,6 @@ namespace SequenceAssemblerGUI
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
                 
-                
-                MyAssembly.SequenceOrigin = sequenceOriginMap;
-
-                Console.WriteLine(sequenceOriginMap);
           
                 UpdateGeneral();
 
@@ -462,54 +445,39 @@ namespace SequenceAssemblerGUI
 
                 // Declare myAlignment antes deste bloco de código se ainda não tiver sido declarado
 
-                // Verifica se existem sequências de PSM e de Novo para processar antes de prosseguir
                 if (filteredSequences != null && filteredSequences.Any())
                 {
                     // Obtém as origens das sequências filtradas
-                    List<string> sourceOrigins = new List<string>();
-                    foreach (var seq in filteredSequences)
-                    {
-                        if (deNovoDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
-                        {
-                            var peptideorigin = deNovoDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
-                            var folder = deNovoDictTemp.Keys.First(key => deNovoDictTemp[key].Any(item => item.CleanPeptide == seq));
-
-                            // Adiciona Peptide e Folder ao sourceOrigins
-                            sourceOrigins.Add($"DeNovo - Peptide: {peptideorigin} - Folder: {folder}");
-                        }
-                        else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
-                        {
-                            var peptideorigin = psmDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
-                            var folder = psmDictTemp.Keys.First(key => psmDictTemp[key].Any(item => item.CleanPeptide == seq));
-
-                            // Adiciona Peptide e Folder ao sourceOrigins
-                            sourceOrigins.Add($"PSM - Peptide: {peptideorigin} - Folder: {folder}");
-                        }
-                        else
-                        {
-                            // Define uma origem padrão, caso não seja encontrada em deNovoDictTemp nem em psmDictTemp
-                            sourceOrigins.Add("Unknown");
-                        }
-                    }
+                    List<string> sourceOrigins = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
+                
 
                     int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                     int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
+                    int minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
+
+                    
+
                     SequenceAligner aligner = new SequenceAligner();
 
+
                     // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
-                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).ToList();
+                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).Where(a => a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
+
+                  
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
                     MyAssembly.AlignmentList = myAlignment;
                     MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
 
-                    ButtonUpdateResult.IsEnabled = true;
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
                     IdentityUpDown.IsEnabled = true;
+                    IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
+
+                    UpdateTable();
                 }
                 else
                 {
@@ -524,7 +492,7 @@ namespace SequenceAssemblerGUI
             UpdateGeneral();
         }
 
-        private void ButtonUpdateResult_Click(object sender, RoutedEventArgs e)
+        private void UpdateTable()
         {
             int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
@@ -535,6 +503,8 @@ namespace SequenceAssemblerGUI
             // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
             MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
         }
+
+
 
         
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
@@ -547,22 +517,6 @@ namespace SequenceAssemblerGUI
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-            //if (myContigs != null)
-            //{
-            //    UpdateContig();
-
-            //}
-            //else
-            //{
-
-            //    Console.WriteLine("Contigs is null");
-
-            //}
-
-        }
         private void TabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Implement as needed

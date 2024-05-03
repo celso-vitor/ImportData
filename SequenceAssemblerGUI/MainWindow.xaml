@@ -63,11 +63,12 @@
                     <WrapPanel HorizontalAlignment="Center">
                         <Label Content="AA Overlap"/>
                         <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10"/>
-                        <Button Content="Debug" Click="Button_Click" Margin="2,2,2,2"/>
                         <Label Content="Minimum Identity"/>
                         <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="0" Width="40" IsEnabled ="False"/>
                         <Label Content="Minimum Normalized Similarity"/>
                         <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="0" Width="40" IsEnabled ="False"/>
+                        <Label Content="Minimum Length"/>
+                        <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled ="False"/>
                     </WrapPanel>
                 </GroupBox>
             </StackPanel>
@@ -79,7 +80,6 @@
                 <Label Content="Maximum Gaps"/>
                 <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
                 <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="True" Width="123" Height="26"/>
-                <Button x:Name="ButtonUpdateResult" Content="Update" Click="ButtonUpdateResult_Click" Width="61" Margin="10,0,0,0" IsEnabled ="False"/>
             </WrapPanel>
 
             <TabControl Grid.Row="3">

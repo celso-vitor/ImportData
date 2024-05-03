@@ -22,6 +22,8 @@ using System.CodeDom.Compiler;
 using System.Windows.Threading;
 using SequenceAssemblerLogic.ResultParser;
 using System.ComponentModel;
+using System.Diagnostics;
+using SequenceAssemblerLogic;
 
 
 namespace SequenceAssemblerGUI
@@ -35,20 +37,13 @@ namespace SequenceAssemblerGUI
         public List<Fasta> MyFasta { get; set; }
         public List<Contig> Contigs { get; set; }
 
-        public Dictionary<string, List<string>> SequenceOrigin = new Dictionary<string, List<string>>();
-
-        public Dictionary<string, List<string>> denovoValue = new Dictionary<string, List<string>>();
-
-        public Dictionary<string, List<string>> psmValue = new Dictionary<string, List<string>>();
+       
 
         public Assembly()
         {
             InitializeComponent();
             DataContext = new SequenceViewModel();
-            assemblyParameters = new AssemblyParameters();
-            SequenceOrigin = new Dictionary<string, List<string>>();
-            denovoValue = new Dictionary<string, List<string>>();
-            psmValue = new Dictionary<string, List<string>>();
+            assemblyParameters = new AssemblyParameters();  
 
         }
 
@@ -64,7 +59,7 @@ namespace SequenceAssemblerGUI
 
             DataTable dataTable = new DataTable();
 
-            // Define the DataTable columns with the appropriate data types
+            // Define the DataTable columns with the appropriate data types  
             dataTable.Columns.Add("Identity", typeof(int));
             dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
             dataTable.Columns.Add("SimilarityScore", typeof(int));
@@ -214,17 +209,17 @@ namespace SequenceAssemblerGUI
             viewModel.Seq.Clear();
 
             // Criar uma lista de contigs com suas posições iniciais e IDs correspondentes
-            var seqeuncesWithPositions = startPositions
+            var sequencesWithPositions = startPositions
                 .Select((start, index) => new { ID = $"{start}", Sequence = alignedSequences[index], StartPosition = start - 1 })
                 .OrderBy(c => c.StartPosition)  // Ordenar pela posição de início
                 .ToList();
 
             // Determinar o comprimento necessário para alinhar os identificadores das sequências
-            int maxLabelWidth = seqeuncesWithPositions.Max(c => c.ID.Length);
+            int maxLabelWidth = sequencesWithPositions.Max(c => c.ID.Length);
 
-            for (int i = 0; i < seqeuncesWithPositions.Count; i++)
+            for (int i = 0; i < sequencesWithPositions.Count; i++)
             {
-                var sequences = seqeuncesWithPositions[i];
+                var sequences = sequencesWithPositions[i];
                 string sequencesId = sequences.ID.PadRight(maxLabelWidth);
 
                 // Encontre a origem associada à sequência atual
@@ -276,6 +271,43 @@ namespace SequenceAssemblerGUI
 
                 viewModel.Seq.Add(sequencesViewModel);
             }
+
+         
+            // Atualizar o DataGrid, se aplicável
+            List<Alignment> positionDataList = new List<Alignment>();
+            foreach (var seq in sequencesWithPositions)
+            {
+                var sequenceWithoutGaps = new string(seq.Sequence.Where(c => c != '-').ToArray());
+                positionDataList.Add(new Alignment { ID = seq.StartPosition, AlignedSmallSequence = sequenceWithoutGaps}); 
+                positionDataList.Add(new Alignment { AlignedLargeSequence = sequenceWithoutGaps });
+               
+
+            }
+
+
+
+            //Defina a visibilidade da coluna para "Visible ou Hidden"
+            var colunaID = DataGridAlignments.Columns[0];
+            var normalizedindentity = DataGridAlignments.Columns[2];
+            var identity = DataGridAlignments.Columns[1];
+            var similarityscore = DataGridAlignments.Columns[3];
+            var normalizedsimilarity = DataGridAlignments.Columns[4];
+            var alignedAA = DataGridAlignments.Columns[5];
+            var normalizedalignedAA = DataGridAlignments.Columns[6];
+            var gapsused = DataGridAlignments.Columns[7];
+            
+            colunaID.Visibility = Visibility.Visible;
+            identity.Visibility = Visibility.Hidden;
+            normalizedindentity.Visibility = Visibility.Visible; 
+            similarityscore.Visibility = Visibility.Hidden;
+            normalizedsimilarity.Visibility = Visibility.Visible;
+            alignedAA.Visibility = Visibility.Hidden;
+            normalizedalignedAA.Visibility = Visibility.Hidden;
+            gapsused.Visibility = Visibility.Hidden;  
+            
+            DataGridAlignments.ItemsSource = positionDataList;
+
+            
 
             // Imprimir alinhamento para depuração 
             foreach (var sequencesViewModel in viewModel.Seq)
@@ -335,15 +367,27 @@ namespace SequenceAssemblerGUI
             List<int> startPositions = new List<int>();
             List<(string sequence, string sourceOrigin, string peptide, string folder)> sequenceOrigins = new List<(string sequence, string sourceOrigin, string peptide, string folder)>();
             Console.WriteLine(sequenceOrigins);
-            foreach (var sequenceItem in sequencesItems)
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            //filtrar por tamanho
+            int minNormalizedLength = 3;
+
+
+            //retirar duplicidade e subsequencias
+            var sequencesToAlign = sequencesItems.Select(a => a.AlignedSmallSequence).ToList();
+
+            var minsequenceslength = Utils.FilterSequencesByNormalizedLength(sequencesToAlign, referenceSequence, minNormalizedLength);
+            
+            Console.WriteLine(minsequenceslength);
+
+            var optSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(minsequenceslength);
+
+            foreach (Alignment sequenceItem in sequencesItems)
             {
 
-                // Exemplo de como você poderia dividir a string SourceOrigin
-                string[] parts = sequenceItem.SourceOrigin.Split(','); // Ajuste o delimitador conforme necessário
-                string peptide = parts.Length > 0 ? parts[0] : "";
-                string folder = parts.Length > 1 ? parts[1] : "";
-
-                sequenceOrigins.Add((sequenceItem.AlignedSmallSequence, sequenceItem.SourceOrigin, peptide, folder));
+                sequenceOrigins.Add((sequenceItem.AlignedSmallSequence, sequenceItem.SourceOrigin, sequenceItem.Peptide, sequenceItem.Folder));
 
 
                 // Prossiga com os cálculos e ajustes de alinhamento
@@ -353,6 +397,11 @@ namespace SequenceAssemblerGUI
                 int startPosition = assemblyParameters.GetCorrectStartPosition(alignedReferenceSequence, alignmentSequences, referenceSequence);
                 startPositions.Add(startPosition);
             }
+
+
+            sw.Stop();
+            Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
+
             // Ordene a lista de sequências e sourceOrigins com base na posição inicial das sequências em relação à referência
             sequenceOrigins = sequenceOrigins.OrderBy(seq => startPositions[alignedSequences.IndexOf(seq.sequence)]).ToList();
 
@@ -362,6 +411,10 @@ namespace SequenceAssemblerGUI
             loadingLabel.Visibility = Visibility.Hidden;
         }
 
+        private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
     }
 
 
