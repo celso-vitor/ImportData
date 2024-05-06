@@ -112,11 +112,14 @@ namespace SequenceAssemblerGUI
                 set { _corDeFundo = value; OnPropertyChanged(); }
             }
 
+            public string ToolTipContent { get; internal set; }
+
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
+
         }
 
 
@@ -177,8 +180,6 @@ namespace SequenceAssemblerGUI
 
         public static void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, string referenceSequence)
         {
-            
-            
             viewModel.ReferenceAlignments.Clear();
 
             // Adicionando a sequência de referência ao ViewModel
@@ -192,6 +193,9 @@ namespace SequenceAssemblerGUI
             // Ordenando sequências pelo início do alinhamento
             var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();
 
+            // Mapa para rastrear as posições ocupadas em cada linha
+            Dictionary<int, int> rowEndPositions = new Dictionary<int, int>();
+
             foreach (var sequence in sortedSequences)
             {
                 string sequenceId = $"ID {sequence.ID}";
@@ -200,45 +204,57 @@ namespace SequenceAssemblerGUI
                     ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                 };
 
-                // Adicionar espaços até a posição de início - ajustado para começar uma casa para trás
                 int startPosition = sequence.StartPositions.Min() - 1;
+                int rowIndex = FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
+
+                // Preencher posições anteriores na linha encontrada
                 for (int i = 0; i < startPosition; i++)
                 {
-                    sequenceViewModel.VisualAlignment.Add(new VisualAlignment { Letra = "-", CorDeFundo = Brushes.LightGray });
+                    if (i >= rowEndPositions[rowIndex])
+                    {
+                        sequenceViewModel.VisualAlignment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
+                    }
                 }
+
+                // Atualizar o fim da linha ocupada
+                rowEndPositions[rowIndex] = startPosition + sequence.AlignedSmallSequence.Length;
 
                 // Adicionando as letras das sequências alinhadas
                 foreach (char seqChar in sequence.AlignedSmallSequence)
                 {
                     Brush corDeFundo;
+                    int refIndex = startPosition++;
                     if (seqChar == '-')
                     {
                         corDeFundo = Brushes.Orange; // Cor laranja para gaps
                     }
+                    else if (refIndex < referenceSequence.Length)
+                    {
+                        corDeFundo = seqChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                    }
                     else
                     {
-                        int refIndex = startPosition++;
-                        if (refIndex < referenceSequence.Length)
-                        {
-                            corDeFundo = seqChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
-                        }
-                        else
-                        {
-                            corDeFundo = Brushes.LightGray; // Fora dos limites da referência
-                        }
+                        corDeFundo = Brushes.LightGray; // Fora dos limites da referência
                     }
-                    sequenceViewModel.VisualAlignment.Add(new VisualAlignment { Letra = seqChar.ToString(), CorDeFundo = corDeFundo });
+                    var visualAlignment = new VisualAlignment
+                    {
+                        Letra = seqChar.ToString(),
+                        CorDeFundo = corDeFundo,
+                        ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
+                    };
+                    sequenceViewModel.VisualAlignment.Add(visualAlignment);
                 }
-
-                // Completar o resto da sequência com hífens se necessário
-                while (sequenceViewModel.VisualAlignment.Count < referenceSequence.Length)
+                // Adiciona o viewModel da sequência na linha correspondente
+                while (viewModel.Seq.Count <= rowIndex)
                 {
-                    sequenceViewModel.VisualAlignment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
+                    viewModel.Seq.Add(new SequencesViewModel());
+                }
+                foreach (var item in sequenceViewModel.VisualAlignment)
+                {
+                    viewModel.Seq[rowIndex].VisualAlignment.Add(item);
                 }
 
-                viewModel.Seq.Add(sequenceViewModel);
             }
-
 
             // Imprimir alinhamento para depuração 
             foreach (var sequencesViewModel in viewModel.Seq)
@@ -250,9 +266,22 @@ namespace SequenceAssemblerGUI
                 }
                 Console.WriteLine();
             }
-
         }
 
+        private static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
+        {
+            foreach (var row in rowEndPositions)
+            {
+                if (row.Value <= startPosition)
+                {
+                    return row.Key;
+                }
+            }
+
+            int newRow = rowEndPositions.Count;
+            rowEndPositions[newRow] = 0;
+            return newRow;
+        }
 
 
 

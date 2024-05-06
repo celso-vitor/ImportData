@@ -76,21 +76,20 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <!-- Adicione a dica de ferramenta à sequência de contig -->
                                         <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
-                                            <Border.ToolTip>
-                                                <ToolTip>
-                                                    <TextBlock Text="{Binding ToolTipContent}" />
-                                                </ToolTip>
-                                            </Border.ToolTip>
+                                            <!-- Removido o ToolTip daqui -->
                                             <ItemsControl ItemsSource="{Binding VisualAlignment}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Width="20" Height="20" Margin="1"
-                                                         Background="{Binding CorDeFundo}">
-                                                        <TextBlock Text="{Binding Letra}"
-                                                          HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                        <!-- Movido o ToolTip para cada Border individual -->
+                                                        <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
+                                                            <Border.ToolTip>
+                                                                <ToolTip>
+                                                                    <!-- O ToolTip agora é configurado para cada letra -->
+                                                                    <TextBlock Text="{Binding ToolTipContent}" />
+                                                                </ToolTip>
+                                                            </Border.ToolTip>
+                                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -101,7 +100,7 @@
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
                                         </Border>
-                                        <!-- Adicione o texto Tipo de Sequência abaixo da sequência alinhada -->
+                                        <!-- Texto de Tipo de Sequência pode ser adicionado aqui se necessário -->
                                         <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </DataTemplate>
