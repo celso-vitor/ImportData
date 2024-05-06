@@ -3,42 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 
 namespace SequenceAssemblerLogic
 {
     public static class Utils
     {
-        public static List<string> EliminateDuplicatesAndSubsequences(List<string> input)
+        public static List<Alignment> EliminateDuplicatesAndSubsequences(List<Alignment> input)
         {
-            input.Sort((x, y) => x.Length.CompareTo(y.Length)); // Sort strings by length
+            input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length)); // Ordenar Alignment por comprimento de AlignedSmallSequence
 
-            var result = new List<string>();
+            var result = new List<Alignment>();
             var set = new HashSet<string>();
 
-            foreach (var str in input)
+            foreach (var alignment in input)
             {
-                if (set.Contains(str))
+                string alignedSequence = alignment.AlignedSmallSequence;
+                if (set.Contains(alignedSequence))
                     continue;
 
                 bool shouldAdd = true;
-                foreach (var existingStr in set)
+                foreach (var existingAlignment in result)
                 {
-                    if (IsSubsequence(existingStr, str))
+                    string existingSequence = existingAlignment.AlignedSmallSequence;
+                    if (IsSubsequence(existingSequence, alignedSequence))
                     {
                         shouldAdd = false;
                         break;
                     }
-                    else if (IsSubsequence(str, existingStr))
+                    else if (IsSubsequence(alignedSequence, existingSequence))
                     {
-                        set.Remove(existingStr);
+                        set.Remove(existingSequence);
                     }
                 }
 
                 if (shouldAdd)
                 {
-                    result.Add(str);
-                    set.Add(str);
+                    result.Add(alignment);
+                    set.Add(alignedSequence);
                 }
             }
 
@@ -56,6 +59,7 @@ namespace SequenceAssemblerLogic
             }
             return i == str1.Length;
         }
+
 
         public static List<string> FilterSequencesByNormalizedLength(List<string> sequences, string reference, int minConsecutiveAminoAcids)
         {

@@ -31,11 +31,8 @@ namespace SequenceAssemblerGUI
     public partial class Assembly : UserControl
     {
 
-        private AssemblyParameters assemblyParameters;
-
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
-        public List<Contig> Contigs { get; set; }
 
        
 
@@ -43,19 +40,18 @@ namespace SequenceAssemblerGUI
         {
             InitializeComponent();
             DataContext = new SequenceViewModel();
-            assemblyParameters = new AssemblyParameters();  
 
         }
 
         //// Método para acessar meu DataGrid
         ////---------------------------------------------------------------------------------------------------------
-        public void UpdateAlignmentGrid(double minNormalizedIdentityScore, int minNormalizedSimilarity, List<Fasta> myFasta)
+        public void UpdateAlignmentGrid(double minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter, List<Fasta> myFasta)
         {
             MyFasta = myFasta;
 
 
             // Apply filters on the data
-            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.Length >= minLengthFilter).ToList();
 
             DataTable dataTable = new DataTable();
 
@@ -92,6 +88,7 @@ namespace SequenceAssemblerGUI
             // Set the DataTable as the data source for your control 
             DataGridAlignments.ItemsSource = dataTable.DefaultView;
             DataGridFasta.ItemsSource = MyFasta;
+
         }
 
 
@@ -178,7 +175,7 @@ namespace SequenceAssemblerGUI
         //Update interface
         //---------------------------------------------------------------------------------------------------------
 
-        public static void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequences, string referenceSequence)
+        public static void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, string referenceSequence)
         {
             
             
@@ -193,14 +190,14 @@ namespace SequenceAssemblerGUI
             viewModel.Seq.Clear();
 
             // Ordenando sequências pelo início do alinhamento
-            var sortedSequences = sequences.OrderBy(seq => seq.StartPositions.Min()).ToList();
+            var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();
 
             foreach (var sequence in sortedSequences)
             {
                 string sequenceId = $"ID {sequence.ID}";
                 var sequenceViewModel = new SequencesViewModel
                 {
-                    ToolTipContent = $"Start Pos: {sequence.StartPositions.Min()}, Source: {sequence.SourceOrigin}"
+                    ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                 };
 
                 // Adicionar espaços até a posição de início - ajustado para começar uma casa para trás
@@ -242,6 +239,7 @@ namespace SequenceAssemblerGUI
                 viewModel.Seq.Add(sequenceViewModel);
             }
 
+
             // Imprimir alinhamento para depuração 
             foreach (var sequencesViewModel in viewModel.Seq)
             {
@@ -252,9 +250,8 @@ namespace SequenceAssemblerGUI
                 }
                 Console.WriteLine();
             }
+
         }
-
-
 
 
 
@@ -296,37 +293,22 @@ namespace SequenceAssemblerGUI
             viewModel.Seq.Clear();
             viewModel.ReferenceAlignments.Clear();
 
-            List<string> alignedSequences = new List<string>();
-            List<int> startPositions = new List<int>();
-
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-
-            var sequencesToAlign = sequencesItems.Select(a => a.AlignedSmallSequence).ToList();
-            var optSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
-
-            List<string> sourceOrigins = sequencesItems.Select(a => a.SourceOrigin).ToList();
-
-            // Ordena os itens de sequência com base na menor posição de início do alinhamento, ajustando para começar uma casa para trás
-            sequencesItems = sequencesItems
+            // Obter a lista de sequências a serem alinhadas
+            List<Alignment> optSequencesToAlign = sequencesItems
                 .Where(a => a.StartPositions != null && a.StartPositions.Count > 0)
-                .OrderBy(a => a.StartPositions.Min()) 
+                .OrderBy(a => a.StartPositions.Min())
                 .ToList();
 
-            // Ordena os itens de sequência com base na posição de início do alinhamento
-            sequencesItems = sequencesItems.OrderBy(a => a.StartPositions.Min()).ToList();
+            // Aplicar a eliminação de duplicatas e subsequências às sequências a serem alinhadas
+            var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
 
-            foreach (Alignment sequenceItem in sequencesItems)
-            {
-                // Obtém as sequências alinhadas
-                (string alignmentSequences, string alignedReferenceSequence) = (sequenceItem.AlignedSmallSequence, referenceSequence);
+            List<string> sourceOrigins = sequencesToAlign.Select(a => a.SourceOrigin).ToList();
 
-            }
+            UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequence);
 
-
-            // Após concluir o loop, atualiza a interface de usuário
-            UpdateUIWithAlignmentAndAssembly(viewModel, sequencesItems, referenceSequence);
 
             sw.Stop();
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);

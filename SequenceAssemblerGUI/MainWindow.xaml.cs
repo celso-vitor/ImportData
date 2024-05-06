@@ -279,6 +279,11 @@ namespace SequenceAssemblerGUI
 
                 DataView dvPSM = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPSM;
+                
+                ButtonUpdate.IsEnabled = true;
+                ButtonProcess.IsEnabled = true;
+
+
             }
 
 
@@ -462,15 +467,13 @@ namespace SequenceAssemblerGUI
 
 
                     // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
-                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).Where(a => a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
+                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).ToList();
 
-
-                    Console.WriteLine(filteredSequences);
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
                     MyAssembly.AlignmentList = myAlignment;
-                    MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, myFasta);
+                    MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter, myFasta);
 
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -495,8 +498,11 @@ namespace SequenceAssemblerGUI
 
         private void UpdateTable()
         {
+            ButtonUpdateAssembly.IsEnabled = true;
             int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
+            int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
+
 
             // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
             var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
@@ -505,9 +511,12 @@ namespace SequenceAssemblerGUI
             MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
         }
 
+        private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
+        {
+            UpdateTable();
+        }
 
 
-        
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
@@ -529,7 +538,7 @@ namespace SequenceAssemblerGUI
 
         }
 
-      
+        
     }
 }
 

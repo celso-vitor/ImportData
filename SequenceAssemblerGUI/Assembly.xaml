@@ -47,6 +47,7 @@
 
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
+        <ProgressBar x:Name="progressBar" Grid.Row="3" Height="20" Margin="10" Visibility="Collapsed"/>
 
         <GroupBox Header="Alignments" Grid.Row="4" Height="350">
             <Grid>
