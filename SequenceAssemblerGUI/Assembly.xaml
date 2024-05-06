@@ -30,9 +30,8 @@
         </GroupBox>
 
         <GroupBox Header="Alignments Table" Grid.Row="1">
-            <DataGrid x:Name="DataGridAlignments"  AutoGenerateColumns="False" Grid.Row="1" Height="300" CanUserAddRows="False" LoadingRow="DataGridAlignments_LoadingRow">
+            <DataGrid x:Name="DataGridAlignments"  AutoGenerateColumns="False" Grid.Row="1" Height="200" CanUserAddRows="False" LoadingRow="DataGridAlignments_LoadingRow">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding ID}" Visibility="Hidden"/>
                     <DataGridTextColumn Header="Identity" Binding="{Binding Identity}"/>
                     <DataGridTextColumn Header="NormalizedIdentityScore" Binding="{Binding NormalizedIdentityScore}"/>
                     <DataGridTextColumn Header="SimilarityScore" Binding="{Binding SimilarityScore}"/>
@@ -49,7 +48,7 @@
 
         <Button Content="Execute" Grid.Row="2" Click="CompareButton_Click" Width="72" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
-        <GroupBox Header="Alignments" Grid.Row="4" Height="650">
+        <GroupBox Header="Alignments" Grid.Row="4" Height="350">
             <Grid>
                 <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">

@@ -464,7 +464,8 @@ namespace SequenceAssemblerGUI
                     // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
                     myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).Where(a => a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
 
-                  
+
+                    Console.WriteLine(filteredSequences);
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
