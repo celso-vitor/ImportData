@@ -534,7 +534,7 @@ namespace SequenceAssemblerGUI
         private void MenuItemCompareSequences_Click(object sender, RoutedEventArgs e)
         {
             CompareSequences cs = new CompareSequences();
-            cs.ShowDialog();
+            cs.Show();
 
         }
 

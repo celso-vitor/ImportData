@@ -257,15 +257,24 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
 
-          
-            string alignedPortion = alignedLarge.Replace("-", "");
+
+            // Remove initial gaps and record how many were removed
+            int initialGaps = 0;
+            while (alignedLarge.Length > initialGaps && alignedLarge[initialGaps] == '-')
+            {
+                initialGaps++;
+            }
+            string alignedPortion = alignedLarge.Substring(initialGaps).Replace("-", "");
+
+            // Search for the start positions in the large sequence, adjusting for the gaps removed
             List<int> startPositions = new List<int>();
             int index = 0;
             while ((index = largeSeq.IndexOf(alignedPortion, index)) != -1)
             {
-                startPositions.Add(index + 1);
+                startPositions.Add(index + 1 - initialGaps); // Adjusting the index for the initial gaps
                 index++;
             }
+
 
 
 
