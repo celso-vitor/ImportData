@@ -157,8 +157,10 @@ namespace SequenceAssemblerGUI
 
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
-                
-          
+               
+
+
+
                 UpdateGeneral();
 
             }
@@ -451,6 +453,12 @@ namespace SequenceAssemblerGUI
                 myFasta = loadedFasta;
 
 
+                // Exemplo: Atualizando o título da janela com o ID e a descrição da primeira sequência
+                var firstSequence = myFasta.First();
+                this.Title = $"Protein Sequence Assembler - {firstSequence.ID} - {firstSequence.Description}";
+
+
+
                 // Declare myAlignment antes deste bloco de código se ainda não tiver sido declarado
 
                 if (filteredSequences != null && filteredSequences.Any())
@@ -472,7 +480,6 @@ namespace SequenceAssemblerGUI
                     // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
                     myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).ToList();
 
-
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
                     MyAssembly.AlignmentList = myAlignment;
@@ -485,6 +492,10 @@ namespace SequenceAssemblerGUI
                     TabItemResultBrowser.IsEnabled = true;
 
                     UpdateTable();
+
+                    string allSequences = string.Join("\n", loadedFasta.Select(fasta => fasta.Sequence));
+                    var (consensusChars, totalCoverage) = MyAssembly.BuildConsensus(myAlignment, allSequences);
+                    LabelCoverage.Content = totalCoverage;
 
                 }
                 else

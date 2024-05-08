@@ -24,12 +24,16 @@ using SequenceAssemblerLogic.ResultParser;
 using System.ComponentModel;
 using System.Diagnostics;
 using SequenceAssemblerLogic;
+using System.Windows.Input;
+using System.IO;
+using Microsoft.Win32;
 
 
 namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
+
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
 
@@ -41,6 +45,7 @@ namespace SequenceAssemblerGUI
 
 
         }
+       
 
         //// Método para acessar meu DataGrid
         ////---------------------------------------------------------------------------------------------------------
@@ -380,16 +385,18 @@ namespace SequenceAssemblerGUI
                 .OrderBy(a => a.StartPositions.Min())
                 .ToList();
 
-            // Aplicar a eliminação de duplicatas e subsequências às sequências a serem alinhadas
+            //Aplicar a eliminação de duplicatas e subsequências às sequências a serem alinhadas
             var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
 
             UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequence);
+            
+            // Chama BuildConsensus e obtém ambos os valores
+            var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
 
-            // Construir e exibir a sequência consenso
-            var consensusSequence = BuildConsensus(sequencesToAlign, referenceSequence);
-            viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusSequence);
+            // Atualiza a ObservableCollection
+            viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
-
+       
             // Atualizar ConsensusText para refletir a nova sequência consenso
             viewModel.ConsensusText = String.Join("  ", viewModel.ConsensusSequence.Select(c => c.Char));
 
@@ -397,8 +404,9 @@ namespace SequenceAssemblerGUI
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
 
             loadingLabel.Visibility = Visibility.Hidden;
+
         }
-        public List<ConsensusChar> BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
+        public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
             int maxLength = sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length);
             List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
@@ -443,16 +451,51 @@ namespace SequenceAssemblerGUI
             double totalCoverage = coverageList.Average();
             Console.WriteLine($"Total Coverage: {totalCoverage:F2}%");
 
-            return consensusSequence;
+            return (consensusSequence, totalCoverage);  // Corrigido para retornar um Tuple contendo a lista e a cobertura total
         }
-
-
-
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
+
+
+        private void DownloadConsensusButton_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = (SequenceViewModel)DataContext;
+
+            if (viewModel.ConsensusSequence == null || !viewModel.ConsensusSequence.Any())
+            {
+                MessageBox.Show("No consensus sequence available. Please generate it before attempting to download.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            SaveConsensusSequenceToFile(viewModel.ConsensusSequence);
+        }
+
+        private void SaveConsensusSequenceToFile(ObservableCollection<ConsensusChar> consensusSequence)
+        {
+            var dialog = new SaveFileDialog()
+            {
+                Filter = "Text file (*.txt)|*.txt|All files (*.*)|*.*",
+                FileName = "ConsensusSequence.txt"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                using (var writer = new StreamWriter(dialog.FileName))
+                {
+                    foreach (var item in consensusSequence)
+                    {
+                        writer.Write(item.Char);  // Apenas escreve o caractere
+                    }
+                }
+                MessageBox.Show($"Consensus sequence saved to {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+
+
     }
 
 
