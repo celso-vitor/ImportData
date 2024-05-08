@@ -8,16 +8,10 @@ using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 using SequenceAssemblerLogic.Tools;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using static SequenceAssemblerGUI.Assembly;
@@ -65,7 +59,6 @@ namespace SequenceAssemblerGUI
         public MainWindow()
         {
             InitializeComponent();
-
         }
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
@@ -162,7 +155,8 @@ namespace SequenceAssemblerGUI
 
 
                 UpdateGeneral();
-
+                DeNovoAssembly.IsSelected = true;
+                TabItemResultBrowser.IsEnabled = false;
             }
 
           
@@ -490,12 +484,14 @@ namespace SequenceAssemblerGUI
                     IdentityUpDown.IsEnabled = true;
                     IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
+                    MyAssembly.DownloadConsensus.Visibility = Visibility.Hidden;
+                    MyAssembly.AssemblyConsensus.Visibility = Visibility.Hidden;
 
                     UpdateTable();
 
-                    string allSequences = string.Join("\n", loadedFasta.Select(fasta => fasta.Sequence));
-                    var (consensusChars, totalCoverage) = MyAssembly.BuildConsensus(myAlignment, allSequences);
-                    LabelCoverage.Content = totalCoverage;
+                    //string allSequences = string.Join("\n", loadedFasta.Select(fasta => fasta.Sequence));
+                    //var (consensusChars, totalCoverage) = MyAssembly.BuildConsensus(myAlignment, allSequences);
+                    //LabelCoverage.Content = totalCoverage;
 
                 }
                 else

@@ -59,8 +59,8 @@
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
-                        
-                        <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" Margin="10,10,10,10" IsEnabled ="False"/>
+
+                        <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" IsEnabled ="False" Height="24"/>
 
                     </WrapPanel>
 
@@ -114,11 +114,11 @@
             </Grid>
 
 
-            
+
 
 
             <TabControl Grid.Row="2">
-                <TabItem Header="De Novo Assembly">
+                <TabItem x:Name="DeNovoAssembly" Header="De Novo Assembly">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition/>

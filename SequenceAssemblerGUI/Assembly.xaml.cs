@@ -27,12 +27,14 @@ using SequenceAssemblerLogic;
 using System.Windows.Input;
 using System.IO;
 using Microsoft.Win32;
+using static SequenceAssemblerGUI.MainWindow;
 
 
 namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
+
 
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
@@ -42,8 +44,6 @@ namespace SequenceAssemblerGUI
         {
             InitializeComponent();
             DataContext = new SequenceViewModel();
-
-
         }
        
 
@@ -396,7 +396,7 @@ namespace SequenceAssemblerGUI
             // Atualiza a ObservableCollection
             viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
-       
+
             // Atualizar ConsensusText para refletir a nova sequência consenso
             viewModel.ConsensusText = String.Join("  ", viewModel.ConsensusSequence.Select(c => c.Char));
 
@@ -404,6 +404,8 @@ namespace SequenceAssemblerGUI
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
 
             loadingLabel.Visibility = Visibility.Hidden;
+            DownloadConsensus.Visibility = Visibility.Visible;
+            AssemblyConsensus.Visibility = Visibility.Visible;
 
         }
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
@@ -450,6 +452,13 @@ namespace SequenceAssemblerGUI
             // Calculando a cobertura total
             double totalCoverage = coverageList.Average();
             Console.WriteLine($"Total Coverage: {totalCoverage:F2}%");
+
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.LabelCoverage.Content = $"{totalCoverage:F2}%"; // Exemplo de alteração do conteúdo
+            }
+
 
             return (consensusSequence, totalCoverage);  // Corrigido para retornar um Tuple contendo a lista e a cobertura total
         }
