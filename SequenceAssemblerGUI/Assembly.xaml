@@ -113,11 +113,34 @@
             </Grid>
         </GroupBox>
 
-        <!--<GroupBox Header="Assembly" Grid.Row="7">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" >
-                <TextBox Text="{Binding AssemblySequence}" FontFamily="Courier New" IsReadOnly="True" TextWrapping="NoWrap" Height="40"/>
+        <GroupBox Header="Assembly" Grid.Row="7" Height="100">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Área para visualização gráfica da sequência -->
+                    <ItemsControl ItemsSource="{Binding ConsensusSequence}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="23.4" Height="20" Background="{Binding BackgroundColor}">
+                                    <TextBlock Text="{Binding Char}" FontSize="13" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                       FontFamily="Courier New" FontWeight="Light" Margin="0,2,3,0"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" IsItemsHost="True"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <!-- TextBox para permitir a cópia da sequência -->
+                    <TextBox Text="{Binding ConsensusText}" IsReadOnly="True"
+                     Background="White" Foreground="Black" HorizontalAlignment="Stretch"
+                     Margin="2" Height="30" FontSize="13" FontWeight="Light"  FontFamily="Courier New" />
+                </StackPanel>
             </ScrollViewer>
-        </GroupBox>-->
+        </GroupBox>
+
 
     </Grid>
 </UserControl>

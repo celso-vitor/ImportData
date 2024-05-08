@@ -30,16 +30,15 @@ namespace SequenceAssemblerGUI
 {
     public partial class Assembly : UserControl
     {
-
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
 
        
-
         public Assembly()
         {
             InitializeComponent();
             DataContext = new SequenceViewModel();
+
 
         }
 
@@ -122,12 +121,44 @@ namespace SequenceAssemblerGUI
 
         }
 
+        public class ConsensusChar : INotifyPropertyChanged
+        {
+            private string _char;
+            private SolidColorBrush _backgroundColor;
+
+            public string Char
+            {
+                get => _char;
+                set
+                {
+                    _char = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public SolidColorBrush BackgroundColor
+            {
+                get => _backgroundColor;
+                set
+                {
+                    _backgroundColor = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
 
         //Visual/Contigs
         //---------------------------------------------------------------------------------------------------------
         public class SequencesViewModel : INotifyPropertyChanged
         {
-            public string Id { get; set; }
 
             private string _toolTipContent;
             public ObservableCollection<VisualAlignment> VisualAlignment { get; set; } = new ObservableCollection<VisualAlignment>();
@@ -158,7 +189,27 @@ namespace SequenceAssemblerGUI
         //---------------------------------------------------------------------------------------------------------
         public class SequenceViewModel : INotifyPropertyChanged
         {
-            
+            private ObservableCollection<ConsensusChar> _consensusSequence;
+            public ObservableCollection<ConsensusChar> ConsensusSequence
+            {
+                get => _consensusSequence;
+                set
+                {
+                    _consensusSequence = value;
+                    OnPropertyChanged(nameof(ConsensusSequence));
+                }
+            }
+
+            private string _consensusText;
+            public string ConsensusText
+            {
+                get => _consensusText;
+                set
+                {
+                    _consensusText = value;
+                    OnPropertyChanged(nameof(ConsensusText));
+                }
+            }
 
             public ObservableCollection<VisualAlignment> ReferenceAlignments { get; set; } = new ObservableCollection<VisualAlignment>();
             public ObservableCollection<SequencesViewModel> Seq { get; set; } = new ObservableCollection<SequencesViewModel>();
@@ -283,8 +334,9 @@ namespace SequenceAssemblerGUI
             return newRow;
         }
 
-
-
+   
+      
+ 
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
         public static void DoEvents()
@@ -296,12 +348,10 @@ namespace SequenceAssemblerGUI
         {
             if (DataGridFasta.ItemsSource == null || DataGridAlignments.ItemsSource == null)
             {
-                // Verifica se as fontes de itens estão definidas
                 MessageBox.Show("Please load data into the DataGrids before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            // Mostrar a label "Loading..."
             loadingLabel.Visibility = Visibility.Visible;
             DoEvents();
 
@@ -310,7 +360,6 @@ namespace SequenceAssemblerGUI
 
             if (referenceItems == null || sequencesItems == null || !referenceItems.Any() || !sequencesItems.Any())
             {
-                // Verifica se as listas de itens estão vazias ou nulas
                 MessageBox.Show("No data found in the DataGrids. Please load data before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
@@ -334,18 +383,71 @@ namespace SequenceAssemblerGUI
             // Aplicar a eliminação de duplicatas e subsequências às sequências a serem alinhadas
             var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
 
-            List<string> sourceOrigins = sequencesToAlign.Select(a => a.SourceOrigin).ToList();
-
             UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequence);
 
+            // Construir e exibir a sequência consenso
+            var consensusSequence = BuildConsensus(sequencesToAlign, referenceSequence);
+            viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusSequence);
+
+
+            // Atualizar ConsensusText para refletir a nova sequência consenso
+            viewModel.ConsensusText = String.Join("  ", viewModel.ConsensusSequence.Select(c => c.Char));
 
             sw.Stop();
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
 
-
-            // Agora que os dados foram carregados, ocultar a label "Loading..."
             loadingLabel.Visibility = Visibility.Hidden;
         }
+        public List<ConsensusChar> BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
+        {
+            int maxLength = sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length);
+            List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
+            int totalSequences = sequencesToAlign.Count;  // Total de sequências alinhadas para cálculo da cobertura
+            List<double> coverageList = new List<double>();  // Lista para armazenar cobertura de cada posição
+
+            for (int i = 0; i < maxLength; i++)
+            {
+                var column = new List<char>();
+                int nonGapCount = 0;  // Contador de caracteres não-gap
+
+                if (i < referenceSequence.Length)
+                {
+                    column.Add(referenceSequence[i]);
+                }
+
+                foreach (var seq in sequencesToAlign)
+                {
+                    int pos = i - (seq.StartPositions.Min() - 1);
+                    if (pos >= 0 && pos < seq.AlignedSmallSequence.Length)
+                    {
+                        char charToAdd = seq.AlignedSmallSequence[pos];
+                        if (charToAdd != '-')
+                        {
+                            column.Add(charToAdd);
+                            nonGapCount++;
+                        }
+                    }
+                }
+
+                char consensusChar = column.GroupBy(c => c).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault();
+                SolidColorBrush color = column.All(c => c == consensusChar) ? new SolidColorBrush(Colors.LightGreen) : new SolidColorBrush(Colors.LightCoral);
+
+                consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color });
+
+                double coverage = (double)nonGapCount / totalSequences * 100;
+                coverageList.Add(coverage);  // Adiciona a cobertura da posição atual à lista
+                Console.WriteLine($"Position {i}: Coverage = {coverage:F2}%");
+            }
+
+            // Calculando a cobertura total
+            double totalCoverage = coverageList.Average();
+            Console.WriteLine($"Total Coverage: {totalCoverage:F2}%");
+
+            return consensusSequence;
+        }
+
+
+
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {

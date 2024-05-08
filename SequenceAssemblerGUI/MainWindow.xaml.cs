@@ -10,9 +10,11 @@ using SequenceAssemblerLogic.Tools;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -164,6 +166,7 @@ namespace SequenceAssemblerGUI
           
         }
 
+    
 
         private void UpdatePlot()
         {
@@ -482,6 +485,7 @@ namespace SequenceAssemblerGUI
                     TabItemResultBrowser.IsEnabled = true;
 
                     UpdateTable();
+
                 }
                 else
                 {
@@ -489,8 +493,6 @@ namespace SequenceAssemblerGUI
                 }
             }
         }
-
-
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
@@ -511,6 +513,7 @@ namespace SequenceAssemblerGUI
             MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
         }
 
+       
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
         {
             UpdateTable();
