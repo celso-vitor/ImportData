@@ -276,30 +276,38 @@ namespace SequenceAssemblerGUI
                 rowEndPositions[rowIndex] = startPosition + sequence.AlignedSmallSequence.Length;
 
                 // Adicionando as letras das sequências alinhadas
+                // Adicionando as letras das sequências alinhadas
                 foreach (char seqChar in sequence.AlignedSmallSequence)
                 {
                     Brush corDeFundo;
                     int refIndex = startPosition++;
+                    string letra;
+
                     if (seqChar == '-')
                     {
-                        corDeFundo = Brushes.Orange; // Cor laranja para gaps
+                        corDeFundo = Brushes.LightGray; // Cor cinza para gaps
+                        letra = " "; // Adiciona um espaço em branco no lugar do gap
                     }
                     else if (refIndex < referenceSequence.Length)
                     {
                         corDeFundo = seqChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                        letra = seqChar.ToString();
                     }
                     else
                     {
                         corDeFundo = Brushes.LightGray; // Fora dos limites da referência
+                        letra = seqChar.ToString();
                     }
+
                     var visualAlignment = new VisualAlignment
                     {
-                        Letra = seqChar.ToString(),
+                        Letra = letra,
                         CorDeFundo = corDeFundo,
                         ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                     };
                     sequenceViewModel.VisualAlignment.Add(visualAlignment);
                 }
+
                 // Adiciona o viewModel da sequência na linha correspondente
                 while (viewModel.Seq.Count <= rowIndex)
                 {
@@ -309,6 +317,7 @@ namespace SequenceAssemblerGUI
                 {
                     viewModel.Seq[rowIndex].VisualAlignment.Add(item);
                 }
+
 
             }
 
@@ -350,6 +359,12 @@ namespace SequenceAssemblerGUI
         }
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
+        {
+            ExecuteAssembly();
+
+        }
+
+        public void ExecuteAssembly()
         {
             if (DataGridFasta.ItemsSource == null || DataGridAlignments.ItemsSource == null)
             {
@@ -404,9 +419,8 @@ namespace SequenceAssemblerGUI
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
 
             loadingLabel.Visibility = Visibility.Hidden;
-            DownloadConsensus.Visibility = Visibility.Visible;
+            DownloadConsensus.IsEnabled = true; ;
             AssemblyConsensus.Visibility = Visibility.Visible;
-
         }
 
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
@@ -420,10 +434,12 @@ namespace SequenceAssemblerGUI
             {
                 var column = new List<char>();
                 int nonGapCount = 0;  // Contador de caracteres não-gap
+                bool fromReferenceOnly = false;  // Flag para identificar se a letra vem apenas da referência
 
                 if (i < referenceSequence.Length)
                 {
                     column.Add(referenceSequence[i]);
+                    fromReferenceOnly = true;
                 }
 
                 foreach (var seq in sequencesToAlign)
@@ -436,12 +452,26 @@ namespace SequenceAssemblerGUI
                         {
                             column.Add(charToAdd);
                             nonGapCount++;
+                            fromReferenceOnly = false;  // Existe pelo menos uma sequência alinhada que cobre esta posição
                         }
                     }
                 }
 
                 char consensusChar = column.GroupBy(c => c).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault();
-                SolidColorBrush color = column.All(c => c == consensusChar) ? new SolidColorBrush(Colors.LightGreen) : new SolidColorBrush(Colors.LightCoral);
+                SolidColorBrush color;
+
+                if (fromReferenceOnly)
+                {
+                    color = new SolidColorBrush(Colors.White);  // Nova cor para letras da referência apenas
+                }
+                else if (column.All(c => c == consensusChar))
+                {
+                    color = new SolidColorBrush(Colors.LightGreen);  // Verde claro se todos os caracteres são iguais ao consenso
+                }
+                else
+                {
+                    color = new SolidColorBrush(Colors.LightCoral);  // Vermelho claro se nem todos os caracteres são iguais ao consenso
+                }
 
                 consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color });
 
@@ -454,7 +484,7 @@ namespace SequenceAssemblerGUI
             double overallCoverage = (double)coveredPositions / referenceSequence.Length * 100;
             Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
-           //Atualizando Cobertura depois do alinhamento
+            // Atualizando Cobertura depois do alinhamento
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
@@ -462,8 +492,9 @@ namespace SequenceAssemblerGUI
             }
 
             return (consensusSequence, overallCoverage);
-        } 
-        
+        }
+
+
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {

@@ -484,10 +484,11 @@ namespace SequenceAssemblerGUI
                     IdentityUpDown.IsEnabled = true;
                     IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
-                    MyAssembly.DownloadConsensus.Visibility = Visibility.Hidden;
                     MyAssembly.AssemblyConsensus.Visibility = Visibility.Hidden;
 
                     UpdateTable();
+
+                    MyAssembly.ExecuteAssembly();
 
                     //string allSequences = string.Join("\n", loadedFasta.Select(fasta => fasta.Sequence));
                     //var (consensusChars, totalCoverage) = MyAssembly.BuildConsensus(myAlignment, allSequences);
