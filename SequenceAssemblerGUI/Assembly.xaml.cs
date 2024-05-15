@@ -53,7 +53,6 @@ namespace SequenceAssemblerGUI
         {
             MyFasta = myFasta;
 
-
             // Apply filters on the data
             List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.Length >= minLengthFilter).ToList();
 
@@ -73,7 +72,6 @@ namespace SequenceAssemblerGUI
             // Fill the DataTable with your data
             foreach (var alignment in filteredAlnResults)
             {
-
                 DataRow newRow = dataTable.NewRow();
                 newRow["Identity"] = alignment.Identity;
                 newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
@@ -85,15 +83,14 @@ namespace SequenceAssemblerGUI
                 newRow["AlignedLargeSequence"] = alignment.AlignedLargeSequence;
                 newRow["AlignedSmallSequence"] = alignment.AlignedSmallSequence;
 
-
                 dataTable.Rows.Add(newRow);
             }
 
             // Set the DataTable as the data source for your control 
             DataGridAlignments.ItemsSource = dataTable.DefaultView;
             DataGridFasta.ItemsSource = MyFasta;
-
         }
+
 
 
 

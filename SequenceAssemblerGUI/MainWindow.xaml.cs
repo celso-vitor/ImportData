@@ -490,10 +490,6 @@ namespace SequenceAssemblerGUI
 
                     MyAssembly.ExecuteAssembly();
 
-                    //string allSequences = string.Join("\n", loadedFasta.Select(fasta => fasta.Sequence));
-                    //var (consensusChars, totalCoverage) = MyAssembly.BuildConsensus(myAlignment, allSequences);
-                    //LabelCoverage.Content = totalCoverage;
-
                 }
                 else
                 {
@@ -525,6 +521,8 @@ namespace SequenceAssemblerGUI
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
         {
             UpdateTable();
+            MyAssembly.ExecuteAssembly();
+
         }
 
 
