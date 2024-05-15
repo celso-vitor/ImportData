@@ -39,13 +39,13 @@ namespace SequenceAssemblerGUI
         public List<Alignment> AlignmentList { get; set; }
         public List<Fasta> MyFasta { get; set; }
 
-       
+
         public Assembly()
         {
             InitializeComponent();
             DataContext = new SequenceViewModel();
         }
-       
+
 
         //// Método para acessar meu DataGrid
         ////---------------------------------------------------------------------------------------------------------
@@ -339,9 +339,9 @@ namespace SequenceAssemblerGUI
             return newRow;
         }
 
-   
-      
- 
+
+
+
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
         public static void DoEvents()
@@ -389,7 +389,7 @@ namespace SequenceAssemblerGUI
             var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
 
             UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequence);
-            
+
             // Chama BuildConsensus e obtém ambos os valores
             var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
 
@@ -408,12 +408,13 @@ namespace SequenceAssemblerGUI
             AssemblyConsensus.Visibility = Visibility.Visible;
 
         }
+
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
             int maxLength = sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length);
             List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
             int totalSequences = sequencesToAlign.Count;  // Total de sequências alinhadas para cálculo da cobertura
-            List<double> coverageList = new List<double>();  // Lista para armazenar cobertura de cada posição
+            int coveredPositions = 0;  // Total de posições cobertas (não-gap) na sequência de referência
 
             for (int i = 0; i < maxLength; i++)
             {
@@ -444,24 +445,25 @@ namespace SequenceAssemblerGUI
 
                 consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color });
 
-                double coverage = (double)nonGapCount / totalSequences * 100;
-                coverageList.Add(coverage);  // Adiciona a cobertura da posição atual à lista
-                Console.WriteLine($"Position {i}: Coverage = {coverage:F2}%");
+                if (i < referenceSequence.Length && nonGapCount > 0)
+                {
+                    coveredPositions++;  // Incrementa se a posição atual da sequência de referência estiver coberta por pelo menos um não-gap
+                }
             }
 
-            // Calculando a cobertura total
-            double totalCoverage = coverageList.Average();
-            Console.WriteLine($"Total Coverage: {totalCoverage:F2}%");
+            double overallCoverage = (double)coveredPositions / referenceSequence.Length * 100;
+            Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
+           //Atualizando Cobertura depois do alinhamento
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-                mainWindow.LabelCoverage.Content = $"{totalCoverage:F2}%"; // Exemplo de alteração do conteúdo
+                mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%"; // Exemplo de alteração do conteúdo
             }
 
-
-            return (consensusSequence, totalCoverage);  // Corrigido para retornar um Tuple contendo a lista e a cobertura total
-        }
+            return (consensusSequence, overallCoverage);
+        } 
+        
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {
