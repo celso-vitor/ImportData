@@ -47,97 +47,99 @@
         <ProgressBar x:Name="progressBar" Grid.Row="3" Height="20" Margin="10" Visibility="Collapsed"/>
 
         <GroupBox Header="Alignments" Grid.Row="4" Height="300">
-            <Grid>
-                <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <!-- Exibe a sequência de referência -->
-                        <StackPanel Orientation="Horizontal" Background="LightBlue" Margin="4">
-                            <ItemsControl ItemsSource="{Binding ReferenceAlignments}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <Grid>
+                        <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
+                        <StackPanel>
+                            <!-- Exibe a sequência de referência -->
+                            <StackPanel Orientation="Horizontal" Background="LightBlue" Margin="4">
+                                <ItemsControl ItemsSource="{Binding ReferenceAlignments}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
+                                                <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+                            <!-- Exibe as sequências de alinhamento -->
+                            <ItemsControl ItemsSource="{Binding Seq}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
-                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
+                                                <!-- Removido o ToolTip daqui -->
+                                                <ItemsControl ItemsSource="{Binding VisualAlignment}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <!-- Movido o ToolTip para cada Border individual -->
+                                                            <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
+                                                                <Border.ToolTip>
+                                                                    <ToolTip>
+                                                                        <!-- O ToolTip agora é configurado para cada letra -->
+                                                                        <TextBlock Text="{Binding ToolTipContent}" />
+                                                                    </ToolTip>
+                                                                </Border.ToolTip>
+                                                                <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                </ItemsControl>
+                                            </Border>
+                                            <!-- Texto de Tipo de Sequência pode ser adicionado aqui se necessário -->
+                                            <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
                             </ItemsControl>
                         </StackPanel>
-                        <!-- Exibe as sequências de alinhamento -->
-                        <ItemsControl ItemsSource="{Binding Seq}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border BorderThickness="1" BorderBrush="Gray" Margin="4">
-                                            <!-- Removido o ToolTip daqui -->
-                                            <ItemsControl ItemsSource="{Binding VisualAlignment}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <!-- Movido o ToolTip para cada Border individual -->
-                                                        <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
-                                                            <Border.ToolTip>
-                                                                <ToolTip>
-                                                                    <!-- O ToolTip agora é configurado para cada letra -->
-                                                                    <TextBlock Text="{Binding ToolTipContent}" />
-                                                                </ToolTip>
-                                                            </Border.ToolTip>
-                                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal"/>
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                            </ItemsControl>
-                                        </Border>
-                                        <!-- Texto de Tipo de Sequência pode ser adicionado aqui se necessário -->
-                                        <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </ScrollViewer>
+                    </Grid>
 
-                <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
-            </Grid>
-        </GroupBox>
+                    <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
 
-        <Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Grid.Row="5" Width="202" HorizontalAlignment="Center" Margin="0,10,0,5"  Visibility="Hidden"/>
-
-        <GroupBox x:Name="AssemblyConsensus" Header="Assembly" Grid.Row="7" Height="80" Visibility="Hidden">
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <!-- Área para visualização gráfica da sequência -->
-                    <ItemsControl ItemsSource="{Binding ConsensusSequence}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Width="20" Height="20" Background="{Binding BackgroundColor}">
-                                    <TextBlock Text="{Binding Char}" FontSize="13" 
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                       FontFamily="Courier New" FontWeight="Light" Margin="5,2,5,0"/>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" IsItemsHost="True"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
+                    <!-- Adicionando o Assembly Consensus no mesmo GroupBox -->
+                    <GroupBox x:Name="AssemblyConsensus" Header="Assembly" Height="80" Visibility="Hidden">
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <!-- Área para visualização gráfica da sequência -->
+                                <ItemsControl ItemsSource="{Binding ConsensusSequence}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="20" Height="20" Background="{Binding BackgroundColor}">
+                                                <TextBlock Text="{Binding Char}" FontSize="13" 
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                                   FontFamily="Courier New" FontWeight="Light" Margin="5,2,5,0"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" IsItemsHost="True"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </GroupBox>
                 </StackPanel>
             </ScrollViewer>
         </GroupBox>
 
+        <Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Grid.Row="5" Width="202" HorizontalAlignment="Center" Margin="0,10,0,5" Visibility="Hidden"/>
 
-        
+
     </Grid>
 </UserControl>
 
