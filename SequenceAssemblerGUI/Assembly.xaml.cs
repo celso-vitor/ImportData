@@ -28,7 +28,7 @@ using System.Windows.Input;
 using System.IO;
 using Microsoft.Win32;
 using static SequenceAssemblerGUI.MainWindow;
-
+using System.Collections;
 
 namespace SequenceAssemblerGUI
 {
@@ -58,7 +58,8 @@ namespace SequenceAssemblerGUI
 
             DataTable dataTable = new DataTable();
 
-            // Define the DataTable columns with the appropriate data types  
+            // Define the DataTable columns with the appropriate data types
+            dataTable.Columns.Add("StartPositions", typeof(int));
             dataTable.Columns.Add("Identity", typeof(int));
             dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
             dataTable.Columns.Add("SimilarityScore", typeof(int));
@@ -73,6 +74,7 @@ namespace SequenceAssemblerGUI
             foreach (var alignment in filteredAlnResults)
             {
                 DataRow newRow = dataTable.NewRow();
+                newRow["StartPositions"] = alignment.StartPositions;
                 newRow["Identity"] = alignment.Identity;
                 newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
                 newRow["SimilarityScore"] = alignment.SimilarityScore;
@@ -158,10 +160,11 @@ namespace SequenceAssemblerGUI
         }
 
 
-        //Visual/Contigs
+        //Visual/Sequencias
         //---------------------------------------------------------------------------------------------------------
         public class SequencesViewModel : INotifyPropertyChanged
         {
+            public string StartPositions { get; set; }
 
             private string _toolTipContent;
             public ObservableCollection<VisualAlignment> VisualAlignment { get; set; } = new ObservableCollection<VisualAlignment>();
@@ -264,6 +267,11 @@ namespace SequenceAssemblerGUI
 
         }
 
+      
+        
+
+
+
 
 
 
@@ -292,11 +300,12 @@ namespace SequenceAssemblerGUI
             foreach (var sequence in sortedSequences)
             {
                 string sequenceId = $"ID {sequence.ID}";
+
                 var sequenceViewModel = new SequencesViewModel
                 {
                     ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                 };
-
+              
                 int startPosition = sequence.StartPositions.Min() - 1;
                 int rowIndex = FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
 
@@ -553,6 +562,7 @@ namespace SequenceAssemblerGUI
                 viewModel.UpdateConsensusColoring();
             }
         }
+       
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {

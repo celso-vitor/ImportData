@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
 
         <Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Width="202" Margin="10,5,10,10"/>
-        <CheckBox x:Name="colorILCheckBox" Content="Color 'I' and 'L' as Green" IsChecked="False" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" Margin="10" VerticalAlignment="Top"/>
+        <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="False" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" Margin="10" VerticalAlignment="Top"/>
 
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
             <TabControl>
@@ -109,8 +109,9 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <DataGrid x:Name="DataGridFasta" AutoGenerateColumns="True" CanUserAddRows="False" MaxHeight="250"/>
-                        <DataGrid x:Name="DataGridAlignments"  AutoGenerateColumns="False" Grid.Row="1" CanUserAddRows="False" LoadingRow="DataGridAlignments_LoadingRow" AlternatingRowBackground="LightGray">
+                        <DataGrid x:Name="DataGridAlignments" AutoGenerateColumns="False" Grid.Row="1" CanUserAddRows="False" LoadingRow="DataGridAlignments_LoadingRow" AlternatingRowBackground="LightGray">
                             <DataGrid.Columns>
+                                <DataGridTextColumn Header="StartPositions" Binding="{Binding StartPositons;}" />
                                 <DataGridTextColumn Header="Identity" Binding="{Binding Identity}"/>
                                 <DataGridTextColumn Header="NormalizedIdentityScore" Binding="{Binding NormalizedIdentityScore}"/>
                                 <DataGridTextColumn Header="SimilarityScore" Binding="{Binding SimilarityScore}"/>
