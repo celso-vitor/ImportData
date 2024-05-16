@@ -13,6 +13,7 @@
         </Grid.RowDefinitions>
 
         <Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Width="202" Margin="10,5,10,10"/>
+        <CheckBox x:Name="colorILCheckBox" Content="Color 'I' and 'L' as Green" IsChecked="False" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" Margin="10" VerticalAlignment="Top"/>
 
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1">
             <TabControl>
@@ -26,7 +27,7 @@
                         <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
                         <StackPanel Grid.Row="0">
                             <!-- Exibe a sequência de referência -->
-                            <StackPanel Orientation="Horizontal" Background="LightBlue" Margin="4">
+                            <StackPanel Orientation="Horizontal" Background="WhiteSmoke" Margin="4">
                                 <ItemsControl ItemsSource="{Binding ReferenceAlignments}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -84,8 +85,8 @@
                                     <ItemsControl ItemsSource="{Binding ConsensusSequence}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Width="22" Height="18" Background="{Binding BackgroundColor}">
-                                                    <TextBlock Text="{Binding Char}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Courier New" FontWeight="Light" Margin="5,2,5,0"/>
+                                                <Border Width="20" Height="20" Margin="1" Background="{Binding BackgroundColor}">
+                                                    <TextBlock Text="{Binding Char}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

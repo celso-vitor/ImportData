@@ -127,6 +127,7 @@ namespace SequenceAssemblerGUI
         {
             private string _char;
             private SolidColorBrush _backgroundColor;
+            public SolidColorBrush OriginalBackgroundColor { get; set; }  // Adicionar a cor original
 
             public string Char
             {
@@ -192,6 +193,8 @@ namespace SequenceAssemblerGUI
         public class SequenceViewModel : INotifyPropertyChanged
         {
             private ObservableCollection<ConsensusChar> _consensusSequence;
+            private bool _colorIL;
+
             public ObservableCollection<ConsensusChar> ConsensusSequence
             {
                 get => _consensusSequence;
@@ -202,14 +205,14 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            private string _consensusText;
-            public string ConsensusText
+            public bool ColorIL
             {
-                get => _consensusText;
+                get => _colorIL;
                 set
                 {
-                    _consensusText = value;
-                    OnPropertyChanged(nameof(ConsensusText));
+                    _colorIL = value;
+                    OnPropertyChanged(nameof(ColorIL));
+                    UpdateConsensusColoring();
                 }
             }
 
@@ -222,8 +225,45 @@ namespace SequenceAssemblerGUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
 
+            public void UpdateConsensusColoring()
+            {
+                if (ConsensusSequence == null || Seq == null) return;
+
+                for (int i = 0; i < ConsensusSequence.Count; i++)
+                {
+                    var consensusChar = ConsensusSequence[i];
+                    var columnChars = new List<char>();
+                    bool hasRedIL = false;
+
+                    foreach (var seq in Seq)
+                    {
+                        if (i < seq.VisualAlignment.Count)
+                        {
+                            var alignmentChar = seq.VisualAlignment[i];
+                            if (alignmentChar.Letra != " " && (alignmentChar.Letra == "I" || alignmentChar.Letra == "L") && alignmentChar.CorDeFundo == Brushes.LightCoral)
+                            {
+                                hasRedIL = true;
+                            }
+                            if (alignmentChar.Letra != " ")
+                            {
+                                columnChars.Add(alignmentChar.Letra[0]);
+                            }
+                        }
+                    }
+
+                    if (ColorIL && hasRedIL)
+                    {
+                        consensusChar.BackgroundColor = new SolidColorBrush(Colors.LightGreen);
+                    }
+                    else
+                    {
+                        consensusChar.BackgroundColor = consensusChar.OriginalBackgroundColor;
+                    }
+                }
+            }
 
         }
+
 
 
 
@@ -273,7 +313,6 @@ namespace SequenceAssemblerGUI
                 rowEndPositions[rowIndex] = startPosition + sequence.AlignedSmallSequence.Length;
 
                 // Adicionando as letras das sequências alinhadas
-                // Adicionando as letras das sequências alinhadas
                 foreach (char seqChar in sequence.AlignedSmallSequence)
                 {
                     Brush corDeFundo;
@@ -314,8 +353,19 @@ namespace SequenceAssemblerGUI
                 {
                     viewModel.Seq[rowIndex].VisualAlignment.Add(item);
                 }
+            }
 
-
+            // Preencher até o final da sequência de referência com espaços em branco apenas nas últimas sequências adicionadas
+            foreach (var sequenceViewModel in viewModel.Seq)
+            {
+                int currentLength = sequenceViewModel.VisualAlignment.Count;
+                if (currentLength < referenceSequence.Length)
+                {
+                    for (int i = currentLength; i < referenceSequence.Length; i++)
+                    {
+                        sequenceViewModel.VisualAlignment.Add(new VisualAlignment { Letra = " ", CorDeFundo = Brushes.LightGray });
+                    }
+                }
             }
 
             // Imprimir alinhamento para depuração 
@@ -391,47 +441,41 @@ namespace SequenceAssemblerGUI
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            // Obter a lista de sequências a serem alinhadas
             List<Alignment> optSequencesToAlign = sequencesItems
                 .Where(a => a.StartPositions != null && a.StartPositions.Count > 0)
                 .OrderBy(a => a.StartPositions.Min())
                 .ToList();
 
-            //Aplicar a eliminação de duplicatas e subsequências às sequências a serem alinhadas
             var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
 
             UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequence);
 
-            // Chama BuildConsensus e obtém ambos os valores
             var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
 
-            // Atualiza a ObservableCollection
             viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
-
-            // Atualizar ConsensusText para refletir a nova sequência consenso
-            viewModel.ConsensusText = String.Join("  ", viewModel.ConsensusSequence.Select(c => c.Char));
+            //viewModel.ConsensusText = String.Join("  ", viewModel.ConsensusSequence.Select(c => c.Char));
+            viewModel.UpdateConsensusColoring();
 
             sw.Stop();
             Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
 
             loadingLabel.Visibility = Visibility.Hidden;
-            DownloadConsensus.IsEnabled = true; ;
+            DownloadConsensus.IsEnabled = true;
             AssemblyConsensus.Visibility = Visibility.Visible;
         }
-
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
-            int maxLength = sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length);
+            int maxLength = Math.Max(sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length), referenceSequence.Length);
             List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
-            int totalSequences = sequencesToAlign.Count;  // Total de sequências alinhadas para cálculo da cobertura
-            int coveredPositions = 0;  // Total de posições cobertas (não-gap) na sequência de referência
+            int totalSequences = sequencesToAlign.Count;
+            int coveredPositions = 0;
 
             for (int i = 0; i < maxLength; i++)
             {
                 var column = new List<char>();
-                int nonGapCount = 0;  // Contador de caracteres não-gap
-                bool fromReferenceOnly = false;  // Flag para identificar se a letra vem apenas da referência
+                int nonGapCount = 0;
+                bool fromReferenceOnly = false;
 
                 if (i < referenceSequence.Length)
                 {
@@ -449,7 +493,7 @@ namespace SequenceAssemblerGUI
                         {
                             column.Add(charToAdd);
                             nonGapCount++;
-                            fromReferenceOnly = false;  // Existe pelo menos uma sequência alinhada que cobre esta posição
+                            fromReferenceOnly = false;
                         }
                     }
                 }
@@ -459,39 +503,56 @@ namespace SequenceAssemblerGUI
 
                 if (fromReferenceOnly)
                 {
-                    color = new SolidColorBrush(Colors.White);  // Nova cor para letras da referência apenas
+                    color = new SolidColorBrush(Colors.White);
                 }
                 else if (column.All(c => c == consensusChar))
                 {
-                    color = new SolidColorBrush(Colors.LightGreen);  // Verde claro se todos os caracteres são iguais ao consenso
+                    color = new SolidColorBrush(Colors.LightGreen);
                 }
                 else
                 {
-                    color = new SolidColorBrush(Colors.LightCoral);  // Vermelho claro se nem todos os caracteres são iguais ao consenso
+                    color = new SolidColorBrush(Colors.LightCoral);
                 }
 
-                consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color });
+                consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color, OriginalBackgroundColor = color });
 
                 if (i < referenceSequence.Length && nonGapCount > 0)
                 {
-                    coveredPositions++;  // Incrementa se a posição atual da sequência de referência estiver coberta por pelo menos um não-gap
+                    coveredPositions++;
                 }
             }
 
             double overallCoverage = (double)coveredPositions / referenceSequence.Length * 100;
             Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
-            // Atualizando Cobertura depois do alinhamento
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-                mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%"; // Exemplo de alteração do conteúdo
+                mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%";
             }
 
             return (consensusSequence, overallCoverage);
         }
 
+        private void OnColorILChecked(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as SequenceViewModel;
+            if (viewModel != null)
+            {
+                viewModel.ColorIL = true;
+                viewModel.UpdateConsensusColoring();
+            }
+        }
 
+        private void OnColorILUnchecked(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as SequenceViewModel;
+            if (viewModel != null)
+            {
+                viewModel.ColorIL = false;
+                viewModel.UpdateConsensusColoring();
+            }
+        }
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {
