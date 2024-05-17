@@ -496,6 +496,7 @@ namespace SequenceAssemblerGUI
 
                     MyAssembly.ExecuteAssembly();
 
+
                 }
                 else
                 {

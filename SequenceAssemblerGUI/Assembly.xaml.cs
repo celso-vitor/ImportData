@@ -35,10 +35,7 @@ namespace SequenceAssemblerGUI
     public partial class Assembly : UserControl
     {
 
-
         public List<Alignment> AlignmentList { get; set; }
-        public List<Fasta> MyFasta { get; set; }
-
 
         public Assembly()
         {
@@ -218,13 +215,6 @@ namespace SequenceAssemblerGUI
         }
 
       
-        
-
-
-
-
-
-
 
         //Update interface
         //---------------------------------------------------------------------------------------------------------
@@ -356,18 +346,16 @@ namespace SequenceAssemblerGUI
 
 
 
-
         //Botton Click/ Montagem dos alinhamentos
         //---------------------------------------------------------------------------------------------------------
-        public static void DoEvents()
-        {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(delegate { }));
-        }
+        //public static void DoEvents()
+        //{
+        //    Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(delegate { }));
+        //}
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
             ExecuteAssembly();
-
         }
 
         public void ExecuteAssembly()
@@ -378,8 +366,8 @@ namespace SequenceAssemblerGUI
                 return;
             }
 
-            loadingLabel.Visibility = Visibility.Visible;
-            DoEvents();
+            //loadingLabel.Visibility = Visibility.Visible;
+            ////DoEvents();
 
             var referenceItems = DataGridFasta.ItemsSource as List<Fasta>;
             var sequencesItems = DataGridAlignments.ItemsSource as List<Alignment>;
@@ -411,12 +399,44 @@ namespace SequenceAssemblerGUI
             viewModel.UpdateConsensusColoring();
 
             sw.Stop();
-            Console.WriteLine("Time for alignment " + sw.ElapsedMilliseconds * 1000);
+            Console.WriteLine("Time for alignment: " + sw.ElapsedMilliseconds * 1000 + " microseconds");
 
-            loadingLabel.Visibility = Visibility.Hidden;
+            //loadingLabel.Visibility = Visibility.Hidden;
             DownloadConsensus.IsEnabled = true;
             AssemblyConsensus.Visibility = Visibility.Visible;
+
+            // Carrega os dados de alinhamento simultaneamente e mede o tempo
+            Stopwatch swDataGrid = new Stopwatch();
+            swDataGrid.Start();
+
+            LoadAlignmentsData();
+
+            swDataGrid.Stop();
+            Console.WriteLine("Time for DataGrid assembly: " + swDataGrid.ElapsedMilliseconds * 1000 + " microseconds");
         }
+        private void LoadAlignmentsData()
+        {
+            // Lógica para carregar os dados de alinhamentos
+            var sequencesItems = DataGridAlignments.ItemsSource as List<Alignment>;
+            if (sequencesItems != null)
+            {
+                var alignmentViewModel = new SequenceViewModel();
+                foreach (var sequence in sequencesItems)
+                {
+                    alignmentViewModel.Seq.Add(new SequencesViewModel
+                    {
+                        VisualAlignment = new ObservableCollection<VisualAlignment>(
+                            sequence.AlignedSmallSequence.Select(c => new VisualAlignment
+                            {
+                                Letra = c.ToString(),
+                                CorDeFundo = c == '-' ? Brushes.LightGray : Brushes.White
+                            })
+                        )
+                    });
+                }
+            }
+        }
+
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
             int maxLength = Math.Max(sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length), referenceSequence.Length);
