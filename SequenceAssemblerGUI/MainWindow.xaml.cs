@@ -517,7 +517,7 @@ namespace SequenceAssemblerGUI
 
 
             // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
-            List<Alignment> filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            List<Alignment> filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
 
             // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
             MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;

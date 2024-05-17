@@ -46,7 +46,6 @@ namespace SequenceAssemblerGUI
             DataContext = new SequenceViewModel();
         }
 
-
         //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
         public class VisualAlignment : INotifyPropertyChanged
@@ -465,7 +464,7 @@ namespace SequenceAssemblerGUI
                 }
                 else
                 {
-                    color = new SolidColorBrush(Colors.LightCoral);
+                    color = new SolidColorBrush(Colors.Orange);
                 }
 
                 consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color, OriginalBackgroundColor = color });
