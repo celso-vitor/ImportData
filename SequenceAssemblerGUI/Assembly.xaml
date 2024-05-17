@@ -111,7 +111,7 @@
                         <DataGrid x:Name="DataGridFasta" AutoGenerateColumns="True" CanUserAddRows="False" MaxHeight="250"/>
                         <DataGrid x:Name="DataGridAlignments" AutoGenerateColumns="False" Grid.Row="1" CanUserAddRows="False" LoadingRow="DataGridAlignments_LoadingRow" AlternatingRowBackground="LightGray">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="StartPositions" Binding="{Binding StartPositons;}" />
+                                <DataGridTextColumn Header="StartPositions" Binding="{Binding StartPositionsString}" />
                                 <DataGridTextColumn Header="Identity" Binding="{Binding Identity}"/>
                                 <DataGridTextColumn Header="NormalizedIdentityScore" Binding="{Binding NormalizedIdentityScore}"/>
                                 <DataGridTextColumn Header="SimilarityScore" Binding="{Binding SimilarityScore}"/>

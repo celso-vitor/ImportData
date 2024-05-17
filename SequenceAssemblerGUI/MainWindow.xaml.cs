@@ -477,7 +477,13 @@ namespace SequenceAssemblerGUI
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
                     MyAssembly.AlignmentList = myAlignment;
-                    MyAssembly.UpdateAlignmentGrid(minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter, myFasta);
+
+                    List<Alignment> filteredAlnResults = MyAssembly.AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
+                    
+
+                    // Set the DataTable as the data source for your control 
+                    MyAssembly.DataGridAlignments.ItemsSource = filteredAlnResults;
+                    MyAssembly.DataGridFasta.ItemsSource = myFasta;
 
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -511,7 +517,7 @@ namespace SequenceAssemblerGUI
 
 
             // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
-            var filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
+            List<Alignment> filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity).ToList();
 
             // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
             MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;

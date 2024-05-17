@@ -47,55 +47,6 @@ namespace SequenceAssemblerGUI
         }
 
 
-        //// Método para acessar meu DataGrid
-        ////---------------------------------------------------------------------------------------------------------
-        public void UpdateAlignmentGrid(double minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter, List<Fasta> myFasta)
-        {
-            MyFasta = myFasta;
-
-            // Apply filters on the data
-            List<Alignment> filteredAlnResults = AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.Length >= minLengthFilter).ToList();
-
-            DataTable dataTable = new DataTable();
-
-            // Define the DataTable columns with the appropriate data types
-            dataTable.Columns.Add("StartPositions", typeof(int));
-            dataTable.Columns.Add("Identity", typeof(int));
-            dataTable.Columns.Add("NormalizedIdentityScore", typeof(double));
-            dataTable.Columns.Add("SimilarityScore", typeof(int));
-            dataTable.Columns.Add("NormalizedSimilarity", typeof(double));
-            dataTable.Columns.Add("AlignedAA", typeof(int));
-            dataTable.Columns.Add("NormalizedAlignedAA", typeof(double));
-            dataTable.Columns.Add("GapsUsed", typeof(int));
-            dataTable.Columns.Add("AlignedLargeSequence", typeof(string));
-            dataTable.Columns.Add("AlignedSmallSequence", typeof(string));
-
-            // Fill the DataTable with your data
-            foreach (var alignment in filteredAlnResults)
-            {
-                DataRow newRow = dataTable.NewRow();
-                newRow["StartPositions"] = alignment.StartPositions;
-                newRow["Identity"] = alignment.Identity;
-                newRow["NormalizedIdentityScore"] = alignment.NormalizedIdentityScore;
-                newRow["SimilarityScore"] = alignment.SimilarityScore;
-                newRow["NormalizedSimilarity"] = alignment.NormalizedSimilarity;
-                newRow["AlignedAA"] = alignment.AlignedAA;
-                newRow["NormalizedAlignedAA"] = alignment.NormalizedAlignedAA;
-                newRow["GapsUsed"] = alignment.GapsUsed;
-                newRow["AlignedLargeSequence"] = alignment.AlignedLargeSequence;
-                newRow["AlignedSmallSequence"] = alignment.AlignedSmallSequence;
-
-                dataTable.Rows.Add(newRow);
-            }
-
-            // Set the DataTable as the data source for your control 
-            DataGridAlignments.ItemsSource = dataTable.DefaultView;
-            DataGridFasta.ItemsSource = MyFasta;
-        }
-
-
-
-
         //Visual/Cores 
         //---------------------------------------------------------------------------------------------------------
         public class VisualAlignment : INotifyPropertyChanged
@@ -433,12 +384,6 @@ namespace SequenceAssemblerGUI
 
             var referenceItems = DataGridFasta.ItemsSource as List<Fasta>;
             var sequencesItems = DataGridAlignments.ItemsSource as List<Alignment>;
-
-            if (referenceItems == null || sequencesItems == null || !referenceItems.Any() || !sequencesItems.Any())
-            {
-                MessageBox.Show("No data found in the DataGrids. Please load data before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
 
             string referenceSequence = referenceItems.FirstOrDefault()?.Sequence;
 
