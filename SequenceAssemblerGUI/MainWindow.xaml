@@ -52,7 +52,7 @@
                         <GroupBox Header="DeNovo">
                             <WrapPanel>
                                 <Label Content="AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="0" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="0" Maximum="100"/>
                                 <Label Content="MinLength" />
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
                                 <Label Content="MaxLength" />

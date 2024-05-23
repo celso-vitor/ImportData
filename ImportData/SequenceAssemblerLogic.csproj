@@ -11,4 +11,18 @@
     <PackageReference Include="System.Drawing.Common" Version="8.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="dlls\" />
+    <Folder Include="Test\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PatternTools">
+      <HintPath>dlls\PatternTools.dll</HintPath>
+    </Reference>
+    <Reference Include="SeproPckg2">
+      <HintPath>dlls\SeproPckg2.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

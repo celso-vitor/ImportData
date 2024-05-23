@@ -442,12 +442,11 @@ namespace SequenceAssemblerGUI
             int maxLength = Math.Max(sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length), referenceSequence.Length);
             List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
             int totalSequences = sequencesToAlign.Count;
-            int coveredPositions = 0;
+            int coloredPositions = 0;
 
             for (int i = 0; i < maxLength; i++)
             {
                 var column = new List<char>();
-                int nonGapCount = 0;
                 bool fromReferenceOnly = false;
 
                 if (i < referenceSequence.Length)
@@ -465,7 +464,6 @@ namespace SequenceAssemblerGUI
                         if (charToAdd != '-')
                         {
                             column.Add(charToAdd);
-                            nonGapCount++;
                             fromReferenceOnly = false;
                         }
                     }
@@ -481,21 +479,18 @@ namespace SequenceAssemblerGUI
                 else if (column.All(c => c == consensusChar))
                 {
                     color = new SolidColorBrush(Colors.LightGreen);
+                    coloredPositions++;
                 }
                 else
                 {
                     color = new SolidColorBrush(Colors.Orange);
+                    coloredPositions++;
                 }
 
                 consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color, OriginalBackgroundColor = color });
-
-                if (i < referenceSequence.Length && nonGapCount > 0)
-                {
-                    coveredPositions++;
-                }
             }
 
-            double overallCoverage = (double)coveredPositions / referenceSequence.Length * 100;
+            double overallCoverage = (double)coloredPositions / referenceSequence.Length * 100;
             Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
             var mainWindow = Application.Current.MainWindow as MainWindow;
@@ -506,6 +501,7 @@ namespace SequenceAssemblerGUI
 
             return (consensusSequence, overallCoverage);
         }
+
 
         private void OnColorILChecked(object sender, RoutedEventArgs e)
         {
