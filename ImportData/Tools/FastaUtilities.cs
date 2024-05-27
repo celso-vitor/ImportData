@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SequenceAssemblerLogic.ProteinAlignmentCode;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace SequenceAssemblerLogic.Tools
         public string ID { get; set; }
         public string Description { get; set; }
         public string Sequence { get; set; }
+       public List<Alignment> Alignments { get; set; }
+
     }
 
 

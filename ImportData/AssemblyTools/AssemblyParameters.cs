@@ -9,7 +9,6 @@ namespace SequenceAssemblerLogic.AssemblyTools
 {
     public class AssemblyParameters
     {
-
         public string GenerateAssemblyText(string referenceSequence, List<string> alignedContigs, List<int> startPositions)
         {
             // Cria uma sequência com o mesmo tamanho da sequência de referência, preenchida com hífens (representando gaps)

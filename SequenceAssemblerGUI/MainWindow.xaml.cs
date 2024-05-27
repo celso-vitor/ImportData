@@ -24,6 +24,9 @@ namespace SequenceAssemblerGUI
         Parser newParser;
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
+        Dictionary<Fasta, List<Alignment>> alignmentResults = new Dictionary<Fasta, List<Alignment>>();
+        List<Fasta> fastaWithAlignmentsList;
+
 
         List<Contig> myContigs;
         List<Fasta> myFasta;
@@ -411,7 +414,6 @@ namespace SequenceAssemblerGUI
 
 
         //---------------------------------------------------------
-        //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
@@ -446,27 +448,46 @@ namespace SequenceAssemblerGUI
 
                     SequenceAligner aligner = new SequenceAligner();
 
+                    // Inicializa a lista para armazenar os resultados dos alinhamentos agrupados por sequência FASTA
+                    fastaWithAlignmentsList = new List<Fasta>();
+
                     // Alinha as sequências de PSM e de Novo com as sequências de todos os arquivos FASTA
-                    myAlignment = new List<Alignment>();
                     foreach (var fastaSequence in allFastaSequences)
                     {
-                        var alignments = filteredSequences.Select((seq, index) => aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index])).ToList();
-                        myAlignment.AddRange(alignments);
+                        var alignments = filteredSequences.Select((seq, index) =>
+                        {
+                            var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index]);
+                            return new Alignment
+                            {
+                                AlignedSmallSequence = alignment.AlignedSmallSequence,
+                                NormalizedIdentityScore = alignment.NormalizedIdentityScore,
+                                NormalizedSimilarity = alignment.NormalizedSimilarity,
+                                Length = alignment.AlignedSmallSequence.Length
+                            };
+                        }).ToList();
+
+                        // Filtra os alinhamentos conforme os critérios definidos
+                        var filteredAlignments = alignments.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
+                                                                       a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                                                                       a.Length >= minLengthFilter).ToList();
+
+                        fastaWithAlignmentsList.Add(new Fasta
+                        {
+                            Description = fastaSequence.Description,
+                            Alignments = filteredAlignments
+                        });
+
+                        // Imprime no console as informações da sequência e seus alinhamentos
+                        Console.WriteLine($"Sequência FASTA: {fastaSequence.Description}");
+                        foreach (var alignment in filteredAlignments)
+                        {
+                            Console.WriteLine($"  - Alinhamento: {alignment.AlignedSmallSequence} com pontuação {alignment.NormalizedIdentityScore}");
+                        }
                     }
 
-                    // Atualiza a visualização do alinhamento com os parâmetros necessários
-                    MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
-                    MyAssembly.AlignmentList = myAlignment;
-
-                    List<Alignment> filteredAlnResults = MyAssembly.AlignmentList
-                        .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
-                                    a.NormalizedSimilarity >= minNormalizedSimilarity &&
-                                    a.AlignedSmallSequence.Length >= minLengthFilter)
-                        .ToList();
-
-                    // Set the DataTable as the data source for your control 
-                    MyAssembly.DataGridAlignments.ItemsSource = filteredAlnResults;
+                    // Define a fonte de dados para os DataGrids
                     MyAssembly.DataGridFasta.ItemsSource = allFastaSequences;
+                    MyAssembly.DataGridAlignments.ItemsSource = fastaWithAlignmentsList;
 
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -485,6 +506,7 @@ namespace SequenceAssemblerGUI
             }
         }
 
+
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();
@@ -497,15 +519,31 @@ namespace SequenceAssemblerGUI
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
             int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
+            // Lista para armazenar os alinhamentos filtrados de todas as sequências fasta
+            List<Fasta> filteredFastaWithAlignmentsList = new List<Fasta>();
 
-            // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
-            List<Alignment> filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
+            // Itera sobre a lista de alinhamentos agrupados por sequência FASTA e aplica os filtros
+            foreach (var fastaWithAlignments in fastaWithAlignmentsList)
+            {
+                var filteredAlignments = fastaWithAlignments.Alignments
+                    .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
+                                a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                                a.Length >= minLengthFilter)
+                    .ToList();
+
+                filteredFastaWithAlignmentsList.Add(new Fasta
+                {
+                    Description = fastaWithAlignments.Description,
+                    Alignments = filteredAlignments
+                });
+            }
 
             // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
-            MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
+            MyAssembly.DataGridAlignments.ItemsSource = filteredFastaWithAlignmentsList;
         }
 
-       
+
+
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
         {
             UpdateTable();
