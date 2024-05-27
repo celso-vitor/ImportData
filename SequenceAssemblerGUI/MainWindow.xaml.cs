@@ -15,12 +15,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using static SequenceAssemblerGUI.Assembly;
+using SeproPckg2; // Certifique-se de que a referência está correta
 
 namespace SequenceAssemblerGUI
 {
     public partial class MainWindow : Window
     {
-
         Parser newParser;
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
@@ -60,9 +60,9 @@ namespace SequenceAssemblerGUI
         {
             InitializeComponent();
         }
+
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
-
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = true;
 
@@ -70,50 +70,34 @@ namespace SequenceAssemblerGUI
             {
                 dtDenovo.Clear();
                 dtPSM.Clear();
-
-
-                // Create a list to store the sequences for ContigAssembler
                 List<string> sequencesForAssembly = new();
-               
-                
 
                 foreach (string folderPath in folderBrowserDialog.SelectedPaths)
                 {
                     DirectoryInfo mainDir = new DirectoryInfo(folderPath);
-                    string folderName = mainDir.Name; // Get the name of the selected folder
+                    string folderName = mainDir.Name;
 
                     foreach (DirectoryInfo subDir in mainDir.GetDirectories())
                     {
-                        folderName += $",{subDir.Name}"; // Add subfolder name separated by comma
+                        folderName += $",{subDir.Name}";
                     }
 
                     newParser = new();
                     newParser.LoadUniversal(mainDir);
 
-
                     foreach (var denovo in newParser.DictDenovo.Values.SelectMany(x => x))
                     {
                         DataRow row = dtDenovo.NewRow();
-
-                        if (denovo.IsTag)
-                        {
-                            row["IsTag"] = "T";
-                        }
-                        else
-                        {
-                            row["IsTag"] = "F";
-                        }
-
+                        row["IsTag"] = denovo.IsTag ? "T" : "F";
                         row["Folder"] = folderName;
                         row["File"] = newParser.FileDictionary[denovo.File];
                         row["ScanNumber"] = denovo.ScanNumber;
                         row["Sequence"] = denovo.Peptide;
                         row["Score"] = denovo.Score;
                         row["AAScores"] = string.Join("-", denovo.AaScore);
-
                         dtDenovo.Rows.Add(row);
-
                     }
+
                     foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
                     {
                         DataRow row = dtPSM.NewRow();
@@ -122,25 +106,33 @@ namespace SequenceAssemblerGUI
                         row["ScanNumber"] = psm.ScanNumber;
                         row["Sequence"] = psm.Peptide;
                         row["Score"] = psm.Score;
-
                         dtPSM.Rows.Add(row);
-
                         sequencesForAssembly.Add(psm.Peptide);
+                    }
 
-                    
-                    }   
-
+                    // Novo código para carregar arquivos .sepr2
+                    foreach (var sepr2File in mainDir.GetFiles("*.sepr2"))
+                    {
+                        var plResult = SeproPckg2.ResultPackage.Load(sepr2File.FullName);
+                        foreach (var psm in plResult.MyProteins.AllPSMs)
+                        {
+                            DataRow row = dtPSM.NewRow();
+                            row["Folder"] = folderName;
+                            row["File"] = sepr2File.Name;
+                            row["ScanNumber"] = psm.ScanNumber;
+                            row["Sequence"] = psm.PeptideSequence;
+                            row["Score"] = psm.Bayes_PresenceScore ;
+                            dtPSM.Rows.Add(row);
+                            sequencesForAssembly.Add(psm.PeptideSequence);
+                        }
+                    }
                 }
 
                 DataView dvDenovo = new DataView(dtDenovo);
                 DataGridDeNovo.ItemsSource = dvDenovo;
-               
-
 
                 DataView dvPsm = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPsm;
-             
-
 
                 int totalPsmRegistries = newParser.DictPsm.Values.Sum(list => list.Count);
                 int totalDenovoRegistries = newParser.DictDenovo.Values.Sum(list => list.Count);
@@ -150,19 +142,14 @@ namespace SequenceAssemblerGUI
 
                 LabelPSMCount.Content = totalPsmRegistries;
                 LabelDeNovoCount.Content = totalDenovoRegistries;
-               
-
-
 
                 UpdateGeneral();
                 DeNovoAssembly.IsSelected = true;
                 TabItemResultBrowser.IsEnabled = false;
             }
-
-          
         }
 
-    
+
 
         private void UpdatePlot()
         {
@@ -422,81 +409,74 @@ namespace SequenceAssemblerGUI
             UpdateDataView();
         }
 
-        
+
         //---------------------------------------------------------
         //Method is a open fasta file 
         private void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
-            VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
-            openFileDialog.Multiselect = false;
-            openFileDialog.Filter = "Fasta Files (*.fasta)|*.fasta";
+            VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
+            {
+                Multiselect = true,
+                Filter = "Fasta Files (*.fasta)|*.fasta"
+            };
 
             if (openFileDialog.ShowDialog() == true)
             {
-                // Tenta carregar o arquivo FASTA selecionado
-                var loadedFasta = FastaFormat.LoadFasta(openFileDialog.FileName);
+                var loadedFastaFiles = openFileDialog.FileNames.Select(FastaFormat.LoadFasta).ToList();
 
-                // Verifica se o arquivo FASTA foi carregado corretamente
-                if (loadedFasta == null || !loadedFasta.Any())
+                // Verifica se pelo menos um arquivo FASTA foi carregado corretamente
+                if (loadedFastaFiles == null || loadedFastaFiles.Any(fasta => fasta == null || !fasta.Any()))
                 {
-                    MessageBox.Show("Failed to load FASTA file. The file is empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Failed to load one or more FASTA files. Some files are empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return; // Sai do método para evitar mais processamento
                 }
 
-                // Armazena o arquivo FASTA carregado
-                myFasta = loadedFasta;
-
-
-                // Exemplo: Atualizando o título da janela com o ID e a descrição da primeira sequência
-                var firstSequence = myFasta.First();
-                this.Title = $"Protein Sequence Assembler - {firstSequence.ID} - {firstSequence.Description}";
-
-
-
-                // Declare myAlignment antes deste bloco de código se ainda não tiver sido declarado
+                // Armazena os arquivos FASTA carregados
+                var allFastaSequences = loadedFastaFiles.SelectMany(fasta => fasta).ToList();
 
                 if (filteredSequences != null && filteredSequences.Any())
                 {
                     // Obtém as origens das sequências filtradas
                     List<string> sourceOrigins = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
-                
 
                     int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                     int minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                     int minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
 
-                    
-
                     SequenceAligner aligner = new SequenceAligner();
 
-
-                    // Alinha as sequências de PSM e de Novo com as sequências do arquivo FASTA
-                    myAlignment = filteredSequences.Select((seq, index) => aligner.AlignSequences(myFasta[0].Sequence, seq, sourceOrigins[index])).ToList();
+                    // Alinha as sequências de PSM e de Novo com as sequências de todos os arquivos FASTA
+                    myAlignment = new List<Alignment>();
+                    foreach (var fastaSequence in allFastaSequences)
+                    {
+                        var alignments = filteredSequences.Select((seq, index) => aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index])).ToList();
+                        myAlignment.AddRange(alignments);
+                    }
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
                     MyAssembly.AlignmentList = myAlignment;
 
-                    List<Alignment> filteredAlnResults = MyAssembly.AlignmentList.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
-                    
+                    List<Alignment> filteredAlnResults = MyAssembly.AlignmentList
+                        .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
+                                    a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                                    a.AlignedSmallSequence.Length >= minLengthFilter)
+                        .ToList();
 
                     // Set the DataTable as the data source for your control 
                     MyAssembly.DataGridAlignments.ItemsSource = filteredAlnResults;
-                    MyAssembly.DataGridFasta.ItemsSource = myFasta;
+                    MyAssembly.DataGridFasta.ItemsSource = allFastaSequences;
 
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
                     IdentityUpDown.IsEnabled = true;
                     IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
-                    MyAssembly.AssemblyConsensus.Visibility = Visibility.Hidden;
 
                     UpdateTable();
 
                     MyAssembly.ExecuteAssembly();
-
-
                 }
                 else
                 {
@@ -504,6 +484,7 @@ namespace SequenceAssemblerGUI
                 }
             }
         }
+
         private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
         {
             UpdateGeneral();

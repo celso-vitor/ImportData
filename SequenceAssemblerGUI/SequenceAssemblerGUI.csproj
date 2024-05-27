@@ -22,4 +22,13 @@
     <ProjectReference Include="..\ImportData\SequenceAssemblerLogic.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="PatternTools">
+      <HintPath>..\ImportData\dlls\PatternTools.dll</HintPath>
+    </Reference>
+    <Reference Include="SeproPckg2">
+      <HintPath>..\ImportData\dlls\SeproPckg2.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

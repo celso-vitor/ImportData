@@ -19,90 +19,90 @@
                 <TabItem Header="Assembly Viewer">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <!-- Novo Grid para acomodar tanto o ScrollViewer quanto a Label -->
-                        <Label x:Name="loadingLabel" Content="Loading..." Background="WhiteSmoke" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
 
-                        <!-- Grid para sequência de referência e alinhamentos -->
-                        <Grid Grid.Row="0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <!-- Exibe a sequência de referência -->
-                            <ItemsControl ItemsSource="{Binding ReferenceAlignments}" Grid.Row="0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
-                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                            </ItemsControl>
-
-                            <!-- Exibe as sequências de alinhamento -->
-                            <ItemsControl ItemsSource="{Binding Seq}" Grid.Row="1">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <ItemsControl ItemsSource="{Binding VisualAlignment}" Grid.Column="0">
+                        <!-- Grouped sequences with each reference -->
+                        <ItemsControl ItemsSource="{Binding ReferenceGroups}" Grid.Row="1">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Header="{Binding ReferenceHeader}">
+                                        <StackPanel>
+                                            <!-- Reference sequence inside expander -->
+                                            <ItemsControl ItemsSource="{Binding ReferenceSequence}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
-                                                            <Border.ToolTip>
-                                                                <ToolTip>
-                                                                    <!-- O ToolTip agora é configurado para cada letra -->
-                                                                    <TextBlock Text="{Binding ToolTipContent}" />
-                                                                </ToolTip>
-                                                            </Border.ToolTip>
+                                                        <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
                                                             <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal"/>
+                                                        <StackPanel Orientation="Horizontal" />
                                                     </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                             </ItemsControl>
-                                            <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0" Grid.Column="1"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
 
-                        <!-- Adicionando o Assembly Consensus no mesmo GroupBox -->
-                        <GroupBox x:Name="AssemblyConsensus" Header="Assembly" Height="80" Visibility="Hidden" Grid.Row="1">
-                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                <ItemsControl ItemsSource="{Binding ConsensusSequence}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Width="20" Height="20" Margin="1" Background="{Binding BackgroundColor}">
-                                                <TextBlock Text="{Binding Char}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" IsItemsHost="True"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </GroupBox>
+                                            <!-- Aligned sequences -->
+                                            <ItemsControl ItemsSource="{Binding Seq}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <ItemsControl ItemsSource="{Binding VisualAlignment}" Grid.Column="0">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
+                                                                            <Border.ToolTip>
+                                                                                <ToolTip>
+                                                                                    <TextBlock Text="{Binding ToolTipContent}" />
+                                                                                </ToolTip>
+                                                                            </Border.ToolTip>
+                                                                            <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <StackPanel Orientation="Horizontal"/>
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                            </ItemsControl>
+                                                            <TextBlock Text="{Binding Tipo}" FontSize="10" HorizontalAlignment="Center" Margin="0,2,0,0" Grid.Column="1"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- Assembly Consensus GroupBox -->
+                                            <GroupBox Header="Assembly Consensus" Height="80" Margin="0,10,0,0">
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                    <ItemsControl ItemsSource="{Binding ConsensusSequence}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border Width="20" Height="20" Margin="1" Background="{Binding BackgroundColor}">
+                                                                    <TextBlock Text="{Binding Char}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" IsItemsHost="True"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                            </GroupBox>
+                                        </StackPanel>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </TabItem>
 
@@ -132,10 +132,6 @@
             </TabControl>
         </ScrollViewer>
 
-
         <ProgressBar x:Name="progressBar" Grid.Row="3" Height="20" Margin="10" Visibility="Collapsed"/>
-
     </Grid>
-
 </UserControl>
-
