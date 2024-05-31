@@ -14,6 +14,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int ID { get; set; }
         public double Length { get; set; }
         public string SourceOrigin { get; set; }
+        public string TargetOrigin { get; set; }
         public int Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }
         public int SimilarityScore { get; set; }
@@ -36,4 +37,3 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
     }
 }
-

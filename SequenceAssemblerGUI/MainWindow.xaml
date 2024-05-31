@@ -60,7 +60,7 @@
                             </WrapPanel>
                         </GroupBox>
 
-                        <Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" IsEnabled ="False" Height="24"/>
+                        <!--<Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" IsEnabled ="False" Height="24"/>-->
 
                     </WrapPanel>
 
@@ -106,8 +106,8 @@
                         <Label Content="DeNovo: " Grid.Row="1"/>
                         <Label x:Name="LabelDeNovoCount" Content="?" Grid.Row="1" Grid.Column="1"/>
 
-                        <Label Content="Coverage: " Grid.Row="2"/>
-                        <Label x:Name="LabelCoverage" Content="?" Grid.Row="2" Grid.Column="1"/>
+                        <!--<Label Content="Coverage: " Grid.Row="2"/>
+                        <Label x:Name="LabelCoverage" Content="?" Grid.Row="2" Grid.Column="1"/>-->
                     </Grid>
 
                 </GroupBox>

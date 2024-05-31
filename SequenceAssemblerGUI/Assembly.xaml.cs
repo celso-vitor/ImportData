@@ -15,6 +15,7 @@ using SequenceAssemblerLogic;
 using System.IO;
 using Microsoft.Win32;
 using SequenceAssemblerGUI;
+using static SequenceAssemblerGUI.Assembly;
 
 
 namespace SequenceAssemblerGUI
@@ -32,8 +33,10 @@ namespace SequenceAssemblerGUI
         public class ReferenceGroupViewModel : INotifyPropertyChanged
         {
             private ObservableCollection<SequencesViewModel> _seq;
+            private ObservableCollection<DataTableAlign> _alignmetns;
             private ObservableCollection<VisualAlignment> _referenceSequence;
             private ObservableCollection<ConsensusChar> _consensusSequence;
+            private double _coverage;
 
             public string ReferenceHeader { get; set; }
             public string ID { get; set; }
@@ -44,6 +47,16 @@ namespace SequenceAssemblerGUI
                 set
                 {
                     _seq = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public ObservableCollection<DataTableAlign> Alignments
+            {
+                get => _alignmetns;
+                set
+                {
+                    _alignmetns = value;
                     OnPropertyChanged();
                 }
             }
@@ -65,8 +78,21 @@ namespace SequenceAssemblerGUI
                     OnPropertyChanged();
                 }
             }
+            public double Coverage
+            {
+                get => _coverage;
+                set
+                {
+                    _coverage = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public string DisplayHeader => $"{ReferenceHeader} (Coverage: {Coverage:F2}%)";
+
             public ReferenceGroupViewModel()
             {
+                Alignments = new ObservableCollection<DataTableAlign>();
                 Seq = new ObservableCollection<SequencesViewModel>();
                 ReferenceSequence = new ObservableCollection<VisualAlignment>();
                 ConsensusSequence = new ObservableCollection<ConsensusChar>();
@@ -141,10 +167,31 @@ namespace SequenceAssemblerGUI
 
         public class SequencesViewModel : INotifyPropertyChanged
         {
-            public string StartPositions { get; set; }
-            private string _toolTipContent;
-            public ObservableCollection<VisualAlignment> VisualAlignment { get; set; } = new ObservableCollection<VisualAlignment>();
 
+            public ObservableCollection<VisualAlignment> VisualAlignment { get; set; } = new ObservableCollection<VisualAlignment>();
+            public string ToolTipContent { get; internal set; }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+
+        }
+
+        public class DataTableAlign : INotifyPropertyChanged
+        {
+            private string _startPositions;
+            private int _identity;
+            private double _normalizedIdentityScore;
+            private int _similarityScore;
+            private double _normalizedSimilarity;
+            private int _alignedAA;
+            private double _normalizedAlignedAA;
+            private int _gapsUsed;
+            private string _alignedLargeSequence;
+            private string _alignedSmallSequence;
+            private string _toolTipContent;
             public string ToolTipContent
             {
                 get { return _toolTipContent; }
@@ -152,7 +199,148 @@ namespace SequenceAssemblerGUI
                 {
                     if (_toolTipContent != value)
                     {
+                        Console.WriteLine($"Updating _toolTipContent: OldValue={_toolTipContent}, NewValue={value}");
                         _toolTipContent = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public string StartPositions
+            {
+                get { return _startPositions; }
+                set
+                {
+                    if (_startPositions != value)
+                    {
+                        Console.WriteLine($"Updating _startPositions: OldValue={_startPositions}, NewValue={value}");
+                        _startPositions = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public int Identity
+            {
+                get { return _identity; }
+                set
+                {
+                    if (_identity != value)
+                    {
+                        Console.WriteLine($"Updating _identity: OldValue={_identity}, NewValue={value}");
+                        _identity = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public double NormalizedIdentityScore
+            {
+                get { return _normalizedIdentityScore; }
+                set
+                {
+                    if (_normalizedIdentityScore != value)
+                    {
+                        Console.WriteLine($"Updating _normalizedIdentityScore: OldValue={_normalizedIdentityScore}, NewValue={value}");
+                        _normalizedIdentityScore = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public int SimilarityScore
+            {
+                get { return _similarityScore; }
+                set
+                {
+                    if (_similarityScore != value)
+                    {
+                        Console.WriteLine($"Updating _similarityScore: OldValue={_similarityScore}, NewValue={value}");
+                        _similarityScore = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public double NormalizedSimilarity
+            {
+                get { return _normalizedSimilarity; }
+                set
+                {
+                    if (_normalizedSimilarity != value)
+                    {
+                        Console.WriteLine($"Updating _normalizedSimilarity: OldValue={_normalizedSimilarity}, NewValue={value}");
+                        _normalizedSimilarity = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public int AlignedAA
+            {
+                get { return _alignedAA; }
+                set
+                {
+                    if (_alignedAA != value)
+                    {
+                        Console.WriteLine($"Updating _alignedAA: OldValue={_alignedAA}, NewValue={value}");
+                        _alignedAA = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public double NormalizedAlignedAA
+            {
+                get { return _normalizedAlignedAA; }
+                set
+                {
+                    if (_normalizedAlignedAA != value)
+                    {
+                        Console.WriteLine($"Updating _normalizedAlignedAA: OldValue={_normalizedAlignedAA}, NewValue={value}");
+                        _normalizedAlignedAA = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public int GapsUsed
+            {
+                get { return _gapsUsed; }
+                set
+                {
+                    if (_gapsUsed != value)
+                    {
+                        Console.WriteLine($"Updating _gapsUsed: OldValue={_gapsUsed}, NewValue={value}");
+                        _gapsUsed = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public string AlignedLargeSequence
+            {
+                get { return _alignedLargeSequence; }
+                set
+                {
+                    if (_alignedLargeSequence != value)
+                    {
+                        Console.WriteLine($"Updating _alignedLargeSequence: OldValue={_alignedLargeSequence}, NewValue={value}");
+                        _alignedLargeSequence = value;
+                        OnPropertyChanged();
+                    }
+                }
+            }
+
+            public string AlignedSmallSequence
+            {
+                get { return _alignedSmallSequence; }
+                set
+                {
+                    if (_alignedSmallSequence != value)
+                    {
+                        Console.WriteLine($"Updating _alignedSmallSequence: OldValue={_alignedSmallSequence}, NewValue={value}");
+                        _alignedSmallSequence = value;
                         OnPropertyChanged();
                     }
                 }
@@ -164,6 +352,7 @@ namespace SequenceAssemblerGUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
 
         public class SequenceViewModel : INotifyPropertyChanged
         {
@@ -191,6 +380,8 @@ namespace SequenceAssemblerGUI
                 }
             }
 
+            public Dictionary<string, (List<ConsensusChar>, double)> ConsensusAndCoverage { get; set; }
+
             public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new ObservableCollection<ReferenceGroupViewModel>();
 
             public event PropertyChangedEventHandler PropertyChanged;
@@ -201,14 +392,15 @@ namespace SequenceAssemblerGUI
 
             public void UpdateConsensusColoring()
             {
-                if (ConsensusSequence == null || ReferenceGroups == null) return;
+                if (ReferenceGroups == null) return;
 
                 foreach (var group in ReferenceGroups)
                 {
-                    for (int i = 0; i < ConsensusSequence.Count; i++)
+                    if (group.ConsensusSequence == null || group.ConsensusSequence.Count == 0) continue;
+
+                    for (int i = 0; i < group.ConsensusSequence.Count; i++)
                     {
-                        var consensusChar = ConsensusSequence[i];
-                        var columnChars = new List<char>();
+                        var consensusChar = group.ConsensusSequence[i];
                         bool hasRedIL = false;
 
                         foreach (var seq in group.Seq)
@@ -219,10 +411,6 @@ namespace SequenceAssemblerGUI
                                 if (alignmentChar.Letra != " " && (alignmentChar.Letra == "I" || alignmentChar.Letra == "L") && alignmentChar.CorDeFundo == Brushes.LightCoral)
                                 {
                                     hasRedIL = true;
-                                }
-                                if (alignmentChar.Letra != " ")
-                                {
-                                    columnChars.Add(alignmentChar.Letra[0]);
                                 }
                             }
                         }
@@ -242,8 +430,6 @@ namespace SequenceAssemblerGUI
 
         public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
         {
-            viewModel.ReferenceGroups.Clear();
-
             foreach (var (id, description, referenceSequence) in referenceSequences)
             {
                 var groupViewModel = new ReferenceGroupViewModel
@@ -269,7 +455,22 @@ namespace SequenceAssemblerGUI
                     {
                         ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                     };
+                    var dataTableViewModel = new DataTableAlign
+                    {
+                        ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}",
+                        StartPositions = string.Join(",", sequence.StartPositions),
+                        Identity = sequence.Identity,
+                        NormalizedIdentityScore = sequence.NormalizedIdentityScore,
+                        SimilarityScore = sequence.SimilarityScore,
+                        NormalizedSimilarity = sequence.NormalizedSimilarity,
+                        AlignedAA = sequence.AlignedAA,
+                        NormalizedAlignedAA = sequence.NormalizedAlignedAA,
+                        GapsUsed = sequence.GapsUsed,
+                        AlignedLargeSequence = sequence.AlignedLargeSequence,
+                        AlignedSmallSequence = sequence.AlignedSmallSequence
+                    };
 
+                    groupViewModel.Alignments.Add(dataTableViewModel);
                     int startPosition = sequence.StartPositions.Min() - 1;
                     int rowIndex = FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
 
@@ -336,11 +537,12 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Criar uma instância da classe Assembly para chamar BuildConsensus
-                var assemblyInstance = new Assembly();
-                var (consensusChars, totalCoverage) = assemblyInstance.BuildConsensus(sequencesToAlign, referenceSequence);
+                // Calcular e adicionar consenso e cobertura individual
+                var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
                 groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
+                // Adicionar a cobertura ao grupo de referência
+                groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
             }
         }
@@ -360,63 +562,78 @@ namespace SequenceAssemblerGUI
             return newRow;
         }
 
+
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
             ExecuteAssembly();
         }
 
+        public void UpdateViewModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
+        {
+            if (DataContext is SequenceViewModel viewModel)
+            {
+                Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
+                viewModel.ReferenceGroups.Clear();
+
+                foreach (var fasta in allFastaSequences)
+                {
+                    // Seleciona os alinhamentos que têm o TargetOrigin igual ao ID da sequência fasta
+                    var sequencesToAlign = alignments.Where(a => a.TargetOrigin == fasta.ID).ToList();
+                    Console.WriteLine($"Fasta ID: {fasta.ID}, Description: {fasta.Description}, Alignments to process: {sequencesToAlign.Count}");
+
+                    // Verifica se há alinhamentos para a sequência fasta atual
+                    if (!sequencesToAlign.Any())
+                    {
+                        Console.WriteLine($"No alignments found for fasta ID: {fasta.ID}");
+                        continue; // Ignora sequências fasta sem alinhamentos
+                    }
+
+                    // Elimina duplicatas e subsequências
+                    var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
+
+                    // Atualiza a interface com os alinhamentos e a assembleia
+                    UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
+            {
+                (fasta.ID, fasta.Description, fasta.Sequence)
+            });
+                }
+            }
+            else
+            {
+                Console.WriteLine("DataContext is not of type SequenceViewModel.");
+            }
+        }
+
+
+
         public void ExecuteAssembly()
         {
-            if (DataGridFasta.ItemsSource == null || DataGridAlignments.ItemsSource == null)
+            if (!(DataContext is SequenceViewModel viewModel))
             {
-                MessageBox.Show("Please load data into the DataGrids before attempting to compare.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Failed to get the data context.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            var referenceItems = DataGridFasta.ItemsSource as List<Fasta>;
-            var sequencesItems = DataGridAlignments.ItemsSource as List<Alignment>;
-
-            var referenceSequences = referenceItems.Select(item => (ID: item.ID, Description: item.Description, Sequence: item.Sequence)).ToList();
-            var viewModel = (SequenceViewModel)DataContext;
-
-            viewModel.ReferenceGroups.Clear();
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            List<Alignment> optSequencesToAlign = sequencesItems
-                .Where(a => a.StartPositions != null && a.StartPositions.Count > 0)
-                .OrderBy(a => a.StartPositions.Min())
-                .ToList();
-
-            var sequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(optSequencesToAlign);
-
-            // Criar uma instância da classe Assembly para chamar o método UpdateUIWithAlignmentAndAssembly
-            var assemblyInstance = new Assembly();
-            assemblyInstance.UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, referenceSequences);
-
-            var (consensusChars, totalCoverage) = assemblyInstance.BuildConsensus(sequencesToAlign, referenceSequences.First().Sequence);
-
-            viewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
-
             viewModel.UpdateConsensusColoring();
 
-            sw.Stop();
-            Console.WriteLine("Time for alignment: " + sw.ElapsedMilliseconds * 1000 + " microseconds");
-
-            DownloadConsensus.IsEnabled = true;
-
-            Stopwatch swDataGrid = new Stopwatch();
-            swDataGrid.Start();
-
-
-            swDataGrid.Stop();
-            Console.WriteLine("Time for DataGrid assembly: " + swDataGrid.ElapsedMilliseconds * 1000 + " microseconds");
+            Console.WriteLine("Assembly executed successfully.");
         }
 
         public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
-            int maxLength = Math.Max(sequencesToAlign.Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length), referenceSequence.Length);
+            if (sequencesToAlign == null || !sequencesToAlign.Any())
+            {
+                throw new InvalidOperationException("The list of sequences to align is empty.");
+            }
+
+            Console.WriteLine($"Building consensus for {sequencesToAlign.Count} sequences.");
+
+            int maxLength = Math.Max(
+                sequencesToAlign
+                    .Where(seq => seq.StartPositions != null && seq.StartPositions.Any())
+                    .Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length),
+                referenceSequence.Length);
+
             List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
             int totalSequences = sequencesToAlign.Count;
             int coloredPositions = 0;
@@ -434,6 +651,11 @@ namespace SequenceAssemblerGUI
 
                 foreach (var seq in sequencesToAlign)
                 {
+                    if (seq.StartPositions == null || !seq.StartPositions.Any())
+                    {
+                        continue;
+                    }
+
                     int pos = i - (seq.StartPositions.Min() - 1);
                     if (pos >= 0 && pos < seq.AlignedSmallSequence.Length)
                     {
@@ -470,14 +692,18 @@ namespace SequenceAssemblerGUI
             double overallCoverage = (double)coloredPositions / referenceSequence.Length * 100;
             Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow != null)
-            {
-                mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%";
-            }
-
             return (consensusSequence, overallCoverage);
         }
+
+        //var mainWindow = Application.Current.MainWindow as MainWindow;
+        //    if (mainWindow != null)
+        //    {
+        //        mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%";
+        //    }
+
+        //    return (consensusSequence, overallCoverage);
+        //}
+
 
         private void OnColorILChecked(object sender, RoutedEventArgs e)
         {

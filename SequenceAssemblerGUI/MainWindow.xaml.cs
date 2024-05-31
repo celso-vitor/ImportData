@@ -24,8 +24,7 @@ namespace SequenceAssemblerGUI
         Parser newParser;
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
-        Dictionary<Fasta, List<Alignment>> alignmentResults = new Dictionary<Fasta, List<Alignment>>();
-        List<Fasta> fastaWithAlignmentsList;
+
 
 
         List<Contig> myContigs;
@@ -124,7 +123,7 @@ namespace SequenceAssemblerGUI
                             row["File"] = sepr2File.Name;
                             row["ScanNumber"] = psm.ScanNumber;
                             row["Sequence"] = psm.PeptideSequence;
-                            row["Score"] = psm.Bayes_PresenceScore ;
+                            row["Score"] = psm.Bayes_PresenceScore;
                             dtPSM.Rows.Add(row);
                             sequencesForAssembly.Add(psm.PeptideSequence);
                         }
@@ -268,8 +267,8 @@ namespace SequenceAssemblerGUI
 
                 DataView dvPSM = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPSM;
-                
-                ButtonUpdate.IsEnabled = true;
+
+                //ButtonUpdate.IsEnabled = true;
                 ButtonProcess.IsEnabled = true;
 
 
@@ -405,7 +404,7 @@ namespace SequenceAssemblerGUI
 
             // Atualiza a variável myAlignment para refletir os alinhamentos atualizados
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
-       
+
 
             // Update the GUI
             UpdatePlot();
@@ -437,10 +436,14 @@ namespace SequenceAssemblerGUI
                 // Armazena os arquivos FASTA carregados
                 var allFastaSequences = loadedFastaFiles.SelectMany(fasta => fasta).ToList();
 
+                Console.WriteLine($"Loaded {allFastaSequences.Count} fasta sequences.");
+
                 if (filteredSequences != null && filteredSequences.Any())
                 {
                     // Obtém as origens das sequências filtradas
                     List<string> sourceOrigins = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
+
+                    Console.WriteLine($"Source Origins: {string.Join(", ", sourceOrigins)}");
 
                     int maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     int minNormalizedIdentityScore = (int)IdentityUpDown.Value;
@@ -453,23 +456,33 @@ namespace SequenceAssemblerGUI
                     myAlignment = new List<Alignment>();
                     foreach (var fastaSequence in allFastaSequences)
                     {
-                        var alignments = filteredSequences.Select((seq, index) => aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index])).ToList();
+                        Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
+                        var alignments = filteredSequences.Select((seq, index) =>
+                        {
+                            var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index]);
+                            alignment.TargetOrigin = fastaSequence.ID; // Adiciona o SourceOrigin ao alinhamento
+                            return alignment;
+                        }).ToList();
                         myAlignment.AddRange(alignments);
                     }
 
-                    // Atualiza a visualização do alinhamento com os parâmetros necessários
-                    MyAssembly.DataGridAlignments.ItemsSource = myAlignment;
-                    MyAssembly.AlignmentList = myAlignment;
+                    Console.WriteLine($"Generated {myAlignment.Count} alignments.");
 
-                    List<Alignment> filteredAlnResults = MyAssembly.AlignmentList
+                    // Atualiza a visualização do alinhamento com os parâmetros necessários
+                    List<Alignment> filteredAlnResults = myAlignment
                         .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                                     a.NormalizedSimilarity >= minNormalizedSimilarity &&
                                     a.AlignedSmallSequence.Length >= minLengthFilter)
                         .ToList();
 
-                    // Set the DataTable as the data source for your control 
-                    MyAssembly.DataGridAlignments.ItemsSource = filteredAlnResults;
-                    MyAssembly.DataGridFasta.ItemsSource = allFastaSequences;
+                    Console.WriteLine($"Filtered alignments to {filteredAlnResults.Count} results.");
+
+                    // Verifica os TargetOrigin dos alinhamentos filtrados
+                    var filteredTargetOrigin = filteredAlnResults.Select(a => a.TargetOrigin).Distinct().ToList();
+                    Console.WriteLine($"Filtered SourceOrigins: {string.Join(", ", filteredTargetOrigin)}");
+
+                    // Atualiza o ViewModel no controle Assembly
+                    MyAssembly.UpdateViewModel(allFastaSequences, filteredAlnResults);
 
                     TabItemResultBrowser.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -477,9 +490,8 @@ namespace SequenceAssemblerGUI
                     IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser.IsEnabled = true;
 
-                    UpdateTable();
-
                     MyAssembly.ExecuteAssembly();
+                    //UpdateTable();
                 }
                 else
                 {
@@ -488,10 +500,6 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private void ButtonUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateGeneral();
-        }
 
         private void UpdateTable()
         {
@@ -500,15 +508,21 @@ namespace SequenceAssemblerGUI
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
             int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-
             // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
-            List<Alignment> filteredAlignments = myAlignment.Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore && a.NormalizedSimilarity >= minNormalizedSimilarity && a.AlignedSmallSequence.Length >= minLengthFilter).ToList();
+            List<Alignment> filteredAlignments = myAlignment
+                .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
+                            a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                            a.AlignedSmallSequence.Length >= minLengthFilter)
+                .ToList();
 
             // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
-            MyAssembly.DataGridAlignments.ItemsSource = filteredAlignments;
+            MyAssembly.UpdateViewModel(myAlignment.Select(a => new Fasta
+            {
+                ID = a.SourceOrigin,
+                Sequence = a.AlignedLargeSequence,
+                Description = "Description here" // Substituir pela descrição real
+            }).Distinct().ToList(), filteredAlignments);
         }
-
-
 
 
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
@@ -540,8 +554,7 @@ namespace SequenceAssemblerGUI
 
         }
 
-        
+
     }
 }
-
 
