@@ -401,21 +401,35 @@ namespace SequenceAssemblerGUI
                     for (int i = 0; i < group.ConsensusSequence.Count; i++)
                     {
                         var consensusChar = group.ConsensusSequence[i];
-                        bool hasRedIL = false;
+                        bool hasILinReference = false;
+                        bool hasILinAligned = false;
 
+                        // Verifica se a sequência de referência tem 'I' ou 'L' nesta posição
+                        if (i < group.ReferenceSequence.Count)
+                        {
+                            var refChar = group.ReferenceSequence[i];
+                            if (refChar.Letra == "I" || refChar.Letra == "L")
+                            {
+                                hasILinReference = true;
+                            }
+                        }
+
+                        // Verifica se qualquer sequência alinhada tem 'I' ou 'L' nesta posição
                         foreach (var seq in group.Seq)
                         {
                             if (i < seq.VisualAlignment.Count)
                             {
                                 var alignmentChar = seq.VisualAlignment[i];
-                                if (alignmentChar.Letra != " " && (alignmentChar.Letra == "I" || alignmentChar.Letra == "L") && alignmentChar.CorDeFundo == Brushes.LightCoral)
+                                if (alignmentChar.Letra == "I" || alignmentChar.Letra == "L")
                                 {
-                                    hasRedIL = true;
+                                    hasILinAligned = true;
+                                    break;
                                 }
                             }
                         }
 
-                        if (ColorIL && hasRedIL)
+                        // Atualiza a cor de fundo do caractere do consenso baseado na presença de 'I' ou 'L'
+                        if (ColorIL && hasILinReference && hasILinAligned)
                         {
                             consensusChar.BackgroundColor = new SolidColorBrush(Colors.LightGreen);
                         }
@@ -730,39 +744,39 @@ namespace SequenceAssemblerGUI
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
-        private void DownloadConsensusButton_Click(object sender, RoutedEventArgs e)
-        {
-            var viewModel = (SequenceViewModel)DataContext;
+        //private void DownloadConsensusButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var viewModel = (SequenceViewModel)DataContext;
 
-            if (viewModel.ConsensusSequence == null || !viewModel.ConsensusSequence.Any())
-            {
-                MessageBox.Show("No consensus sequence available. Please generate it before attempting to download.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+        //    if (viewModel.ConsensusSequence == null || !viewModel.ConsensusSequence.Any())
+        //    {
+        //        MessageBox.Show("No consensus sequence available. Please generate it before attempting to download.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //        return;
+        //    }
 
-            SaveConsensusSequenceToFile(viewModel.ConsensusSequence);
-        }
+        //    SaveConsensusSequenceToFile(viewModel.ConsensusSequence);
+        //}
 
-        private void SaveConsensusSequenceToFile(ObservableCollection<ConsensusChar> consensusSequence)
-        {
-            var dialog = new SaveFileDialog()
-            {
-                Filter = "Text file (*.txt)|*.txt|All files (*.*)|*.*",
-                FileName = "ConsensusSequence.txt"
-            };
+        //private void SaveConsensusSequenceToFile(ObservableCollection<ConsensusChar> consensusSequence)
+        //{
+        //    var dialog = new SaveFileDialog()
+        //    {
+        //        Filter = "Text file (*.txt)|*.txt|All files (*.*)|*.*",
+        //        FileName = "ConsensusSequence.txt"
+        //    };
 
-            if (dialog.ShowDialog() == true)
-            {
-                using (var writer = new StreamWriter(dialog.FileName))
-                {
-                    foreach (var item in consensusSequence)
-                    {
-                        writer.Write(item.Char);
-                    }
-                }
-                MessageBox.Show($"Consensus sequence saved to {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
+        //    if (dialog.ShowDialog() == true)
+        //    {
+        //        using (var writer = new StreamWriter(dialog.FileName))
+        //        {
+        //            foreach (var item in consensusSequence)
+        //            {
+        //                writer.Write(item.Char);
+        //            }
+        //        }
+        //        MessageBox.Show($"Consensus sequence saved to {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        //    }
+        //}
     }
 
 }

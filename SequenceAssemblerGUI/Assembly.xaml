@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Margin="10,0,10,10">
-            <Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Width="202" Margin="0,5,10,0"/>
+            <!--<Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Width="202" Margin="0,5,10,0"/>-->
             <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="False" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center"/>
         </StackPanel>
         <TabControl Grid.Row="1">
@@ -24,10 +24,10 @@
                             <DataTemplate>
                                 <Expander Header="{Binding DisplayHeader}">
                                     <StackPanel>
-                                        <ItemsControl ItemsSource="{Binding ReferenceSequence}">
+                                        <ItemsControl ItemsSource="{Binding ReferenceSequence}" Padding="4">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
+                                                    <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1" Padding="8">
                                                         <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
                                                 </DataTemplate>
@@ -39,7 +39,7 @@
                                             </ItemsControl.ItemsPanel>
                                         </ItemsControl>
 
-                                        <ItemsControl ItemsSource="{Binding Seq}">
+                                        <ItemsControl ItemsSource="{Binding Seq}" Padding="4">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Grid>
@@ -47,7 +47,7 @@
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <ItemsControl ItemsSource="{Binding VisualAlignment}" Grid.Column="0">
+                                                        <ItemsControl ItemsSource="{Binding VisualAlignment}" Grid.Column="0" >
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
@@ -71,7 +71,7 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <GroupBox Header="Assembly Consensus" Height="80" Margin="0,10,0,0">
+                                        <GroupBox Header="Assembly Consensus" Height="80" Margin="0,10,0,0" >
                                             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                                 <ItemsControl ItemsSource="{Binding ConsensusSequence}">
                                                     <ItemsControl.ItemTemplate>

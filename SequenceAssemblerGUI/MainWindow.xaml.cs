@@ -15,7 +15,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using static SequenceAssemblerGUI.Assembly;
-using SeproPckg2; // Certifique-se de que a referência está correta
+using SeproPckg2; 
 
 namespace SequenceAssemblerGUI
 {
@@ -112,22 +112,6 @@ namespace SequenceAssemblerGUI
                         sequencesForAssembly.Add(psm.Peptide);
                     }
 
-                    // Novo código para carregar arquivos .sepr2
-                    foreach (var sepr2File in mainDir.GetFiles("*.sepr2"))
-                    {
-                        var plResult = SeproPckg2.ResultPackage.Load(sepr2File.FullName);
-                        foreach (var psm in plResult.MyProteins.AllPSMs)
-                        {
-                            DataRow row = dtPSM.NewRow();
-                            row["Folder"] = folderName;
-                            row["File"] = sepr2File.Name;
-                            row["ScanNumber"] = psm.ScanNumber;
-                            row["Sequence"] = psm.PeptideSequence;
-                            row["Score"] = psm.Bayes_PresenceScore;
-                            dtPSM.Rows.Add(row);
-                            sequencesForAssembly.Add(psm.PeptideSequence);
-                        }
-                    }
                 }
 
                 DataView dvDenovo = new DataView(dtDenovo);
@@ -206,7 +190,6 @@ namespace SequenceAssemblerGUI
 
         public async void UpdateDataView()
         {
-
             dtDenovo.Clear();
 
             if (deNovoDictTemp != null)
@@ -235,7 +218,6 @@ namespace SequenceAssemblerGUI
                         row["Score"] = denovo.Score;
                         row["AAScores"] = string.Join("-", denovo.AaScore);
 
-
                         dtDenovo.Rows.Add(row);
                     }
                 }
@@ -260,7 +242,6 @@ namespace SequenceAssemblerGUI
                         row["Sequence"] = psm.Peptide;
                         row["Score"] = psm.Score;
 
-
                         dtPSM.Rows.Add(row);
                     }
                 }
@@ -270,95 +251,94 @@ namespace SequenceAssemblerGUI
 
                 //ButtonUpdate.IsEnabled = true;
                 ButtonProcess.IsEnabled = true;
-
-
             }
+        
 
 
 
-            //// From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, store them in a dictionary with their source.
-            //Dictionary<string, string> sequencesNovorPSM =
-            //    (from s in psmDictTemp.Values
-            //     from psmID in s
-            //     select new { psmID.CleanPeptide, Source = "PSM" })
-            //    .Distinct()
-            //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
+        //// From a dictionary of data psmDictTemp, select all the clean sequences (CleanPeptide) of PSMs, store them in a dictionary with their source.
+        //Dictionary<string, string> sequencesNovorPSM =
+        //    (from s in psmDictTemp.Values
+        //     from psmID in s
+        //     select new { psmID.CleanPeptide, Source = "PSM" })
+        //    .Distinct()
+        //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
 
-            //// From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, store them in a dictionary with their source.
-            //Dictionary<string, string> sequencesNovorDeNovo =
-            //    (from s in deNovoDictTemp.Values
-            //     from denovoID in s
-            //     select new { denovoID.CleanPeptide, Source = "DeNovo" })
-            //    .Distinct()
-            //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
+        //// From a dictionary of data deNovoDictTemp, select all the clean sequences (CleanPeptide) of deNovo, store them in a dictionary with their source.
+        //Dictionary<string, string> sequencesNovorDeNovo =
+        //    (from s in deNovoDictTemp.Values
+        //     from denovoID in s
+        //     select new { denovoID.CleanPeptide, Source = "DeNovo" })
+        //    .Distinct()
+        //    .ToDictionary(p => p.CleanPeptide, p => p.Source);
 
-            //// Optionally, merge the dictionaries while preserving sources.
-            //var allSequencesWithSources = new Dictionary<string, string>(sequencesNovorPSM);
-            //foreach (var item in sequencesNovorDeNovo)
-            //{
-            //    if (!allSequencesWithSources.ContainsKey(item.Key))
-            //    {
-            //        allSequencesWithSources[item.Key] = item.Value;
-            //    }
-            //}
-
-            //// Convert to list if needed for further processing
-            //List<string> filteredSequences = allSequencesWithSources.Keys.ToList();
-
-            //// Assign the dictionary to MyAssembly.cleanValues
-            //MyAssembly.denovoValue.Add("DeNovo", sequencesNovorDeNovo.Keys.ToList());
-            //MyAssembly.psmValue.Add("PSM", sequencesNovorPSM.Keys.ToList());
-
-
-            //// Disable the DataGridContig to prevent user interaction while data is being loaded.
-            //DataGridContig.IsEnabled = true;
-
-            //// Make a loading label visible to inform the user that data is being loaded.
-            //loadingLabel.Visibility = Visibility.Visible;
-
-            //UptadeContig();
-        }
-
-        //async void UptadeContig()
+        //// Optionally, merge the dictionaries while preserving sources.
+        //var allSequencesWithSources = new Dictionary<string, string>(sequencesNovorPSM);
+        //foreach (var item in sequencesNovorDeNovo)
         //{
-
-        //    // How many amino acids should overlap for contigs (partially overlapping sequences).
-        //    int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
-
-        //    // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
-        //    myContigs = await Task.Run
-        //    (
-        //        () =>
-        //        {
-        //            ContigAssembler ca = new ContigAssembler();
-        //            List<IDResult> results = new List<IDResult>();
-
-        //            var resultsPSM = (from kvp in psmDictTemp
-        //                              from r in kvp.Value
-        //                              select r).ToList();
-
-        //            var resultsDenovo = (from kvp in deNovoDictTemp
-        //                                 from r in kvp.Value
-        //                                 select r).ToList();
-
-
-        //            return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
-        //        });
-
-        //ButtonProcess.IsEnabled = true;
-
-        //// Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
-        //DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
-
-        //// Hide the loading label as the data has now been loaded.
-        //loadingLabel.Visibility = Visibility.Hidden;
+        //    if (!allSequencesWithSources.ContainsKey(item.Key))
+        //    {
+        //        allSequencesWithSources[item.Key] = item.Value;
+        //    }
         //}
 
+        //// Convert to list if needed for further processing
+        //List<string> filteredSequences = allSequencesWithSources.Keys.ToList();
 
-        //---------------------------------------------------------
+        //// Assign the dictionary to MyAssembly.cleanValues
+        //MyAssembly.denovoValue.Add("DeNovo", sequencesNovorDeNovo.Keys.ToList());
+        //MyAssembly.psmValue.Add("PSM", sequencesNovorPSM.Keys.ToList());
 
-        // Update in Dicionarys DeNovo and Psm
-        private void UpdateGeneral()
+
+        //// Disable the DataGridContig to prevent user interaction while data is being loaded.
+        //DataGridContig.IsEnabled = true;
+
+        //// Make a loading label visible to inform the user that data is being loaded.
+        //loadingLabel.Visibility = Visibility.Visible;
+
+        //UptadeContig();
+    }
+
+    //async void UptadeContig()
+    //{
+
+    //    // How many amino acids should overlap for contigs (partially overlapping sequences).
+    //    int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
+
+    //    // Execute the contig assembly process with the filtered sequences and the previously defined overlap value on a background task.
+    //    myContigs = await Task.Run
+    //    (
+    //        () =>
+    //        {
+    //            ContigAssembler ca = new ContigAssembler();
+    //            List<IDResult> results = new List<IDResult>();
+
+    //            var resultsPSM = (from kvp in psmDictTemp
+    //                              from r in kvp.Value
+    //                              select r).ToList();
+
+    //            var resultsDenovo = (from kvp in deNovoDictTemp
+    //                                 from r in kvp.Value
+    //                                 select r).ToList();
+
+
+    //            return ca.AssembleContigSequences(resultsPSM.Concat(resultsDenovo).ToList(), overlapAAForContigs);
+    //        });
+
+    //ButtonProcess.IsEnabled = true;
+
+    //// Set the item source of DataGridContig to be an anonymous list containing the assembled contigs.
+    //DataGridContig.ItemsSource = myContigs.Select(a => new { Sequence = a.Sequence, IDTotal = a.IDs.Count(), IDsDenovo = a.IDs.Count(a => !a.IsPSM), IDsPSM = a.IDs.Count(a => a.IsPSM) });
+
+    //// Hide the loading label as the data has now been loaded.
+    //loadingLabel.Visibility = Visibility.Hidden;
+    //}
+
+
+    //---------------------------------------------------------
+
+    // Update in Dicionarys DeNovo and Psm
+    private void UpdateGeneral()
         {
             PlotViewEnzymeEfficiency.Visibility = Visibility.Visible;
 
@@ -395,7 +375,8 @@ namespace SequenceAssemblerGUI
 
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
-            // Atualiza a lista de sequências filtradas
+
+            //Atualiza a lista de sequências filtradas
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                     .Union(psmDictTemp.Values.SelectMany(v => v))
                                     .Select(seq => seq.CleanPeptide)

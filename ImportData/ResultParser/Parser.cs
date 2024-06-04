@@ -53,7 +53,6 @@ namespace SequenceAssemblerLogic.ResultParser
         }
 
 
-
         public void LoadUniversal(DirectoryInfo di)
         {
             short fileCounter = 0;
@@ -62,52 +61,73 @@ namespace SequenceAssemblerLogic.ResultParser
             foreach (DirectoryInfo di2 in di.GetDirectories())
             {
                 string[] csvFiles = Directory.GetFiles(di2.FullName, "*.csv");
-                Console.WriteLine(di2.Name);
-
-
+                string[] sepr2Files = Directory.GetFiles(di2.FullName, "*.sepr2");
+                Console.WriteLine($"Processing directory: {di2.Name}");
 
                 foreach (string fileName in csvFiles)
                 {
                     FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
                     string firstLine = File.ReadAllLines(fileName)[0];
 
-
                     if (firstLine.StartsWith("#id"))
                     {
+                        var registries = LoadNovorPsmRegistries(fileName, fileCounter);
+                        Console.WriteLine($"Loaded {registries.Count} PSM registries from {fileName}");
                         if (DictPsm.ContainsKey(di2.Name))
                         {
-                            DictPsm[di2.Name].AddRange(LoadNovorPsmRegistries(fileName, fileCounter));
+                            DictPsm[di2.Name].AddRange(registries);
                         }
                         else
                         {
-                            DictPsm.Add(di2.Name, LoadNovorPsmRegistries(fileName, fileCounter));
+                            DictPsm.Add(di2.Name, registries);
                         }
                     }
                     else if (firstLine.StartsWith("Fraction"))
                     {
+                        var registries = LoadPeaksDeNovorRegistries(fileName, fileCounter);
+                        Console.WriteLine($"Loaded {registries.Count} DeNovo registries from {fileName}");
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
-                            DictDenovo[di2.Name].AddRange(LoadPeaksDeNovorRegistries(fileName, fileCounter));
+                            DictDenovo[di2.Name].AddRange(registries);
                         }
                         else
                         {
-                            DictDenovo.Add(di2.Name, LoadPeaksDeNovorRegistries(fileName, fileCounter));
+                            DictDenovo.Add(di2.Name, registries);
                         }
                     }
                     else
                     {
+                        var registries = LoadNovorDeNovoRegistries(fileName, fileCounter);
+                        Console.WriteLine($"Loaded {registries.Count} NovorDeNovo registries from {fileName}");
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
-                            DictDenovo[di2.Name].AddRange(LoadNovorDeNovoRegistries(fileName, fileCounter));
+                            DictDenovo[di2.Name].AddRange(registries);
                         }
                         else
                         {
-                            DictDenovo.Add(di2.Name, LoadNovorDeNovoRegistries(fileName, fileCounter));
+                            DictDenovo.Add(di2.Name, registries);
                         }
+                    }
+                }
+
+                foreach (string fileName in sepr2Files)
+                {
+                    FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
+                    var registries = LoadSepr2Registries(fileName, fileCounter);
+                    Console.WriteLine($"Loaded {registries.Count} SEPR2 registries from {fileName}");
+
+                    if (DictPsm.ContainsKey(di2.Name))
+                    {
+                        DictPsm[di2.Name].AddRange(registries);
+                    }
+                    else
+                    {
+                        DictPsm.Add(di2.Name, registries);
                     }
                 }
             }
         }
+
 
         private List<IDResult> LoadNovorDeNovoRegistries(string denovofileName, short fileCounter)
         {
@@ -187,6 +207,31 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
+        public List<IDResult> LoadSepr2Registries(string sepr2FileName, short fileCounter)
+        {
+            var plResult = SeproPckg2.ResultPackage.Load(sepr2FileName);
+            var myRegistries = new List<IDResult>();
+
+            foreach (var psm in plResult.MyProteins.AllPSMs)
+            {
+                var sepr2Registry = new IDResult
+                {
+                    ScanNumber = psm.ScanNumber,
+                    File = fileCounter,
+                    RT = psm.RetentionTime,
+                    Mz = psm.MZ,
+                    Z = psm.ChargeState,
+                    //PepMass = psm.PepMass,
+                    Score = psm.ClassificationScore,
+                    Peptide = psm.PeptideSequence
+                    //AaScore = psm.AaScores.Select(b => (int)b).ToList()
+                };
+
+                myRegistries.Add(sepr2Registry);
+            }
+
+            return myRegistries;
+        }
 
     }
 }
