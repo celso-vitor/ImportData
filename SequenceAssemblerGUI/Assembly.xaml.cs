@@ -199,7 +199,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_toolTipContent != value)
                     {
-                        Console.WriteLine($"Updating _toolTipContent: OldValue={_toolTipContent}, NewValue={value}");
                         _toolTipContent = value;
                         OnPropertyChanged();
                     }
@@ -213,7 +212,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_startPositions != value)
                     {
-                        Console.WriteLine($"Updating _startPositions: OldValue={_startPositions}, NewValue={value}");
                         _startPositions = value;
                         OnPropertyChanged();
                     }
@@ -227,7 +225,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_identity != value)
                     {
-                        Console.WriteLine($"Updating _identity: OldValue={_identity}, NewValue={value}");
                         _identity = value;
                         OnPropertyChanged();
                     }
@@ -241,7 +238,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_normalizedIdentityScore != value)
                     {
-                        Console.WriteLine($"Updating _normalizedIdentityScore: OldValue={_normalizedIdentityScore}, NewValue={value}");
                         _normalizedIdentityScore = value;
                         OnPropertyChanged();
                     }
@@ -255,7 +251,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_similarityScore != value)
                     {
-                        Console.WriteLine($"Updating _similarityScore: OldValue={_similarityScore}, NewValue={value}");
                         _similarityScore = value;
                         OnPropertyChanged();
                     }
@@ -269,7 +264,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_normalizedSimilarity != value)
                     {
-                        Console.WriteLine($"Updating _normalizedSimilarity: OldValue={_normalizedSimilarity}, NewValue={value}");
                         _normalizedSimilarity = value;
                         OnPropertyChanged();
                     }
@@ -283,7 +277,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_alignedAA != value)
                     {
-                        Console.WriteLine($"Updating _alignedAA: OldValue={_alignedAA}, NewValue={value}");
                         _alignedAA = value;
                         OnPropertyChanged();
                     }
@@ -297,7 +290,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_normalizedAlignedAA != value)
                     {
-                        Console.WriteLine($"Updating _normalizedAlignedAA: OldValue={_normalizedAlignedAA}, NewValue={value}");
                         _normalizedAlignedAA = value;
                         OnPropertyChanged();
                     }
@@ -311,7 +303,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_gapsUsed != value)
                     {
-                        Console.WriteLine($"Updating _gapsUsed: OldValue={_gapsUsed}, NewValue={value}");
                         _gapsUsed = value;
                         OnPropertyChanged();
                     }
@@ -325,7 +316,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_alignedLargeSequence != value)
                     {
-                        Console.WriteLine($"Updating _alignedLargeSequence: OldValue={_alignedLargeSequence}, NewValue={value}");
                         _alignedLargeSequence = value;
                         OnPropertyChanged();
                     }
@@ -339,7 +329,6 @@ namespace SequenceAssemblerGUI
                 {
                     if (_alignedSmallSequence != value)
                     {
-                        Console.WriteLine($"Updating _alignedSmallSequence: OldValue={_alignedSmallSequence}, NewValue={value}");
                         _alignedSmallSequence = value;
                         OnPropertyChanged();
                     }

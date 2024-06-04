@@ -221,10 +221,10 @@ namespace SequenceAssemblerLogic.ResultParser
                     RT = psm.RetentionTime,
                     Mz = psm.MZ,
                     Z = psm.ChargeState,
-                    //PepMass = psm.PepMass,
+                    PepMass = psm.MeasuredMH -1.00728,
                     Score = psm.ClassificationScore,
-                    Peptide = psm.PeptideSequence
-                    //AaScore = psm.AaScores.Select(b => (int)b).ToList()
+                    Peptide = PatternTools.pTools.CleanPeptide(psm.PeptideSequence),
+                    AaScore = PatternTools.pTools.CleanPeptide(psm.PeptideSequence).Select(b => (int)100).ToList()
                 };
 
                 myRegistries.Add(sepr2Registry);
