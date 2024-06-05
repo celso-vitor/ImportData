@@ -30,16 +30,13 @@ namespace ProteinAlignmentCode
             //    Console.WriteLine(psm.FileName);
             //}
 
-
-
             // Caminhos para os arquivos de entrada e saída
-            string inputFile = "C:\\Users\\celso\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\NOVOR\\03-2024\\teste.fasta";
-            string outputFile = "C:\\Users\\celso\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\NOVOR\\03-2024\\output.aln";
+            string inputFile = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\SimpleTest\\teste.fasta";
+            string outputFile = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\SimpleTest\\output.aln";
 
             // Comando para executar Clustal Omega
-            string clustalOmegaPath = "C:\\clustal-omega-1.2.2-win64\\clustal-omega-1.2.2-win64\\clustalo.exe"; // Caminho para o executável do Clustal Omega
+            string clustalOmegaPath = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\clustal-omega-1.2.2-win64\\clustalo.exe"; // Caminho para o executável do Clustal Omega
             string arguments = $"-i \"{inputFile}\" -o \"{outputFile}\" --outfmt=clu --force";
-
             // Configurar o processo
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
@@ -74,6 +71,7 @@ namespace ProteinAlignmentCode
                     {
                         // Ler e exibir a saída do arquivo
                         string result = File.ReadAllText(outputFile);
+                        Console.WriteLine("Saída do Clustal Omega:");
                         Console.WriteLine(result);
 
                         // Processar as sequências alinhadas
@@ -111,11 +109,17 @@ namespace ProteinAlignmentCode
             return sequences;
         }
 
-        static Dictionary<int, HashSet<char>> AnalyzePositions(List<string> sequences)
+        static List<char>[] AnalyzePositions(List<string> sequences)
         {
-            var positions = new Dictionary<int, HashSet<char>>();
+            int length = sequences[0].Length;
+            var positions = new List<char>[length];
 
-            for (int i = 0; i < sequences[0].Length; i++)
+            for (int i = 0; i < length; i++)
+            {
+                positions[i] = new List<char>();
+            }
+
+            for (int i = 0; i < length; i++)
             {
                 bool hasGap = false;
                 var aminoAcids = new HashSet<char>();
@@ -134,18 +138,22 @@ namespace ProteinAlignmentCode
 
                 if (!hasGap && aminoAcids.Count > 1)
                 {
-                    positions[i] = aminoAcids;
+                    positions[i].AddRange(aminoAcids);
                 }
             }
 
             return positions;
         }
 
-        static void DisplayPositions(Dictionary<int, HashSet<char>> positions)
+        static void DisplayPositions(List<char>[] positions)
         {
-            foreach (var position in positions)
+            Console.WriteLine("Posições com variações de aminoácidos:");
+            for (int i = 0; i < positions.Length; i++)
             {
-                Console.WriteLine($"Posição {position.Key + 1}: {string.Join(", ", position.Value)}");
+                if (positions[i].Count > 0)
+                {
+                    Console.WriteLine($"Posição {i + 1}: {string.Join(", ", positions[i])}");
+                }
             }
         }
     }
