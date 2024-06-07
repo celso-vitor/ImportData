@@ -431,8 +431,10 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
+        public List<string> UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
         {
+            List<string> consensusSequences = new List<string>();
+
             foreach (var (id, description, referenceSequence) in referenceSequences)
             {
                 var groupViewModel = new ReferenceGroupViewModel
@@ -547,8 +549,15 @@ namespace SequenceAssemblerGUI
                 // Adicionar a cobertura ao grupo de referência
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
+
+                // Adicionar a sequência consenso gerada à lista de sequências consenso
+                string consensusSequence = new string(consensusChars.Select(c => c.Char[0]).ToArray());
+                consensusSequences.Add(consensusSequence);
             }
+
+            return consensusSequences;
         }
+
 
         private static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
         {
@@ -578,6 +587,8 @@ namespace SequenceAssemblerGUI
                 Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
                 viewModel.ReferenceGroups.Clear();
 
+                Dictionary<string, string> allConsensusSequences = new Dictionary<string, string>();
+
                 foreach (var fasta in allFastaSequences)
                 {
                     // Seleciona os alinhamentos que têm o TargetOrigin igual ao ID da sequência fasta
@@ -594,11 +605,83 @@ namespace SequenceAssemblerGUI
                     // Elimina duplicatas e subsequências
                     var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
 
-                    // Atualiza a interface com os alinhamentos e a assembleia
-                    UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
+                    // Atualiza a interface com os alinhamentos e a assembleia e captura as sequências consenso
+                    var consensusSequences = UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
             {
                 (fasta.ID, fasta.Description, fasta.Sequence)
             });
+
+                    foreach (var consensusSequence in consensusSequences)
+                    {
+                        string consensusName = $"{fasta.ID}";
+                        allConsensusSequences[consensusName] = consensusSequence;
+                    }
+                }
+
+                // Imprime as sequências consenso antes do multi-alinhamento
+                Console.WriteLine("Consensus Sequences before multiple alignment:");
+                foreach (var entry in allConsensusSequences)
+                {
+                    Console.WriteLine($">{entry.Key}");
+                    Console.WriteLine(entry.Value);
+                }
+
+                // Realiza o multi-alinhamento das sequências consenso
+                if (allConsensusSequences.Count > 1)
+                {
+                    // Extrai as sequências consenso do dicionário
+                    var consensusSequencesList = allConsensusSequences.Select(kvp => $">{kvp.Key}\n{kvp.Value}").ToList();
+
+                    // Cria uma instância de SequenceAligner
+                    SequenceAligner aligner = new SequenceAligner();
+
+                    Console.WriteLine("Starting multiple sequence alignment...");
+                    // Realiza o multi-alinhamento
+                    string result;
+                    try
+                    {
+                        result = aligner.PerformMultipleSequenceAlignment(consensusSequencesList);
+                        Console.WriteLine("Multiple sequence alignment completed successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during multiple sequence alignment: {ex.Message}");
+                        return;
+                    }
+
+                    Console.WriteLine("Processing aligned sequences...");
+                    // Processa as sequências alinhadas
+                    var alignedConsensusSequences = SequenceAligner.ReadSequencesFromOutput(result);
+                    Console.WriteLine("Aligned sequences processed.");
+
+                    // Mapeia as sequências alinhadas aos seus nomes originais
+                    var alignedSequencesWithNames = new Dictionary<string, string>();
+                    int index = 0;
+                    foreach (var key in allConsensusSequences.Keys)
+                    {
+                        alignedSequencesWithNames[key] = alignedConsensusSequences[index];
+                        index++;
+                    }
+
+                    // Exibe as sequências alinhadas no console
+                    Console.WriteLine("Aligned Sequences:");
+                    foreach (var entry in alignedSequencesWithNames)
+                    {
+                        Console.WriteLine($">{entry.Key}");
+                        Console.WriteLine(entry.Value);
+                    }
+
+                    Console.WriteLine("Analyzing positions in aligned sequences...");
+                    // Gera a sequência consenso final
+                    var finalConsensusPositions = SequenceAligner.AnalyzePositions(alignedConsensusSequences);
+                    var finalConsensus = string.Join("", finalConsensusPositions.Select(pos => pos.Count > 0 ? pos.GroupBy(c => c).OrderByDescending(g => g.Count()).First().Key : '-'));
+
+                    Console.WriteLine("Final Consensus Sequence:");
+                    Console.WriteLine(finalConsensus);
+                }
+                else
+                {
+                    Console.WriteLine("Skipping multiple sequence alignment as there is only one consensus sequence.");
                 }
             }
             else
@@ -606,7 +689,6 @@ namespace SequenceAssemblerGUI
                 Console.WriteLine("DataContext is not of type SequenceViewModel.");
             }
         }
-
 
 
         public void ExecuteAssembly()

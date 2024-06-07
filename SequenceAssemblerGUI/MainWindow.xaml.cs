@@ -419,6 +419,13 @@ namespace SequenceAssemblerGUI
 
                 Console.WriteLine($"Loaded {allFastaSequences.Count} fasta sequences.");
 
+                // Depuração: Imprimir conteúdo dos arquivos FASTA carregados
+                foreach (var fasta in allFastaSequences)
+                {
+                    Console.WriteLine($">ID: {fasta.ID}");
+                    Console.WriteLine(fasta.Sequence);
+                }
+
                 if (filteredSequences != null && filteredSequences.Any())
                 {
                     // Obtém as origens das sequências filtradas
@@ -448,6 +455,38 @@ namespace SequenceAssemblerGUI
                     }
 
                     Console.WriteLine($"Generated {myAlignment.Count} alignments.");
+
+                    // Verifica se há mais de uma sequência FASTA para o multi-alinhamento
+                    if (allFastaSequences.Count > 1)
+                    {
+                        // Realiza o multi-alinhamento
+                        string result = aligner.PerformMultipleSequenceAlignment(allFastaSequences.Select(f => $">{f.ID}\n{f.Sequence}").ToList());
+
+                        // Processa as sequências alinhadas
+                        var sequences = SequenceAligner.ReadSequencesFromOutput(result);
+
+                        // Mapeia as sequências alinhadas aos seus nomes originais
+                        var alignedSequencesWithNames = new Dictionary<string, string>();
+                        int index = 0;
+                        foreach (var fastaSequence in allFastaSequences)
+                        {
+                            alignedSequencesWithNames[fastaSequence.ID] = sequences[index];
+                            index++;
+                        }
+
+                        // Exibe as sequências alinhadas no console
+                        SequenceAligner.DisplayAlignedSequences(alignedSequencesWithNames);
+
+                        // Análise adicional das posições
+                        var positions = SequenceAligner.AnalyzePositions(sequences);
+
+                        // Exibe as possíveis variações de aminoácidos por posição sem gaps e com diferenças
+                        SequenceAligner.DisplayPositions(positions);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Skipping multi-alignment as there is only one sequence.");
+                    }
 
                     // Atualiza a visualização do alinhamento com os parâmetros necessários
                     List<Alignment> filteredAlnResults = myAlignment
@@ -480,6 +519,10 @@ namespace SequenceAssemblerGUI
                 }
             }
         }
+
+
+
+
 
 
         private void UpdateTable()

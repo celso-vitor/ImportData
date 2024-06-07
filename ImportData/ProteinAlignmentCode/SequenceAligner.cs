@@ -15,10 +15,10 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int MaxGaps { get; set; }
         public int GapPenalty { get; set; }
         public bool IgnoreDifference { get; set; }
-       
 
 
-        public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreDifference = true )
+
+        public SequenceAligner(int maxGaps = 1, int gapPenalty = -2, bool ignoreDifference = true)
         {
             MaxGaps = maxGaps;
             GapPenalty = gapPenalty;
@@ -311,12 +311,183 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
                 AlignedAA = alignedAA,
                 NormalizedAlignedAA = Math.Round(((double)alignedAA / (double)alignedSmall.Length) * 100),
-           
+
 
             };
 
         }
-     
+
+        // Novo método para realizar o multi-alinhamento utilizando Clustal Omega
+        public string PerformMultipleSequenceAlignment(List<string> sequences)
+        {
+            // Caminho para o executável do Clustal Omega
+            string clustalOmegaPath = @"C:\clustal-omega-1.2.2-win64\clustalo.exe"; // Ajuste conforme necessário
+
+            // Caminho temporário para armazenar os arquivos de entrada e saída
+            string tempInputFile = Path.GetTempFileName();
+            string tempOutputFile = Path.GetTempFileName();
+
+            try
+            {
+                // Escreve todas as sequências FASTA em um único arquivo temporário
+                using (StreamWriter writer = new StreamWriter(tempInputFile))
+                {
+                    foreach (var sequence in sequences)
+                    {
+                        writer.WriteLine(sequence);
+                    }
+                }
+
+                // Verifica o conteúdo do arquivo temporário
+                Console.WriteLine("Conteúdo do arquivo temporário:");
+                Console.WriteLine(File.ReadAllText(tempInputFile));
+
+                // Comando para executar Clustal Omega
+                string arguments = $"-i \"{tempInputFile}\" -o \"{tempOutputFile}\" --outfmt=clu --force";
+
+                // Configurar o processo
+                ProcessStartInfo processStartInfo = new ProcessStartInfo
+                {
+                    FileName = clustalOmegaPath,
+                    Arguments = arguments,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = new Process())
+                {
+                    process.StartInfo = processStartInfo;
+                    process.Start();
+
+                    // Ler as saídas do processo
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+
+                    process.WaitForExit();
+
+                    // Verificar se houve algum erro
+                    if (process.ExitCode != 0)
+                    {
+                        throw new Exception($"Erro ao executar Clustal Omega: {error}");
+                    }
+                    else
+                    {
+                        return File.ReadAllText(tempOutputFile);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ocorreu um erro: {ex.Message}", ex);
+            }
+            finally
+            {
+                // Certifique-se de excluir os arquivos temporários
+                if (File.Exists(tempInputFile))
+                {
+                    File.Delete(tempInputFile);
+                }
+                if (File.Exists(tempOutputFile))
+                {
+                    File.Delete(tempOutputFile);
+                }
+            }
+        }
+
+
+        // Métodos auxiliares para processar as sequências alinhadas
+        public static List<string> ReadSequencesFromOutput(string output)
+        {
+            var sequences = new List<string>();
+            var lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                if (!line.StartsWith(" ") && !line.StartsWith("CLUSTAL") && !line.Contains('*'))
+                {
+                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 1)
+                    {
+                        sequences.Add(parts[1]);
+                    }
+                }
+            }
+
+            return sequences;
+        }
+
+        public static List<char>[] AnalyzePositions(List<string> sequences)
+        {
+            int length = sequences[0].Length;
+            var positions = new List<char>[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                positions[i] = new List<char>();
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                bool hasGap = false;
+                var aminoAcids = new HashSet<char>();
+                foreach (var sequence in sequences)
+                {
+                    if (sequence.Length > i)
+                    {
+                        if (sequence[i] == '-')
+                        {
+                            hasGap = true;
+                            break;
+                        }
+                        aminoAcids.Add(sequence[i]);
+                    }
+                }
+
+                if (!hasGap)
+                {
+                    positions[i].AddRange(aminoAcids);
+                }
+            }
+
+            return positions;
+        }
+
+        public static void DisplayAlignedSequences(Dictionary<string, string> sequences)
+        {
+            int blockSize = 100; // Número de caracteres por linha no bloco
+            var sequenceNames = sequences.Keys.ToList(); 
+            int sequenceCount = sequenceNames.Count;
+
+            // Encontrar o comprimento da sequência mais longa
+            int maxSequenceLength = sequences.Values.Max(seq => seq.Length);
+
+            for (int start = 0; start < maxSequenceLength; start += blockSize)
+            {
+                foreach (var name in sequenceNames)
+                {
+                    string sequence = sequences[name];
+                    string sequencePart = start < sequence.Length
+                        ? sequence.Substring(start, Math.Min(blockSize, sequence.Length - start))
+                        : string.Empty;
+                    Console.WriteLine($"{name.PadRight(20)}{sequencePart}");
+                }
+                Console.WriteLine();
+            }
+        }
+
+
+        public static void DisplayPositions(List<char>[] positions)
+        {
+            Console.WriteLine("Posições com variações de aminoácidos:");
+            for (int i = 0; i < positions.Length; i++)
+            {
+                if (positions[i].Count > 0)
+                {
+                    Console.WriteLine($"Posição {i + 1}: {string.Join(", ", positions[i])}");
+                }
+            }
+        }
     }
 }
-

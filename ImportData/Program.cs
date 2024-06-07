@@ -11,6 +11,8 @@ namespace ProteinAlignmentCode
     {
         static void Main(string[] args)
         {
+
+
             //string small = "QEFVE";
             //string large = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA\r\n";
             //string sourceOrigins = "psm/denovo";
@@ -30,12 +32,12 @@ namespace ProteinAlignmentCode
             //    Console.WriteLine(psm.FileName);
             //}
 
-            // Caminhos para os arquivos de entrada e saída
-            string inputFile = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\SimpleTest\\teste.fasta";
-            string outputFile = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\SimpleTest\\output.aln";
+            //// Caminhos para os arquivos de entrada e saída
+            string inputFile = "C:\\Users\\celso\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\NOVOR\\03-2024\\teste.fasta";
+            string outputFile = "C:\\Users\\celso\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\BSA\\NOVOR\\03-2024\\output.aln";
 
             // Comando para executar Clustal Omega
-            string clustalOmegaPath = "C:\\Users\\Celso Vitor Calomeno\\OneDrive - FIOCRUZ\\Projeto Mestrado\\ANALISES\\clustal-omega-1.2.2-win64\\clustalo.exe"; // Caminho para o executável do Clustal Omega
+            string clustalOmegaPath = "C:\\clustal-omega-1.2.2-win64\\clustalo.exe"; // Caminho para o executável do Clustal Omega
             string arguments = $"-i \"{inputFile}\" -o \"{outputFile}\" --outfmt=clu --force";
             // Configurar o processo
             ProcessStartInfo processStartInfo = new ProcessStartInfo
@@ -158,3 +160,4 @@ namespace ProteinAlignmentCode
         }
     }
 }
+  
