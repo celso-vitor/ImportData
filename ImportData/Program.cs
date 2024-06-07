@@ -53,6 +53,9 @@ namespace ProteinAlignmentCode
             // Proxima missão ::  Alinhar uma sequencia contra o consensus...
             string sequence = "LFPSAYPG";
 
+            SequenceAligner sa = new SequenceAligner();
+            var alignment = sa.AlignSequences(result.consensus, sequence);
+
             Console.WriteLine("Done");
 
         }

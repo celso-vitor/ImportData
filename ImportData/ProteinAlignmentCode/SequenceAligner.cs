@@ -189,6 +189,13 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             return maxValue; // Return the total similarity score.
         }
 
+        public Alignment AlignSequences(List<char>[] consensus, string smallSequence)
+        {
+               // Implement the alignment logic here
+            // Return an Alignment object with the results
+            return new Alignment();
+        }
+
 
         public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)
         {
