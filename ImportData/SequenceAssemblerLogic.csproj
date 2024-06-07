@@ -9,6 +9,10 @@
 
   <ItemGroup>
     <None Remove="Clustal\clustalo.exe" />
+    <None Remove="Clustal\libgcc_s_sjlj-1.dll" />
+    <None Remove="Clustal\libgomp-1.dll" />
+    <None Remove="Clustal\libstdc++-6.dll" />
+    <None Remove="Clustal\pthreadGC2-w64.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +35,21 @@
     <Reference Include="SeproPckg2">
       <HintPath>dlls\SeproPckg2.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Clustal\libgcc_s_sjlj-1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Clustal\libgomp-1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Clustal\libstdc++-6.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Clustal\pthreadGC2-w64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
