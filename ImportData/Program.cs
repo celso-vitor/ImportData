@@ -33,12 +33,7 @@ namespace ProteinAlignmentCode
             //    Console.WriteLine(psm.FileName);
             //}
 
-            //// Caminhos para os arquivos de entrada e saída
-
-
-            // Comando para executar Clustal Omega
-
-            // Configurar o processo
+            //Command to run Clustal Omega 
 
             FastaFileParser fastaFileParser = new FastaFileParser();
             var file = Path.Combine("..", "..", "..", "Debug", "teste.fasta");
@@ -47,15 +42,14 @@ namespace ProteinAlignmentCode
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
             var result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
 
-
             ClustalMultiAligner.DisplayPositions(result.consensus);
 
-            // Proxima missão ::  Alinhar uma sequencia contra o consensus...
+            // Proxima missão :: Alinhar uma sequência contra o consenso...
             string sequence = "LFPSAYPG";
-
             SequenceAligner sa = new SequenceAligner();
             var alignment = sa.AlignSequences(result.consensus, sequence);
 
+            sa.DisplayAlignment(alignment);
             Console.WriteLine("Done");
 
         }

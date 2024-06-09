@@ -191,12 +191,141 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         public Alignment AlignSequences(List<char>[] consensus, string smallSequence)
         {
-               // Implement the alignment logic here
-            // Return an Alignment object with the results
-            return new Alignment();
+            int n = consensus.Length;
+            int m = smallSequence.Length;
+
+            int[,] scoreMatrix = new int[n + 1, m + 1];
+            int[,] tracebackMatrix = new int[n + 1, m + 1];
+
+            // Inicializa a matriz de pontuação e a matriz de traceback
+            for (int i = 0; i <= n; i++)
+            {
+                for (int j = 0; j <= m; j++)
+                {
+                    scoreMatrix[i, j] = 0;
+                    tracebackMatrix[i, j] = 0;
+                }
+            }
+
+            int maxScore = 0;
+            int maxI = 0;
+            int maxJ = 0;
+
+            // Preenche a matriz de pontuação
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    char consensusChar = consensus[i - 1][0];
+                    char smallChar = smallSequence[j - 1];
+
+                    int matchScore = GetSubstitutionScore(consensusChar, smallChar);
+                    int scoreDiag = scoreMatrix[i - 1, j - 1] + matchScore;
+                    int scoreUp = scoreMatrix[i - 1, j] + GapPenalty;
+                    int scoreLeft = scoreMatrix[i, j - 1] + GapPenalty;
+
+                    scoreMatrix[i, j] = Math.Max(0, Math.Max(scoreDiag, Math.Max(scoreUp, scoreLeft)));
+
+                    if (scoreMatrix[i, j] == scoreDiag) tracebackMatrix[i, j] = 1;
+                    if (scoreMatrix[i, j] == scoreUp) tracebackMatrix[i, j] = 2;
+                    if (scoreMatrix[i, j] == scoreLeft) tracebackMatrix[i, j] = 3;
+
+                    if (scoreMatrix[i, j] > maxScore)
+                    {
+                        maxScore = scoreMatrix[i, j];
+                        maxI = i;
+                        maxJ = j;
+                    }
+                }
+            }
+
+            // Realiza o traceback para encontrar o alinhamento
+            List<char> alignedConsensus = new List<char>();
+            List<char> alignedSmall = new List<char>();
+            int matchedIdentity = 0;
+            int similarityScore = 0;
+            int gapsUsed = 0;
+
+            int currentI = maxI;
+            int currentJ = maxJ;
+
+            while (currentI > 0 && currentJ > 0 && scoreMatrix[currentI, currentJ] > 0)
+            {
+                if (tracebackMatrix[currentI, currentJ] == 1)
+                {
+                    char consensusChar = consensus[currentI - 1][0];
+                    char smallChar = smallSequence[currentJ - 1];
+                    alignedConsensus.Add(consensusChar);
+                    alignedSmall.Add(smallChar);
+                    if (consensusChar == smallChar)
+                    {
+                        matchedIdentity++;
+                    }
+                    similarityScore += GetSubstitutionScore(consensusChar, smallChar);
+                    currentI--;
+                    currentJ--;
+                }
+                else if (tracebackMatrix[currentI, currentJ] == 2)
+                {
+                    alignedConsensus.Add(consensus[currentI - 1][0]);
+                    alignedSmall.Add('-');
+                    gapsUsed++;
+                    currentI--;
+                }
+                else if (tracebackMatrix[currentI, currentJ] == 3)
+                {
+                    alignedConsensus.Add('-');
+                    alignedSmall.Add(smallSequence[currentJ - 1]);
+                    gapsUsed++;
+                    currentJ--;
+                }
+            }
+
+            alignedConsensus.Reverse();
+            alignedSmall.Reverse();
+
+            string alignedLarge = new string(alignedConsensus.ToArray());
+            string alignedSmallStr = new string(alignedSmall.ToArray());
+            int alignedAA = alignedSmallStr.Count(c => c != '-');
+            double normalizedIdentityScore = (double)matchedIdentity / alignedSmallStr.Length;
+            double normalizedSimilarityScore = (double)similarityScore / GetMaximumSimilarity(smallSequence);
+            int[] startPositions = new int[] { currentI, currentJ }; // Ajuste conforme necessário
+
+            // Construa o objeto de retorno Alignment
+            Alignment alignment = new Alignment
+            {
+                //SourceOrigin = "your_source_origin_here", // Defina conforme necessário
+                Identity = matchedIdentity,
+                AlignedLargeSequence = alignedLarge,
+                AlignedSmallSequence = alignedSmallStr,
+                //StartPositions = startPositions,
+                NormalizedIdentityScore = Math.Round(normalizedIdentityScore * 100, 2),
+                GapsUsed = gapsUsed,
+                SimilarityScore = similarityScore,
+                NormalizedSimilarity = Math.Round(normalizedSimilarityScore * 100, 2),
+                AlignedAA = alignedAA,
+                NormalizedAlignedAA = Math.Round(((double)alignedAA / alignedSmallStr.Length) * 100, 2)
+            };
+
+            return alignment;
         }
 
+        // Alingnment with Clustal
+        public void DisplayAlignment(Alignment alignment)
+        {
+            Console.WriteLine("Alinhamento:");
+            Console.WriteLine("Consensus Aligned:      " + new string(alignment.AlignedLargeSequence));
+            Console.WriteLine("Small Sequence Aligned: " + new string(alignment.AlignedSmallSequence));
+            Console.WriteLine("Identity:               " + alignment.Identity);
+            Console.WriteLine("Similarity Score:       " + alignment.SimilarityScore);
+            Console.WriteLine("Gaps Used:              " + alignment.GapsUsed);
+            Console.WriteLine("Normalized Identity:    " + alignment.NormalizedIdentityScore);
+            Console.WriteLine("Normalized Similarity:  " + alignment.NormalizedSimilarity);
+            Console.WriteLine("Aligned Amino Acids:    " + alignment.AlignedAA);
+            Console.WriteLine("Normalized Aligned AA:  " + alignment.NormalizedAlignedAA);
+        }
 
+        // Alingnment with Clustal
         public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)
         {
 
@@ -324,177 +453,5 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         }
 
-        // Novo método para realizar o multi-alinhamento utilizando Clustal Omega
-        public string PerformMultipleSequenceAlignment(List<string> sequences)
-        {
-            // Caminho para o executável do Clustal Omega
-            string clustalOmegaPath = @"C:\clustal-omega-1.2.2-win64\clustalo.exe"; // Ajuste conforme necessário
-
-            // Caminho temporário para armazenar os arquivos de entrada e saída
-            string tempInputFile = Path.GetTempFileName();
-            string tempOutputFile = Path.GetTempFileName();
-
-            try
-            {
-                // Escreve todas as sequências FASTA em um único arquivo temporário
-                using (StreamWriter writer = new StreamWriter(tempInputFile))
-                {
-                    foreach (var sequence in sequences)
-                    {
-                        writer.WriteLine(sequence);
-                    }
-                }
-
-                // Verifica o conteúdo do arquivo temporário
-                Console.WriteLine("Conteúdo do arquivo temporário:");
-                Console.WriteLine(File.ReadAllText(tempInputFile));
-
-                // Comando para executar Clustal Omega
-                string arguments = $"-i \"{tempInputFile}\" -o \"{tempOutputFile}\" --outfmt=clu --force";
-
-                // Configurar o processo
-                ProcessStartInfo processStartInfo = new ProcessStartInfo
-                {
-                    FileName = clustalOmegaPath,
-                    Arguments = arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (Process process = new Process())
-                {
-                    process.StartInfo = processStartInfo;
-                    process.Start();
-
-                    // Ler as saídas do processo
-                    string output = process.StandardOutput.ReadToEnd();
-                    string error = process.StandardError.ReadToEnd();
-
-                    process.WaitForExit();
-
-                    // Verificar se houve algum erro
-                    if (process.ExitCode != 0)
-                    {
-                        throw new Exception($"Erro ao executar Clustal Omega: {error}");
-                    }
-                    else
-                    {
-                        return File.ReadAllText(tempOutputFile);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ocorreu um erro: {ex.Message}", ex);
-            }
-            finally
-            {
-                // Certifique-se de excluir os arquivos temporários
-                if (File.Exists(tempInputFile))
-                {
-                    File.Delete(tempInputFile);
-                }
-                if (File.Exists(tempOutputFile))
-                {
-                    File.Delete(tempOutputFile);
-                }
-            }
-        }
-
-
-        // Métodos auxiliares para processar as sequências alinhadas
-        public static List<string> ReadSequencesFromOutput(string output)
-        {
-            var sequences = new List<string>();
-            var lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                if (!line.StartsWith(" ") && !line.StartsWith("CLUSTAL") && !line.Contains('*'))
-                {
-                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length > 1)
-                    {
-                        sequences.Add(parts[1]);
-                    }
-                }
-            }
-
-            return sequences;
-        }
-
-        public static List<char>[] AnalyzePositions(List<string> sequences)
-        {
-            int length = sequences[0].Length;
-            var positions = new List<char>[length];
-
-            for (int i = 0; i < length; i++)
-            {
-                positions[i] = new List<char>();
-            }
-
-            for (int i = 0; i < length; i++)
-            {
-                bool hasGap = false;
-                var aminoAcids = new HashSet<char>();
-                foreach (var sequence in sequences)
-                {
-                    if (sequence.Length > i)
-                    {
-                        if (sequence[i] == '-')
-                        {
-                            hasGap = true;
-                            break;
-                        }
-                        aminoAcids.Add(sequence[i]);
-                    }
-                }
-
-                if (!hasGap)
-                {
-                    positions[i].AddRange(aminoAcids);
-                }
-            }
-
-            return positions;
-        }
-
-        public static void DisplayAlignedSequences(Dictionary<string, string> sequences)
-        {
-            int blockSize = 100; // Número de caracteres por linha no bloco
-            var sequenceNames = sequences.Keys.ToList(); 
-            int sequenceCount = sequenceNames.Count;
-
-            // Encontrar o comprimento da sequência mais longa
-            int maxSequenceLength = sequences.Values.Max(seq => seq.Length);
-
-            for (int start = 0; start < maxSequenceLength; start += blockSize)
-            {
-                foreach (var name in sequenceNames)
-                {
-                    string sequence = sequences[name];
-                    string sequencePart = start < sequence.Length
-                        ? sequence.Substring(start, Math.Min(blockSize, sequence.Length - start))
-                        : string.Empty;
-                    Console.WriteLine($"{name.PadRight(20)}{sequencePart}");
-                }
-                Console.WriteLine();
-            }
-        }
-
-
-        public static void DisplayPositions(List<char>[] positions)
-        {
-            Console.WriteLine("Posições com variações de aminoácidos:");
-            for (int i = 0; i < positions.Length; i++)
-            {
-                if (positions[i].Count > 0)
-                {
-                    Console.WriteLine($"Posição {i + 1}: {string.Join(", ", positions[i])}");
-                }
-            }
-        }
     }
 }

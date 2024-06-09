@@ -23,8 +23,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             string inputFile = Path.Combine("..", "..", "..", "Debug", "tmp.fasta");
             string outputFile = Path.Combine("..", "..", "..", "Debug", "output.aln");
             string arguments = $"-i \"{inputFile}\" -o \"{outputFile}\" --outfmt=clu --force";
-            string clustalOmegaPath = Path.Combine("..", "..", "..", "Clustal", "clustalo.exe"); // Caminho para o executável do Clustal Omega
-
+            string clustalOmegaPath = Path.Combine("..", "..", "..", "Clustal", "clustalo.exe"); //Path to the Clustal Omega executable
             //Save the Fasta Sequences to the work directory
             StreamWriter sw = new StreamWriter(inputFile);
 
@@ -37,7 +36,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             sw.Close();
 
 
-            // Configurar o processo
+            //Configure the process
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = clustalOmegaPath,
@@ -48,36 +47,36 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 CreateNoWindow = true
             };
 
-            // Executar o processo
+            //Run the process
 
             using (Process process = new Process())
             {
                 process.StartInfo = processStartInfo;
                 process.Start();
 
-                // Ler as saídas do processo
+                //Read process outputs
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
 
                 process.WaitForExit();
 
-                // Verificar se houve algum erro
+                //Check if there were any errors
                 if (process.ExitCode != 0)
                 {
                     return (null, null);
                 }
                 else
                 {
-                    // Ler e exibir a saída do arquivo
+                    //Read and display file output
                     string result = File.ReadAllText(outputFile);
                     Console.WriteLine("Saída do Clustal Omega:");
                     Console.WriteLine(result);
 
 
-                    // Capture all lines of output
+                    //Capture all lines of output
                     var allLines = CaptureOutputLines(result);
 
-                    // Processar as sequências alinhadas
+                    //Process aligned sequences
                     var sequences = ReadSequencesFromOutput(result);
                     List<char>[] consensus = ConstructConsensus(sequences);
 
@@ -111,13 +110,13 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             int length = sequences[0].Length;
             var positions = new List<char>[length];
 
-            // Initialize the positions array with empty lists
+            //Initialize the positions array with empty lists
             for (int i = 0; i < length; i++)
             {
                 positions[i] = new List<char>();
             }
 
-            // Process each position in the sequences
+            //Process each position in the sequences
             for (int i = 0; i < length; i++)
             {
                 var aminoAcids = new HashSet<char>();
@@ -126,11 +125,11 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 {
                     if (sequence[i] != '-')
                     {
-                        aminoAcids.Add(sequence[i]); // Add amino acid to the set
+                        aminoAcids.Add(sequence[i]); //Add amino acid to the set
                     }
                 }
 
-                // Convert the HashSet to a List and store it in the positions array
+                //Convert the HashSet to a List and store it in the positions array
                 positions[i].AddRange(aminoAcids);
             }
 
@@ -142,7 +141,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             List<FastaItem> fastaItems = new List<FastaItem>();
             var lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            // Remove first and last lines
+            //Remove first and last lines
             lines.RemoveAt(0);
             lines.RemoveAt(lines.Count - 1);
 
@@ -169,8 +168,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
             return fastaItems;
         }
-
-
 
 
         public static void DisplayPositions(List<char>[] positions)

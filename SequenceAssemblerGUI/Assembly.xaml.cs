@@ -371,7 +371,7 @@ namespace SequenceAssemblerGUI
 
             public Dictionary<string, (List<ConsensusChar>, double)> ConsensusAndCoverage { get; set; }
 
-            public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new ObservableCollection<ReferenceGroupViewModel>();
+            public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new ();
 
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -393,7 +393,7 @@ namespace SequenceAssemblerGUI
                         bool hasILinReference = false;
                         bool hasILinAligned = false;
 
-                        // Verifica se a sequência de referência tem 'I' ou 'L' nesta posição
+                        //Checks if the reference string has 'I' or 'L' at this position
                         if (i < group.ReferenceSequence.Count)
                         {
                             var refChar = group.ReferenceSequence[i];
@@ -403,7 +403,7 @@ namespace SequenceAssemblerGUI
                             }
                         }
 
-                        // Verifica se qualquer sequência alinhada tem 'I' ou 'L' nesta posição
+                        //Checks if any aligned string has 'I' or 'L' at this position
                         foreach (var seq in group.Seq)
                         {
                             if (i < seq.VisualAlignment.Count)
@@ -417,7 +417,7 @@ namespace SequenceAssemblerGUI
                             }
                         }
 
-                        // Atualiza a cor de fundo do caractere do consenso baseado na presença de 'I' ou 'L'
+                        //Updates the background color of the consensus character based on the presence of 'I' or 'L'
                         if (ColorIL && hasILinReference && hasILinAligned)
                         {
                             consensusChar.BackgroundColor = new SolidColorBrush(Colors.LightGreen);
@@ -431,10 +431,9 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        public List<string> UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
-        {
-            List<string> consensusSequences = new List<string>();
 
+        public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
+        {
             foreach (var (id, description, referenceSequence) in referenceSequences)
             {
                 var groupViewModel = new ReferenceGroupViewModel
@@ -542,22 +541,15 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Calcular e adicionar consenso e cobertura individual
+                //Calculate and add consensus and individual coverage
                 var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
                 groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
-                // Adicionar a cobertura ao grupo de referência
+                //Add coverage to reference group
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
-
-                // Adicionar a sequência consenso gerada à lista de sequências consenso
-                string consensusSequence = new string(consensusChars.Select(c => c.Char[0]).ToArray());
-                consensusSequences.Add(consensusSequence);
             }
-
-            return consensusSequences;
         }
-
 
         private static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
         {
@@ -587,101 +579,27 @@ namespace SequenceAssemblerGUI
                 Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
                 viewModel.ReferenceGroups.Clear();
 
-                Dictionary<string, string> allConsensusSequences = new Dictionary<string, string>();
-
                 foreach (var fasta in allFastaSequences)
                 {
-                    // Seleciona os alinhamentos que têm o TargetOrigin igual ao ID da sequência fasta
+                    //Select alignments that have the TargetOrigin equal to the fasta sequence ID
                     var sequencesToAlign = alignments.Where(a => a.TargetOrigin == fasta.ID).ToList();
                     Console.WriteLine($"Fasta ID: {fasta.ID}, Description: {fasta.Description}, Alignments to process: {sequencesToAlign.Count}");
 
-                    // Verifica se há alinhamentos para a sequência fasta atual
+                    //Checks for alignments for the current fasta sequence
                     if (!sequencesToAlign.Any())
                     {
                         Console.WriteLine($"No alignments found for fasta ID: {fasta.ID}");
-                        continue; // Ignora sequências fasta sem alinhamentos
+                        continue; //Ignore fasta sequences without alignments
                     }
 
-                    // Elimina duplicatas e subsequências
+                    //Eliminate duplicates and subsequences
                     var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
 
-                    // Atualiza a interface com os alinhamentos e a assembleia e captura as sequências consenso
-                    var consensusSequences = UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
-            {
-                (fasta.ID, fasta.Description, fasta.Sequence)
-            });
-
-                    foreach (var consensusSequence in consensusSequences)
+                    //Updates the interface with the alignments and assembly
+                    UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
                     {
-                        string consensusName = $"{fasta.ID}";
-                        allConsensusSequences[consensusName] = consensusSequence;
-                    }
-                }
-
-                // Imprime as sequências consenso antes do multi-alinhamento
-                Console.WriteLine("Consensus Sequences before multiple alignment:");
-                foreach (var entry in allConsensusSequences)
-                {
-                    Console.WriteLine($">{entry.Key}");
-                    Console.WriteLine(entry.Value);
-                }
-
-                // Realiza o multi-alinhamento das sequências consenso
-                if (allConsensusSequences.Count > 1)
-                {
-                    // Extrai as sequências consenso do dicionário
-                    var consensusSequencesList = allConsensusSequences.Select(kvp => $">{kvp.Key}\n{kvp.Value}").ToList();
-
-                    // Cria uma instância de SequenceAligner
-                    SequenceAligner aligner = new SequenceAligner();
-
-                    Console.WriteLine("Starting multiple sequence alignment...");
-                    // Realiza o multi-alinhamento
-                    string result;
-                    try
-                    {
-                        result = aligner.PerformMultipleSequenceAlignment(consensusSequencesList);
-                        Console.WriteLine("Multiple sequence alignment completed successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during multiple sequence alignment: {ex.Message}");
-                        return;
-                    }
-
-                    Console.WriteLine("Processing aligned sequences...");
-                    // Processa as sequências alinhadas
-                    var alignedConsensusSequences = SequenceAligner.ReadSequencesFromOutput(result);
-                    Console.WriteLine("Aligned sequences processed.");
-
-                    // Mapeia as sequências alinhadas aos seus nomes originais
-                    var alignedSequencesWithNames = new Dictionary<string, string>();
-                    int index = 0;
-                    foreach (var key in allConsensusSequences.Keys)
-                    {
-                        alignedSequencesWithNames[key] = alignedConsensusSequences[index];
-                        index++;
-                    }
-
-                    // Exibe as sequências alinhadas no console
-                    Console.WriteLine("Aligned Sequences:");
-                    foreach (var entry in alignedSequencesWithNames)
-                    {
-                        Console.WriteLine($">{entry.Key}");
-                        Console.WriteLine(entry.Value);
-                    }
-
-                    Console.WriteLine("Analyzing positions in aligned sequences...");
-                    // Gera a sequência consenso final
-                    var finalConsensusPositions = SequenceAligner.AnalyzePositions(alignedConsensusSequences);
-                    var finalConsensus = string.Join("", finalConsensusPositions.Select(pos => pos.Count > 0 ? pos.GroupBy(c => c).OrderByDescending(g => g.Count()).First().Key : '-'));
-
-                    Console.WriteLine("Final Consensus Sequence:");
-                    Console.WriteLine(finalConsensus);
-                }
-                else
-                {
-                    Console.WriteLine("Skipping multiple sequence alignment as there is only one consensus sequence.");
+                        (fasta.ID, fasta.Description, fasta.Sequence)
+                    });
                 }
             }
             else
@@ -689,6 +607,7 @@ namespace SequenceAssemblerGUI
                 Console.WriteLine("DataContext is not of type SequenceViewModel.");
             }
         }
+
 
 
         public void ExecuteAssembly()

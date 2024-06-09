@@ -376,14 +376,14 @@ namespace SequenceAssemblerGUI
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            //Atualiza a lista de sequências filtradas
+            //Updates the list of filtered sequences
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                     .Union(psmDictTemp.Values.SelectMany(v => v))
                                     .Select(seq => seq.CleanPeptide)
                                     .Distinct()
                                     .ToList();
 
-            // Atualiza a variável myAlignment para refletir os alinhamentos atualizados
+            // Update myAlignment variable to reflect updated alignments
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
 
 
@@ -407,28 +407,21 @@ namespace SequenceAssemblerGUI
             {
                 var loadedFastaFiles = openFileDialog.FileNames.Select(FastaFormat.LoadFasta).ToList();
 
-                // Verifica se pelo menos um arquivo FASTA foi carregado corretamente
+                //Checks if at least one FASTA file was loaded correctly
                 if (loadedFastaFiles == null || loadedFastaFiles.Any(fasta => fasta == null || !fasta.Any()))
                 {
                     MessageBox.Show("Failed to load one or more FASTA files. Some files are empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return; // Sai do método para evitar mais processamento
+                    return; 
                 }
 
-                // Armazena os arquivos FASTA carregados
+                //Stores loaded FASTA files
                 var allFastaSequences = loadedFastaFiles.SelectMany(fasta => fasta).ToList();
 
                 Console.WriteLine($"Loaded {allFastaSequences.Count} fasta sequences.");
 
-                // Depuração: Imprimir conteúdo dos arquivos FASTA carregados
-                foreach (var fasta in allFastaSequences)
-                {
-                    Console.WriteLine($">ID: {fasta.ID}");
-                    Console.WriteLine(fasta.Sequence);
-                }
-
                 if (filteredSequences != null && filteredSequences.Any())
                 {
-                    // Obtém as origens das sequências filtradas
+                    //Gets the origins of the filtered sequences
                     List<string> sourceOrigins = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
 
                     Console.WriteLine($"Source Origins: {string.Join(", ", sourceOrigins)}");
@@ -440,7 +433,7 @@ namespace SequenceAssemblerGUI
 
                     SequenceAligner aligner = new SequenceAligner();
 
-                    // Alinha as sequências de PSM e de Novo com as sequências de todos os arquivos FASTA
+                    //Aligns PSM and De Novo sequences with sequences from all FASTA files
                     myAlignment = new List<Alignment>();
                     foreach (var fastaSequence in allFastaSequences)
                     {
@@ -448,7 +441,7 @@ namespace SequenceAssemblerGUI
                         var alignments = filteredSequences.Select((seq, index) =>
                         {
                             var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index]);
-                            alignment.TargetOrigin = fastaSequence.ID; // Adiciona o SourceOrigin ao alinhamento
+                            alignment.TargetOrigin = fastaSequence.ID; //Add SourceOrigin to alignment
                             return alignment;
                         }).ToList();
                         myAlignment.AddRange(alignments);
@@ -456,39 +449,7 @@ namespace SequenceAssemblerGUI
 
                     Console.WriteLine($"Generated {myAlignment.Count} alignments.");
 
-                    // Verifica se há mais de uma sequência FASTA para o multi-alinhamento
-                    if (allFastaSequences.Count > 1)
-                    {
-                        // Realiza o multi-alinhamento
-                        string result = aligner.PerformMultipleSequenceAlignment(allFastaSequences.Select(f => $">{f.ID}\n{f.Sequence}").ToList());
-
-                        // Processa as sequências alinhadas
-                        var sequences = SequenceAligner.ReadSequencesFromOutput(result);
-
-                        // Mapeia as sequências alinhadas aos seus nomes originais
-                        var alignedSequencesWithNames = new Dictionary<string, string>();
-                        int index = 0;
-                        foreach (var fastaSequence in allFastaSequences)
-                        {
-                            alignedSequencesWithNames[fastaSequence.ID] = sequences[index];
-                            index++;
-                        }
-
-                        // Exibe as sequências alinhadas no console
-                        SequenceAligner.DisplayAlignedSequences(alignedSequencesWithNames);
-
-                        // Análise adicional das posições
-                        var positions = SequenceAligner.AnalyzePositions(sequences);
-
-                        // Exibe as possíveis variações de aminoácidos por posição sem gaps e com diferenças
-                        SequenceAligner.DisplayPositions(positions);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Skipping multi-alignment as there is only one sequence.");
-                    }
-
-                    // Atualiza a visualização do alinhamento com os parâmetros necessários
+                    //Updates the alignment view with the necessary parameters
                     List<Alignment> filteredAlnResults = myAlignment
                         .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                                     a.NormalizedSimilarity >= minNormalizedSimilarity &&
@@ -497,11 +458,11 @@ namespace SequenceAssemblerGUI
 
                     Console.WriteLine($"Filtered alignments to {filteredAlnResults.Count} results.");
 
-                    // Verifica os TargetOrigin dos alinhamentos filtrados
+                    //Checks the TargetOrigin of filtered alignments
                     var filteredTargetOrigin = filteredAlnResults.Select(a => a.TargetOrigin).Distinct().ToList();
                     Console.WriteLine($"Filtered SourceOrigins: {string.Join(", ", filteredTargetOrigin)}");
 
-                    // Atualiza o ViewModel no controle Assembly
+                    //Updates the ViewModel in the Assembly control
                     MyAssembly.UpdateViewModel(allFastaSequences, filteredAlnResults);
 
                     TabItemResultBrowser.IsSelected = true;
@@ -524,7 +485,6 @@ namespace SequenceAssemblerGUI
 
 
 
-
         private void UpdateTable()
         {
             ButtonUpdateAssembly.IsEnabled = true;
@@ -532,19 +492,18 @@ namespace SequenceAssemblerGUI
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
             int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-            // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
+            //Filter the full alignment list based on identity and similarity criteria
             List<Alignment> filteredAlignments = myAlignment
                 .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                             a.NormalizedSimilarity >= minNormalizedSimilarity &&
                             a.AlignedSmallSequence.Length >= minLengthFilter)
                 .ToList();
 
-            // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
+            //Update DataGrid Alignment item source with filtered alignments
             MyAssembly.UpdateViewModel(myAlignment.Select(a => new Fasta
             {
                 ID = a.SourceOrigin,
                 Sequence = a.AlignedLargeSequence,
-                Description = "Description here" // Substituir pela descrição real
             }).Distinct().ToList(), filteredAlignments);
         }
 
