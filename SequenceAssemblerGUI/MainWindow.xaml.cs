@@ -376,14 +376,14 @@ namespace SequenceAssemblerGUI
             double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
 
-            //Updates the list of filtered sequences
+            //Atualiza a lista de sequências filtradas
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                     .Union(psmDictTemp.Values.SelectMany(v => v))
                                     .Select(seq => seq.CleanPeptide)
                                     .Distinct()
                                     .ToList();
 
-            // Update myAlignment variable to reflect updated alignments
+            // Atualiza a variável myAlignment para refletir os alinhamentos atualizados
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
 
 
@@ -411,7 +411,7 @@ namespace SequenceAssemblerGUI
                 if (loadedFastaFiles == null || loadedFastaFiles.Any(fasta => fasta == null || !fasta.Any()))
                 {
                     MessageBox.Show("Failed to load one or more FASTA files. Some files are empty or not valid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return; 
+                    return;
                 }
 
                 //Stores loaded FASTA files
@@ -485,6 +485,8 @@ namespace SequenceAssemblerGUI
 
 
 
+
+
         private void UpdateTable()
         {
             ButtonUpdateAssembly.IsEnabled = true;
@@ -492,18 +494,19 @@ namespace SequenceAssemblerGUI
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
             int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-            //Filter the full alignment list based on identity and similarity criteria
+            // Filtra a lista de alinhamentos completa com base nos critérios de identidade e similaridade
             List<Alignment> filteredAlignments = myAlignment
                 .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                             a.NormalizedSimilarity >= minNormalizedSimilarity &&
                             a.AlignedSmallSequence.Length >= minLengthFilter)
                 .ToList();
 
-            //Update DataGrid Alignment item source with filtered alignments
+            // Atualiza a fonte de itens do DataGridAlignments com os alinhamentos filtrados
             MyAssembly.UpdateViewModel(myAlignment.Select(a => new Fasta
             {
                 ID = a.SourceOrigin,
                 Sequence = a.AlignedLargeSequence,
+                Description = "Description here" // Substituir pela descrição real
             }).Distinct().ToList(), filteredAlignments);
         }
 

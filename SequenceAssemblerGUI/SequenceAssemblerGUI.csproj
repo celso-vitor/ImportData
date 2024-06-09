@@ -19,15 +19,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SequenceAssemblerLogic\SequenceAssemblerLogic.csproj" />
+    <ProjectReference Include="..\ImportData\SequenceAssemblerLogic.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="PatternTools">
-      <HintPath>..\SequenceAssemblerLogic\dlls\PatternTools.dll</HintPath>
+      <HintPath>..\ImportData\dlls\PatternTools.dll</HintPath>
     </Reference>
     <Reference Include="SeproPckg2">
-      <HintPath>..\SequenceAssemblerLogic\dlls\SeproPckg2.dll</HintPath>
+      <HintPath>..\ImportData\dlls\SeproPckg2.dll</HintPath>
     </Reference>
   </ItemGroup>
 

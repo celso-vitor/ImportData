@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequenceAssemblerLogic", "SequenceAssemblerLogic\SequenceAssemblerLogic.csproj", "{EA502617-CD9A-4615-8E4C-63D7145624CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequenceAssemblerLogic", "ImportData\SequenceAssemblerLogic.csproj", "{EA502617-CD9A-4615-8E4C-63D7145624CC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SequenceAssemblerGUI", "SequenceAssemblerGUI\SequenceAssemblerGUI.csproj", "{7ECAE1C9-08FC-4D2A-BBFF-71690F897093}"
 EndProject

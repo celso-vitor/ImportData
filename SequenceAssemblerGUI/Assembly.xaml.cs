@@ -371,7 +371,7 @@ namespace SequenceAssemblerGUI
 
             public Dictionary<string, (List<ConsensusChar>, double)> ConsensusAndCoverage { get; set; }
 
-            public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new ();
+            public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new();
 
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
