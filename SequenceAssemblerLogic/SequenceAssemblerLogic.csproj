@@ -50,7 +50,6 @@
     <Resource Include="Clustal\pthreadGC2-w64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Debug\teste.fasta" />
   </ItemGroup>
 
 </Project>

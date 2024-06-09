@@ -36,7 +36,9 @@ namespace ProteinAlignmentCode
             //Command to run Clustal Omega 
 
             FastaFileParser fastaFileParser = new FastaFileParser();
-            var file = Path.Combine("..", "..", "..", "Debug", "teste.fasta");
+            // Caminho relativo da pasta Debug dentro do folder SequenceAssemblerLogic
+            string file = @"..\..\..\Debug\teste.fasta";
+
             fastaFileParser.ParseFile(new StreamReader(file), false);
 
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
