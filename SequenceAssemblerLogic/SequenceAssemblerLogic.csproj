@@ -13,7 +13,6 @@
     <None Remove="Clustal\libgomp-1.dll" />
     <None Remove="Clustal\libstdc++-6.dll" />
     <None Remove="Clustal\pthreadGC2-w64.dll" />
-    <None Remove="Debug\teste.fasta" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="dlls\" />
+    <Folder Include="Debug\" />
   </ItemGroup>
 
   <ItemGroup>
