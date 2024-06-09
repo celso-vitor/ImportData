@@ -22,6 +22,7 @@
   <ItemGroup>
     <Folder Include="dlls\" />
     <Folder Include="Debug\" />
+    <Folder Include="trste\" />
   </ItemGroup>
 
   <ItemGroup>
