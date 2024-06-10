@@ -108,23 +108,30 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         private List<char>[] ConstructConsensus(List<string> sequences)
         {
-            int length = sequences[0].Length;
-            var positions = new List<char>[length];
+            if (sequences == null || sequences.Count == 0)
+            {
+                throw new ArgumentException("The list of sequences is null or empty.");
+            }
+
+            // Find the length of the longest sequence
+            int maxLength = sequences.Max(seq => seq.Length);
+            var positions = new List<char>[maxLength];
 
             // Initialize the positions array with empty lists
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < maxLength; i++)
             {
                 positions[i] = new List<char>();
             }
 
             // Process each position in the sequences
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < maxLength; i++)
             {
                 var aminoAcids = new HashSet<char>();
 
                 foreach (var sequence in sequences)
                 {
-                    if (sequence[i] != '-')
+                    // If the current sequence is shorter than the current position, treat it as a gap
+                    if (sequence.Length > i && sequence[i] != '-')
                     {
                         aminoAcids.Add(sequence[i]); // Add amino acid to the set
                     }
@@ -136,6 +143,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
             return positions;
         }
+
 
         private List<FastaItem> CaptureOutputLines(string output)
         {
