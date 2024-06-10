@@ -48,10 +48,10 @@ namespace ProteinAlignmentCode
             var result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
 
 
-            ClustalMultiAligner.DisplayPositions(result.consensus);
+            //ClustalMultiAligner.DisplayPositions(result.consensus);
 
             // Proxima missão :: Alinhar uma sequência contra o consenso...
-            string sequence = "LFPSAYPG";
+            string sequence = "LFSAAYPY";
             SequenceAligner sa = new SequenceAligner();
             var alignment = sa.AlignSequences(result.consensus, sequence);
 
