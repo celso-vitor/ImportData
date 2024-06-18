@@ -6,9 +6,59 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class Parser
     {
+        public static List<IDResult> EliminateDuplicatesAndSubsequences(List<IDResult> input)
+        {
+            input.Sort((x, y) => x.Peptide.Length.CompareTo(y.Peptide.Length)); // Ordenar Alignment por comprimento de AlignedSmallSequence
 
+
+            var result = new List<IDResult>();
+            var set = new HashSet<string>();
+
+            foreach (var alignment in input)
+            {
+                string alignedSequence = alignment.Peptide;
+                if (set.Contains(alignedSequence))
+                    continue;
+
+                bool shouldAdd = true;
+                foreach (var existingAlignment in result)
+                {
+                    string existingSequence = existingAlignment.Peptide;
+                    if (IsSubsequence(existingSequence, alignedSequence))
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                    else if (IsSubsequence(alignedSequence, existingSequence))
+                    {
+                        set.Remove(existingSequence);
+                    }
+                }
+
+                if (shouldAdd)
+                {
+                    result.Add(alignment);
+                    set.Add(alignedSequence);
+                }
+            }
+
+            return result;
+        }
+
+        private static bool IsSubsequence(string str1, string str2)
+        {
+            int i = 0, j = 0;
+            while (i < str1.Length && j < str2.Length)
+            {
+                if (str1[i] == str2[j])
+                    i++;
+                j++;
+            }
+            return i == str1.Length;
+        }
         public Dictionary<string, List<IDResult>> DictDenovo { get; private set; }
         public Dictionary<string, List<IDResult>> DictPsm { get; private set; }
+
 
         public Dictionary<short, string> FileDictionary { get; private set; }
 
@@ -16,6 +66,7 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             DictDenovo = new();
             DictPsm = new();
+
         }
 
         public static void FilterDictMaxLengthDeNovo(int peptideLength, Dictionary<string, List<IDResult>> theDict)
@@ -221,7 +272,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     RT = psm.RetentionTime,
                     Mz = psm.MZ,
                     Z = psm.ChargeState,
-                    PepMass = psm.MeasuredMH -1.00728,
+                    PepMass = psm.MeasuredMH - 1.00728,
                     Score = psm.ClassificationScore,
                     Peptide = PatternTools.pTools.CleanPeptide(psm.PeptideSequence),
                     AaScore = PatternTools.pTools.CleanPeptide(psm.PeptideSequence).Select(b => (int)100).ToList()

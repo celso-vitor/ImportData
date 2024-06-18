@@ -17,8 +17,6 @@
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
             </MenuItem>
 
-            <MenuItem x:Name="MenuItemCompareSequences" Header="Compare Sequences" Click="MenuItemCompareSequences_Click"/>
-
         </Menu>
 
         <Grid Grid.Row="2">
@@ -41,9 +39,9 @@
                                 <Label Content="Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
                                 <Label Content="MinLength"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="3" Maximum="20"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="0" Maximum="20"/>
                                 <Label Content="MaxLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="0" Maximum="80"/>
 
 
                             </WrapPanel>
@@ -52,11 +50,11 @@
                         <GroupBox Header="DeNovo">
                             <WrapPanel>
                                 <Label Content="AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="0" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="0" Maximum="100"/>
                                 <Label Content="MinLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="3" Maximum="20"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="0" Maximum="20"/>
                                 <Label Content="MaxLength" />
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="3" Maximum="80"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="0" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
 
@@ -65,15 +63,18 @@
                     </WrapPanel>
 
                     <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <RadioButton Content="Antibody mode" VerticalAlignment="Center" Margin="2,2,2,2" />
-                        <RadioButton Content="Purified Protein Sequence Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True"/>
-                        <Label Content="Maximum Gaps"/>
-                        <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="10"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,2,2,2">
+                            <RadioButton Content="Local Alignment mode" VerticalAlignment="Center" Margin="2,2,2,2" Checked="RadioButtonAlignmentMode_Checked"/>
+                            <RadioButton Content="Multiple Alignment Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True" Checked="RadioButtonMultipleAlignmentMode_Checked"/>
+                        </StackPanel>
+
                         <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
                     </WrapPanel>
 
                     <GroupBox Header="Assembly">
                         <WrapPanel HorizontalAlignment="Center">
+                            <Label Content="Maximum Gaps"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="100" IsEnabled="False"/>
                             <Label Content="Minimum Identity"/>
                             <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled ="False"/>
                             <Label Content="Minimum Normalized Similarity"/>
@@ -81,10 +82,13 @@
                             <Label Content="Minimum Length"/>
                             <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled ="False"/>
                             <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="61" Margin="10,0,0,0" IsEnabled ="False"/>
+
+                            <Label Content="AA Overlap"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10" IsEnabled="False"/>
+                            <Button x:Name="ContigAssembly" Content="ContigAssembly" Click="OpenCompareSequencesWindow_Click" Width="114" HorizontalAlignment="Center" Height="29" IsEnabled="False"/>
+
                         </WrapPanel>
                     </GroupBox>
-
-
 
                 </StackPanel>
 
@@ -137,13 +141,13 @@
                                 <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
                             </TabItem>
 
-                            <!--<TabItem Header="ContigAssembly">
+                            <TabItem Header="ContigAssembly">
                                 <Grid>
                                     <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" IsEnabled ="False"/>
                                     <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Grid>
 
-                            </TabItem>-->
+                            </TabItem>
                         </TabControl>
 
                     </Grid>
@@ -151,41 +155,25 @@
                 </TabItem>
 
 
-                <!--<TabItem x:Name="TabItemResultBrowser2" Header="Alignment Viewer2">
+                <TabItem x:Name="TabItemResultBrowser2" Header="Multiple Alignment" IsEnabled ="False">
                     <Grid Background="WhiteSmoke">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
-                             -->
-                <!--Make this resizable-->
-                <!-- 
+
                             <RowDefinition Height="Auto"/>
-                             -->
-                <!--Adjusted for GridSplitter-->
-                <!-- 
+
                             <RowDefinition Height="*"/>
-                             -->
-                <!--Make this resizable-->
-                <!-- 
+
                         </Grid.RowDefinitions>
 
-                         -->
-                <!--First DataGrid-->
-                <!-- 
                         <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
 
-                         -->
-                <!--GridSplitter for resizing. Set to Auto height to accommodate the splitter's height-->
-                <!-- 
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
 
-                         -->
-                <!--Second DataGrid, corrected to Grid.Row="2"-->
-                <!-- 
-
-                        <local:AlignmentViewer x:Name="MyAlignmentViewer2"/>
+                        <local:AlignmentViewer x:Name="MyMultipleAlignment"/>
 
                     </Grid>
-                </TabItem >-->
+                </TabItem >
 
                 <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer" IsEnabled ="False">
                     <local:Assembly x:Name="MyAssembly"/>

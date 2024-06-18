@@ -14,7 +14,7 @@ namespace SequenceAssemblerLogic.ContigCode
         public List<IDResult> IDs { get; set; }
 
 
-       
+
     }
 }
 

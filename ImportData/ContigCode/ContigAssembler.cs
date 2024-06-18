@@ -1,28 +1,23 @@
-﻿using System;
+﻿using SequenceAssemblerLogic.ResultParser;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+
+
 
 namespace SequenceAssemblerLogic.ContigCode
 {
-    using SequenceAssemblerLogic.ResultParser;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Text.RegularExpressions;
 
     public class ContigAssembler
     {
-        private List<Contig> contigSeeds;
+        private ConcurrentBag<Contig> contigSeeds;
 
-        public ContigAssembler()
-        {
+        public ContigAssembler() { }
 
-        }
-
-        // Improved method for calculating overlap length.
         public int GetOverlapLength(Contig c1, Contig c2, int minOverlap)
         {
             int len1 = c1.Sequence.Length;
@@ -39,42 +34,54 @@ namespace SequenceAssemblerLogic.ContigCode
             return 0;
         }
 
-        // Improved MergeSequences method.
-        private bool MergeSequences(int minOverlap)
+        private bool MergeSequences(int minOverlap, Stopwatch stopwatch, int maxTimeMilliseconds)
         {
-            for (int i = 0; i < contigSeeds.Count; i++)
-            {
-                for (int j = 0; j < contigSeeds.Count; j++)
-                {
-                    if (i != j)
-                    {
-                        int overlap = GetOverlapLength(contigSeeds[i], contigSeeds[j], minOverlap);
+            var mergedContigs = new ConcurrentBag<Contig>();
+            var contigList = contigSeeds.ToList(); // Convert to list to avoid modifying the bag during iteration
 
+            Parallel.For(0, contigList.Count, i =>
+            {
+                for (int j = 0; j < contigList.Count; j++)
+                {
+                    if (i != j && stopwatch.ElapsedMilliseconds < maxTimeMilliseconds)
+                    {
+                        var c1 = contigList[i];
+                        var c2 = contigList[j];
+
+                        int overlap = GetOverlapLength(c1, c2, minOverlap);
                         if (overlap >= minOverlap)
                         {
-                            // Merge sequences
-                            string newSequence = contigSeeds[i].Sequence + contigSeeds[j].Sequence.Substring(overlap);
-                            // Add new merged sequence
+                            string newSequence = c1.Sequence + c2.Sequence.Substring(overlap);
                             Contig c = new Contig()
                             {
                                 Sequence = newSequence,
-                                IDs = contigSeeds[i].IDs.Concat(contigSeeds[j].IDs).ToList()
+                                IDs = c1.IDs.Concat(c2.IDs).ToList()
                             };
 
-                            contigSeeds.Add(c);
-                            // Remove merged sequences
-                            contigSeeds.RemoveAt(Math.Max(i, j));
-                            contigSeeds.RemoveAt(Math.Min(i, j));
-                            return true;
+                            lock (mergedContigs)
+                            {
+                                mergedContigs.Add(c);
+                            }
+
+                            lock (contigSeeds)
+                            {
+                                contigSeeds.TryTake(out c1);
+                                contigSeeds.TryTake(out c2);
+                            }
                         }
                     }
                 }
+            });
+
+            foreach (var c in mergedContigs)
+            {
+                contigSeeds.Add(c);
             }
-            return false;
+
+            return mergedContigs.Count > 0;
         }
 
-        // Assembles contig sequences based on minimum overlap.
-        public List<Contig> AssembleContigSequences(List<IDResult> results, int minOverlap)
+        public List<Contig> AssembleContigSequencesWithLimits(List<IDResult> results, int minOverlap, int maxContigs, int maxTimeMilliseconds)
         {
             if (results == null)
                 throw new ArgumentNullException(nameof(results));
@@ -82,30 +89,26 @@ namespace SequenceAssemblerLogic.ContigCode
             if (minOverlap <= 0)
                 throw new ArgumentException("Minimum overlap must be a positive integer.", nameof(minOverlap));
 
-
             var groupedResults = results.GroupBy(result => result.CleanPeptide);
             Console.WriteLine(groupedResults.Count());
 
-            contigSeeds = (from gr in groupedResults
-                           select new Contig()
-                           {
-                               Sequence = Regex.Replace(gr.Key, @"\([^)]*\)", ""),
-                               IDs = gr.ToList()
-                           }).ToList();
+            contigSeeds = new ConcurrentBag<Contig>(
+                from gr in groupedResults
+                select new Contig()
+                {
+                    Sequence = Regex.Replace(gr.Key, @"\([^)]*\)", ""),
+                    IDs = gr.ToList()
+                });
 
-
-
+            var stopwatch = Stopwatch.StartNew();
             bool merged = true;
-
-            while (merged)
+            while (merged && contigSeeds.Count < maxContigs && stopwatch.ElapsedMilliseconds < maxTimeMilliseconds)
             {
-                merged = MergeSequences(minOverlap);
+                merged = MergeSequences(minOverlap, stopwatch, maxTimeMilliseconds);
             }
 
-            return contigSeeds;
-
+            stopwatch.Stop();
+            return contigSeeds.ToList();
         }
     }
-
-
 }

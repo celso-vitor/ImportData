@@ -47,7 +47,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
                     if (process.ExitCode != 0)
                     {
-                        throw new Exception($"Erro ao executar Clustal Omega: {error}");
+                        throw new Exception($"Error when running Clustal Omega: {error}");
                     }
                     else
                     {
@@ -60,7 +60,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             }
             catch (Exception ex)
             {
-                throw new Exception($"Ocorreu um erro: {ex.Message}", ex);
+                throw new Exception($"An error has occurred: {ex.Message}", ex);
             }
             finally
             {
@@ -106,7 +106,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         {
             if (sequences == null || sequences.Count == 0)
             {
-                throw new ArgumentException("A lista de sequências não pode estar vazia.");
+                throw new ArgumentException("The sequence list cannot be empty.");
             }
 
             int length = sequences[0].Length;
@@ -114,7 +114,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             {
                 if (sequence.Length != length)
                 {
-                    throw new ArgumentException("Todas as sequências devem ter o mesmo comprimento.");
+                    throw new ArgumentException("All strings must be the same length.");
                 }
             }
 
@@ -153,14 +153,50 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         public static void DisplayPositions(List<char>[] positions)
         {
-            Console.WriteLine("Posições com variações de aminoácidos:");
+            Console.WriteLine("Positions with amino acid variations:");
             for (int i = 0; i < positions.Length; i++)
             {
                 if (positions[i].Count > 0)
                 {
-                    Console.WriteLine($"Posição {i + 1}: {string.Join(", ", positions[i])}");
+                    Console.WriteLine($"Positions {i + 1}: {string.Join(", ", positions[i])}");
                 }
             }
         }
+
+        public static string CalculateConsensusSequence(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus)> consensusDetails)
+        {
+            consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus)>();
+
+            if (alignedSequences == null || alignedSequences.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            int sequenceLength = alignedSequences.First().Sequence.Length;
+            char[] consensusSequence = new char[sequenceLength];
+
+            for (int i = 0; i < sequenceLength; i++)
+            {
+                var positionChars = alignments
+                    .Where(seq => seq.StartPositions.Max() <= i && i < seq.StartPositions.Max() + seq.AlignedSmallSequence.Length)
+                    .Select(seq => seq.AlignedSmallSequence[i - seq.StartPositions.Max()])
+                    .ToArray();
+
+                var mostFrequentCharGroup = positionChars
+                    .GroupBy(c => c)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault();
+
+                char mostFrequentChar = mostFrequentCharGroup?.Key ?? '-';
+                bool isConsensus = mostFrequentCharGroup?.Count() == alignedSequences.Count;
+
+                consensusSequence[i] = mostFrequentChar;
+                consensusDetails.Add((i, mostFrequentChar, isConsensus));
+            }
+
+            return new string(consensusSequence);
+        }
+
+
     }
 }

@@ -189,6 +189,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             return maxValue; // Return the total similarity score.
         }
 
+
+
         public void DisplayAlignment(Alignment alignment)
         {
             Console.WriteLine("Alinhamento:");
@@ -203,7 +205,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             Console.WriteLine("Normalized Aligned AA:  " + alignment.NormalizedAlignedAA);
         }
 
-        public Alignment AlignSequences(List<char>[] consensus, string smallSequence)
+        // Multiple Alignment
+        public Alignment AlignMSA(List<char>[] consensus, string smallSequence, string sourceOrigin)
         {
             int n = consensus.Length;
             int m = smallSequence.Length;
@@ -303,16 +306,22 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             int alignedAA = alignedSmallStr.Count(c => c != '-');
             double normalizedIdentityScore = (double)matchedIdentity / alignedSmallStr.Length;
             double normalizedSimilarityScore = (double)similarityScore / GetMaximumSimilarity(smallSequence);
-            int[] startPositions = new int[] { currentI, currentJ }; // Ajuste conforme necessário
+
+            // Calcula as posições iniciais do alinhamento
+            int startLargeSeqPos = maxI - alignedConsensus.Count;
+            int startSmallSeqPos = maxJ - alignedSmall.Count;
+
+            // Converte as posições iniciais para uma List<int>
+            List<int> startPositions = new List<int> { startLargeSeqPos, startSmallSeqPos };
 
             // Construa o objeto de retorno Alignment
             Alignment alignment = new Alignment
             {
-                //SourceOrigin = "your_source_origin_here", // Defina conforme necessário
+                SourceOrigin = sourceOrigin,  // Adiciona o sourceOrigin ao objeto Alignment
                 Identity = matchedIdentity,
                 AlignedLargeSequence = alignedLarge,
                 AlignedSmallSequence = alignedSmallStr,
-                //StartPositions = startPositions,
+                StartPositions = startPositions,
                 NormalizedIdentityScore = Math.Round(normalizedIdentityScore * 100, 2),
                 GapsUsed = gapsUsed,
                 SimilarityScore = similarityScore,
@@ -325,9 +334,41 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         }
 
 
+        public int AlignerPCC(List<char>[] consensus, string smallSequence)
+        {
+            List<int> scores = new List<int>();
+
+            for (int i = 0; i < consensus.Length; i++)
+            {
+                int score = 0;
+                for (int j = 0; j < smallSequence.Length; j++)
+                {
+                    List<int> tmpScore = new List<int>();
+                    for (int k = 0; k < consensus[i].Count; k++)
+                    {
+                        tmpScore.Add(SubstitutionMatrix[consensus[i][k].ToString() + smallSequence[j].ToString()]);
+                    }
+
+
+                    score += tmpScore.Max();
+
+                }
+
+                scores.Add(score);
+            }
+
+            // Use LINQ to find the index of the greatest score
+            int maxIndex = scores.Select((score, index) => new { Score = score, Index = index })
+                                 .OrderByDescending(x => x.Score)
+                                 .First()
+                                 .Index;
+
+            return maxIndex;
+        }
+
+        // Local Alignment
         public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)
         {
-
             int largeLen = largeSeq.Length;
             int smallLen = smallSeq.Length;
             int[,] dp = new int[largeLen + 1, smallLen + 1];
@@ -392,7 +433,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
 
-
             // Remove initial gaps and record how many were removed
             int initialGaps = 0;
             while (alignedLarge.Length > initialGaps && alignedLarge[initialGaps] == '-')
@@ -401,19 +441,27 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             }
             string alignedPortion = alignedLarge.Substring(initialGaps).Replace("-", "");
 
+            // If alignedPortion is empty, log the issue and handle it gracefully
+            if (string.IsNullOrEmpty(alignedPortion))
+            {
+                Console.WriteLine("Aligned portion of the sequence is empty. Skipping alignment.");
+                return null; // Or handle it in another way, such as returning a special value or throwing a specific exception
+            }
+
             // Search for the start positions in the large sequence, adjusting for the gaps removed
             List<int> startPositions = new List<int>();
             int index = 0;
             while ((index = largeSeq.IndexOf(alignedPortion, index)) != -1)
             {
-                startPositions.Add(index + 1 - initialGaps); // Adjusting the index for the initial gaps
+                int adjustedIndex = index + 1 - initialGaps;
+                if (adjustedIndex >= 0 && adjustedIndex < largeSeq.Length)
+                {
+                    startPositions.Add(adjustedIndex); // Adjusting the index for the initial gaps
+                }
                 index++;
             }
 
-
-
-
-            //calculate identity
+            // Calculate identity
             int matchedIdentity = 0;
             int alignedAA = 0;
             for (int i = 0; i < alignedLarge.Length; i++)
@@ -421,7 +469,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 if (alignedLarge[i] != '-' && alignedSmall[i] != '-')
                 {
                     alignedAA++;
-
                     if (alignedLarge[i] == alignedSmall[i])
                     {
                         matchedIdentity++;
@@ -429,9 +476,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
 
-
-            double normalizedIdentityScore = (double)matchedIdentity / (double)alignedSmall.Length * 100;
-
+            double normalizedIdentityScore = (double)matchedIdentity / alignedSmall.Length * 100;
 
             return new SequenceAssemblerLogic.ProteinAlignmentCode.Alignment
             {
@@ -445,12 +490,91 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 SimilarityScore = similarityScore,
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
                 AlignedAA = alignedAA,
-                NormalizedAlignedAA = Math.Round(((double)alignedAA / (double)alignedSmall.Length) * 100),
-
-
+                NormalizedAlignedAA = Math.Round(((double)alignedAA / alignedSmall.Length) * 100),
             };
-
         }
 
+        // Global Alignment
+        public static (string alignedSeqA, string alignedSeqB, int totalAlignedBases, double identityPercentage) AlignSequences(string seq1, string seq2, int gapPenalty)
+        {
+            int m = seq1.Length;
+            int n = seq2.Length;
+            int[,] score = new int[m + 1, n + 1];
+
+            // Inicialização da matriz de pontuação
+            for (int i = 0; i <= m; i++)
+                score[i, 0] = i * gapPenalty;
+            for (int j = 0; j <= n; j++)
+                score[0, j] = j * gapPenalty;
+
+            // Preenchimento da matriz de pontuação
+            for (int i = 1; i <= m; i++)
+            {
+                for (int j = 1; j <= n; j++)
+                {
+                    int match = score[i - 1, j - 1] + (seq1[i - 1] == seq2[j - 1] ? 1 : -1);
+                    int delete = score[i - 1, j] + gapPenalty;
+                    int insert = score[i, j - 1] + gapPenalty;
+                    score[i, j] = Math.Max(Math.Max(match, delete), insert);
+                }
+            }
+
+            // Reconstrução do alinhamento
+            int k = m, l = n;
+            StringBuilder alignedSeq1 = new StringBuilder();
+            StringBuilder alignedSeq2 = new StringBuilder();
+            int totalAlignedBases = 0;
+            int matches = 0;
+
+            while (k > 0 && l > 0)
+            {
+                if (score[k, l] == score[k - 1, l - 1] + (seq1[k - 1] == seq2[l - 1] ? 1 : -1))
+                {
+                    alignedSeq1.Insert(0, seq1[k - 1]);
+                    alignedSeq2.Insert(0, seq2[l - 1]);
+                    if (seq1[k - 1] == seq2[l - 1])
+                    {
+                        matches++;
+                    }
+                    totalAlignedBases++;
+                    k--;
+                    l--;
+                }
+                else if (score[k, l] == score[k - 1, l] + gapPenalty)
+                {
+                    alignedSeq1.Insert(0, seq1[k - 1]);
+                    alignedSeq2.Insert(0, '-');
+                    totalAlignedBases++;
+                    k--;
+                }
+                else
+                {
+                    alignedSeq1.Insert(0, '-');
+                    alignedSeq2.Insert(0, seq2[l - 1]);
+                    totalAlignedBases++;
+                    l--;
+                }
+            }
+
+            while (k > 0)
+            {
+                alignedSeq1.Insert(0, seq1[k - 1]);
+                alignedSeq2.Insert(0, '-');
+                totalAlignedBases++;
+                k--;
+            }
+
+            while (l > 0)
+            {
+                alignedSeq1.Insert(0, '-');
+                alignedSeq2.Insert(0, seq2[l - 1]);
+                totalAlignedBases++;
+                l--;
+            }
+
+            double identityPercentage = (double)matches / totalAlignedBases;
+
+            return (alignedSeq1.ToString(), alignedSeq2.ToString(), totalAlignedBases, identityPercentage);
+        }
     }
 }

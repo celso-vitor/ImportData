@@ -12,7 +12,8 @@ namespace SequenceAssemblerLogic
     {
         public static List<Alignment> EliminateDuplicatesAndSubsequences(List<Alignment> input)
         {
-            input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length)); // Ordenar Alignment por comprimento de AlignedSmallSequence
+            input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length));// Sort Alignment by Align Small Sequence length
+
 
             var result = new List<Alignment>();
             var set = new HashSet<string>();
@@ -97,9 +98,9 @@ namespace SequenceAssemblerLogic
             return false;
         }
 
-        public static List<string> GetSourceOrigins(List<string> filteredSequences, Dictionary<string, List<IDResult>> deNovoDictTemp, Dictionary<string, List<IDResult>> psmDictTemp)
+        public static List<(string folder, string sequence, string identificationMethod)> GetSourceOrigins(List<string> filteredSequences, Dictionary<string, List<IDResult>> deNovoDictTemp, Dictionary<string, List<IDResult>> psmDictTemp)
         {
-            List<string> sourceOrigins = new List<string>();
+            List<(string folder, string sequence, string identificationMethod)> sourceOrigins = new();
 
             foreach (var seq in filteredSequences)
             {
@@ -108,21 +109,21 @@ namespace SequenceAssemblerLogic
                     var peptideorigin = deNovoDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
                     var folder = deNovoDictTemp.Keys.First(key => deNovoDictTemp[key].Any(item => item.CleanPeptide == seq));
 
-                    // Adiciona Peptide e Folder ao sourceOrigins
-                    sourceOrigins.Add($"DeNovo - Peptide: {peptideorigin} - Folder: {folder}");
+                    // Add Peptide and Folder as source Origins
+                    sourceOrigins.Add((folder, peptideorigin, "DeNovo"));
                 }
                 else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
                 {
                     var peptideorigin = psmDictTemp.Values.SelectMany(v => v).First(item => item.CleanPeptide == seq).Peptide;
                     var folder = psmDictTemp.Keys.First(key => psmDictTemp[key].Any(item => item.CleanPeptide == seq));
 
-                    // Adiciona Peptide e Folder ao sourceOrigins
-                    sourceOrigins.Add($"PSM - Peptide: {peptideorigin} - Folder: {folder}");
+                    // Add Peptide and Folder as source Origins
+                    sourceOrigins.Add((folder, peptideorigin, "PSM"));
                 }
                 else
                 {
-                    // Define uma origem padrão, caso não seja encontrada em deNovoDictTemp nem em psmDictTemp
-                    sourceOrigins.Add("Unknown");
+                    // Defines a default origin if it is not found in deNovoDictTemp or psmDictTemp
+                    throw new Exception("Problems parsing peptide results");
                 }
             }
 

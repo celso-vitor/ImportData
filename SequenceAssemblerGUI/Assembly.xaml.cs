@@ -572,7 +572,7 @@ namespace SequenceAssemblerGUI
             ExecuteAssembly();
         }
 
-        public void UpdateViewModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
+        public void UpdateViewLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
         {
             if (DataContext is SequenceViewModel viewModel)
             {

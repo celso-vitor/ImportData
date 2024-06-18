@@ -40,23 +40,23 @@ namespace ProteinAlignmentCode
 
             // Configurar o processo
 
-            FastaFileParser fastaFileParser = new FastaFileParser();
-            var file = Path.Combine("..", "..", "..", "Debug", "teste.fasta");
-            fastaFileParser.ParseFile(new StreamReader(file), false);
+            //FastaFileParser fastaFileParser = new FastaFileParser();
+            //var file = Path.Combine(@"C:\Users\Celso Vitor Calomeno\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
+            //fastaFileParser.ParseFile(new StreamReader(file), false);
 
-            ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
-            var result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
+            //ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
+            //var result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
 
 
-            //ClustalMultiAligner.DisplayPositions(result.consensus);
+            ////ClustalMultiAligner.DisplayPositions(result.consensus);
 
-            // Proxima missão :: Alinhar uma sequência contra o consenso...
-            string sequence = "LFSAAYPY";
-            SequenceAligner sa = new SequenceAligner();
-            var alignment = sa.AlignSequences(result.consensus, sequence);
+            //// Proxima missão :: Alinhar uma sequência contra o consenso...
+            //string sequence = "CVADE";
+            //SequenceAligner sa = new SequenceAligner();
+            //var alignment = sa.AlignSequences(result.consensus, sequence);
 
-            sa.DisplayAlignment(alignment);
-            Console.WriteLine("Done");
+            //sa.DisplayAlignment(alignment);
+            //Console.WriteLine("Done");
 
         }
 
