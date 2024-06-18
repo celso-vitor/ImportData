@@ -40,26 +40,47 @@ namespace ProteinAlignmentCode
 
             // Configurar o processo
 
-            //FastaFileParser fastaFileParser = new FastaFileParser();
-            //var file = Path.Combine(@"C:\Users\Celso Vitor Calomeno\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
-            //fastaFileParser.ParseFile(new StreamReader(file), false);
+            FastaFileParser fastaFileParser = new FastaFileParser();
+            var file = Path.Combine(@"C:\Users\Celso Vitor Calomeno\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
+            //var file = "C:\\Users\\paulo\\OneDrive\\Desktop\\A\\teste.fasta";
+            fastaFileParser.ParseFile(new StreamReader(file), false);
 
-            //ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
-            //var result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
+            ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
+            (List<char>[] consensus, List<FastaItem> alignments) result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
 
 
-            ////ClustalMultiAligner.DisplayPositions(result.consensus);
+            //ClustalMultiAligner.DisplayPositions(result.consensus);
 
-            //// Proxima missão :: Alinhar uma sequência contra o consenso...
-            //string sequence = "CVADE";
-            //SequenceAligner sa = new SequenceAligner();
-            //var alignment = sa.AlignSequences(result.consensus, sequence);
+            // Proxima missão :: Alinhar uma sequência contra o consenso...
+            string sequence = "EYTD";
+            SequenceAligner sa = new SequenceAligner();
 
-            //sa.DisplayAlignment(alignment);
-            //Console.WriteLine("Done");
+            Console.WriteLine("Sequence to align " + sequence);
+            var alignment = sa.AlignerPCC(result.consensus, sequence);
+
+            Console.WriteLine("Aln position " + string.Join("," , alignment.StartPositions));
+
+            DisplayConsensus(result.consensus);
+
+            Console.WriteLine("Done");
 
         }
 
+        static void DisplayConsensus(List<char>[] consensus)
+        {
+            for (int i = 0; i < consensus.Length; i++)
+            {
+                Console.Write(i + "\t");
+
+                for (int j = 0; j < consensus[i].Count; j++)
+                {
+                    Console.Write(consensus[i][j]);
+                }
+
+                Console.WriteLine();
+            }
+        }
     }
 }
-  
+
+

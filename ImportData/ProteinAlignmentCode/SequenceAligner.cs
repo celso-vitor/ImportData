@@ -334,7 +334,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         }
 
 
-        public int AlignerPCC(List<char>[] consensus, string smallSequence)
+        public Alignment AlignerPCC(List<char>[] consensus, string smallSequence)
         {
             List<int> scores = new List<int>();
 
@@ -357,13 +357,24 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 scores.Add(score);
             }
 
-            // Use LINQ to find the index of the greatest score
-            int maxIndex = scores.Select((score, index) => new { Score = score, Index = index })
-                                 .OrderByDescending(x => x.Score)
-                                 .First()
-                                 .Index;
+            int maxScore = scores.Max();
+            List<int> maxIndexes = scores.Select((score, index) => new { Score = score, Index = index })
+                                         .Where(x => x.Score == maxScore)
+                                         .Select(x => x.Index)
+                                         .OrderBy(a => a).ToList();
 
-            return maxIndex;
+            Alignment aln = new Alignment()
+            {
+                StartPositions = maxIndexes,
+                SimilarityScore = maxScore,
+                GapsUsed = 0,
+                AlignedSmallSequence = smallSequence,
+                Identity = maxScore,
+                
+
+            };
+
+            return aln;
         }
 
         // Local Alignment
