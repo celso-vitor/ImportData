@@ -41,8 +41,7 @@ namespace ProteinAlignmentCode
             // Configurar o processo
 
             FastaFileParser fastaFileParser = new FastaFileParser();
-            var file = Path.Combine(@"C:\Users\celso\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
-            // var file = "C:\\Users\\paulo\\OneDrive\\Desktop\\A\\teste.fasta";
+            string file = Path.Combine("..", "..", "..", "Debug", "teste.fasta");            
             fastaFileParser.ParseFile(new StreamReader(file), false);
 
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
