@@ -182,11 +182,11 @@ namespace SequenceAssemblerGUI
         public class DataTableAlign : INotifyPropertyChanged
         {
             private string _startPositions;
-            private int _identity;
+            private double _identity;
             private double _normalizedIdentityScore;
-            private int _similarityScore;
+            private double _similarityScore;
             private double _normalizedSimilarity;
-            private int _alignedAA;
+            private double _alignedAA;
             private double _normalizedAlignedAA;
             private int _gapsUsed;
             private string _alignedLargeSequence;
@@ -218,7 +218,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int Identity
+            public double Identity
             {
                 get { return _identity; }
                 set
@@ -244,7 +244,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int SimilarityScore
+            public double SimilarityScore
             {
                 get { return _similarityScore; }
                 set
@@ -270,7 +270,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int AlignedAA
+            public double AlignedAA
             {
                 get { return _alignedAA; }
                 set

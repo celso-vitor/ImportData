@@ -578,7 +578,7 @@ namespace SequenceAssemblerGUI
                     {
                         var alignment = filteredSequences.Select((seq, index) =>
                         {
-                            var alignment = alignermsa.AlignMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
+                            var alignment = alignermsa.AlignerPCC(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
                             alignment.TargetOrigin = Sequence.ID; //Add SourceOrigin to alignment
                             return alignment;
                         }).ToList();
@@ -586,13 +586,7 @@ namespace SequenceAssemblerGUI
                     }
 
 
-                    //var alignment2 = alignermsa.AlignMSA(msaResult.consensus, "CVADE", "xx");
-
-
-                    Console.WriteLine(myAlignment);
-
-                    var y = myAlignment.FindAll(a => a.AlignedSmallSequence.Contains("CEAKE")).OrderBy(a => a.GapsUsed).OrderBy(c => c.AlignedSmallSequence.Length);
-
+                    var alignment2 = alignermsa.AlignerPCC(msaResult.consensus, "CVADE", "xx");
 
 
                     //Updates the alignment view with the necessary parameters
@@ -605,9 +599,11 @@ namespace SequenceAssemblerGUI
 
 
                     Console.WriteLine(alignments);
-                    var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
+                   // var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
+                    
+                    //Console.WriteLine(filteredDuplicatesToAlign);
 
-                    MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, filteredDuplicatesToAlign);
+                    MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
 
                     TabItemResultBrowser2.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;

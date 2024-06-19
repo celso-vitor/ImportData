@@ -91,5 +91,39 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return newRow;
         }
 
+        public static string CalculateConsensusSequence(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus)> consensusDetails)
+        {
+            consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus)>();
+
+            if (alignedSequences == null || alignedSequences.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            int sequenceLength = alignedSequences.First().Sequence.Length;
+            char[] consensusSequence = new char[sequenceLength];
+
+            for (int i = 0; i < sequenceLength; i++)
+            {
+                var positionChars = alignments
+                    .Where(seq => seq.StartPositions.Max() <= i && i < seq.StartPositions.Max() + seq.AlignedSmallSequence.Length)
+                    .Select(seq => seq.AlignedSmallSequence[i - seq.StartPositions.Max()])
+                    .ToArray();
+
+                var mostFrequentCharGroup = positionChars
+                    .GroupBy(c => c)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault();
+
+                char mostFrequentChar = mostFrequentCharGroup?.Key ?? '-';
+                bool isConsensus = mostFrequentCharGroup?.Count() == alignedSequences.Count;
+
+                consensusSequence[i] = mostFrequentChar;
+                consensusDetails.Add((i, mostFrequentChar, isConsensus));
+            }
+
+            return new string(consensusSequence);
+        }
+
     }
 }

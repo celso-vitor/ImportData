@@ -41,29 +41,37 @@ namespace ProteinAlignmentCode
             // Configurar o processo
 
             FastaFileParser fastaFileParser = new FastaFileParser();
-            var file = Path.Combine(@"C:\Users\Celso Vitor Calomeno\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
-            //var file = "C:\\Users\\paulo\\OneDrive\\Desktop\\A\\teste.fasta";
+            var file = Path.Combine(@"C:\Users\celso\OneDrive - FIOCRUZ\Projeto Mestrado\ANALISES\BSA\NOVOR\teste.fasta");
+            // var file = "C:\\Users\\paulo\\OneDrive\\Desktop\\A\\teste.fasta";
             fastaFileParser.ParseFile(new StreamReader(file), false);
 
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
             (List<char>[] consensus, List<FastaItem> alignments) result = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
 
-
-            //ClustalMultiAligner.DisplayPositions(result.consensus);
+            // ClustalMultiAligner.DisplayPositions(result.consensus);
 
             // Proxima missão :: Alinhar uma sequência contra o consenso...
             string sequence = "EYTD";
             SequenceAligner sa = new SequenceAligner();
+            string sourceOrigin = "teste";
+            Console.WriteLine("Sequence to align: " + sequence);
+            var alignment = sa.AlignerPCC(result.consensus, sequence, sourceOrigin);
 
-            Console.WriteLine("Sequence to align " + sequence);
-            var alignment = sa.AlignerPCC(result.consensus, sequence);
-
-            Console.WriteLine("Aln position " + string.Join("," , alignment.StartPositions));
+            Console.WriteLine("Alignment Results:");
+            Console.WriteLine("Identity: " + alignment.Identity);
+            Console.WriteLine("Aligned Large Sequence: " + alignment.AlignedLargeSequence);
+            Console.WriteLine("Aligned Small Sequence: " + alignment.AlignedSmallSequence);
+            Console.WriteLine("Start Positions: " + string.Join(", ", alignment.StartPositions));
+            Console.WriteLine("Normalized Identity Score: " + alignment.NormalizedIdentityScore);
+            Console.WriteLine("Gaps Used: " + alignment.GapsUsed);
+            Console.WriteLine("Similarity Score: " + alignment.SimilarityScore);
+            Console.WriteLine("Normalized Similarity: " + alignment.NormalizedSimilarity);
+            Console.WriteLine("Aligned AA: " + alignment.AlignedAA);
+            Console.WriteLine("Normalized Aligned AA: " + alignment.NormalizedAlignedAA);
 
             DisplayConsensus(result.consensus);
 
             Console.WriteLine("Done");
-
         }
 
         static void DisplayConsensus(List<char>[] consensus)
@@ -82,5 +90,4 @@ namespace ProteinAlignmentCode
         }
     }
 }
-
 

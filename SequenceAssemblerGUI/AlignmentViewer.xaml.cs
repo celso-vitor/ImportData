@@ -134,11 +134,11 @@ namespace SequenceAssemblerGUI
         public class DataTableAlign : INotifyPropertyChanged
         {
             private string _startPositions;
-            private int _identity;
+            private double _identity;
             private double _normalizedIdentityScore;
-            private int _similarityScore;
+            private double _similarityScore;
             private double _normalizedSimilarity;
-            private int _alignedAA;
+            private double _alignedAA;
             private double _normalizedAlignedAA;
             private int _gapsUsed;
             private string _alignedLargeSequence;
@@ -169,8 +169,7 @@ namespace SequenceAssemblerGUI
                     }
                 }
             }
-
-            public int Identity
+            public double Identity
             {
                 get { return _identity; }
                 set
@@ -196,7 +195,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int SimilarityScore
+            public double SimilarityScore
             {
                 get { return _similarityScore; }
                 set
@@ -222,7 +221,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int AlignedAA
+            public double AlignedAA
             {
                 get { return _alignedAA; }
                 set
@@ -345,6 +344,7 @@ namespace SequenceAssemblerGUI
 
                 var sortedSequences = alignments.OrderBy(seq => seq.StartPositions.Max()).ToList();
                 var processedAlignments = new HashSet<string>();
+               
 
                 // Determine the maximum length of sequences to ensure alignment
                 int maxLength = alignedSequences.Max(s => s.Sequence.Length);
@@ -387,6 +387,7 @@ namespace SequenceAssemblerGUI
 
                     foreach (var sequence in sortedSequences.Where(s => s.TargetOrigin == fasta.ID))
                     {
+
                         string alignmentKey = $"{sequence.SourceOrigin}-{sequence.StartPositions.Max()}";
                         if (processedAlignments.Contains(alignmentKey))
                         {
@@ -522,7 +523,7 @@ namespace SequenceAssemblerGUI
 
                 // Add consensus sequence visualization
                 var consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus)>();
-                var consensusSequence = MultiAlignments.CalculateConsensusSequence(alignedSequences, alignments, out consensusDetails);
+                var consensusSequence = AssemblyParameters.CalculateConsensusSequence(alignedSequences, alignments, out consensusDetails);
                 viewModel.ConsensusSequence.Clear();
 
                 foreach (var detail in consensusDetails)

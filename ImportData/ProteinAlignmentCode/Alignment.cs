@@ -15,11 +15,11 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public double Length { get; set; }
         public string SourceOrigin { get; set; }
         public string TargetOrigin { get; set; }
-        public int Identity { get; set; }
+        public double Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }
-        public int SimilarityScore { get; set; }
+        public double SimilarityScore { get; set; }
         public double NormalizedSimilarity { get; set; }
-        public int AlignedAA { get; set; }
+        public double AlignedAA { get; set; }
         public double NormalizedAlignedAA { get; set; }
         public int GapsUsed { get; set; }
         public List<int> StartPositions { get; set; }
