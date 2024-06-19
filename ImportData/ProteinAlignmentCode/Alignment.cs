@@ -26,6 +26,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public string AlignedLargeSequence { get; set; }
         public string AlignedSmallSequence { get; set; }
 
+
         public string StartPositionsString
         {
             get

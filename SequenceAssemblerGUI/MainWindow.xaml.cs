@@ -586,7 +586,7 @@ namespace SequenceAssemblerGUI
                     }
 
 
-                    var alignment2 = alignermsa.AlignerPCC(msaResult.consensus, "CVADE", "xx");
+                    var alignment2 = alignermsa.AlignerPCC(msaResult.consensus, "LLAFS", "xx");
 
 
                     //Updates the alignment view with the necessary parameters
@@ -694,6 +694,7 @@ namespace SequenceAssemblerGUI
                         }).ToList();
                         myAlignment.AddRange(alignments);
                     }
+
 
                     Console.WriteLine($"Generated {myAlignment.Count} alignments.");
 

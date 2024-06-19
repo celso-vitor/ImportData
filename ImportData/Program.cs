@@ -50,7 +50,7 @@ namespace ProteinAlignmentCode
             // ClustalMultiAligner.DisplayPositions(result.consensus);
 
             // Proxima missão :: Alinhar uma sequência contra o consenso...
-            string sequence = "EYTD";
+            string sequence = "LLAFS";
             SequenceAligner sa = new SequenceAligner();
             string sourceOrigin = "teste";
             Console.WriteLine("Sequence to align: " + sequence);

@@ -328,8 +328,7 @@ namespace SequenceAssemblerGUI
 
 
 
-
-        public void UpdateViewMultipleModel(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
+        public void UpdateUIWithAlignmentAndAssembly(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
         {
             if (DataContext is SequenceViewModel viewModel)
             {
@@ -342,9 +341,11 @@ namespace SequenceAssemblerGUI
                 Brush consensusAdditionColor = Brushes.LightGreen;
                 Brush gapColor = Brushes.White;
 
+
+                //var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
+
                 var sortedSequences = alignments.OrderBy(seq => seq.StartPositions.Max()).ToList();
                 var processedAlignments = new HashSet<string>();
-               
 
                 // Determine the maximum length of sequences to ensure alignment
                 int maxLength = alignedSequences.Max(s => s.Sequence.Length);
@@ -387,12 +388,13 @@ namespace SequenceAssemblerGUI
 
                     foreach (var sequence in sortedSequences.Where(s => s.TargetOrigin == fasta.ID))
                     {
-
-                        string alignmentKey = $"{sequence.SourceOrigin}-{sequence.StartPositions.Max()}";
+                        var alignmentKey = $"{sequence.SourceOrigin}-{sequence.StartPositions.Max()}";
+                        Console.WriteLine(alignmentKey);
                         if (processedAlignments.Contains(alignmentKey))
                         {
                             continue; // Skip already added alignments
                         }
+
 
                         processedAlignments.Add(alignmentKey);
 
@@ -538,9 +540,38 @@ namespace SequenceAssemblerGUI
                 viewModel.RefreshData();
             }
         }
+        public void UpdateViewMultipleModel(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
+        {
+            if (DataContext is SequenceViewModel viewModel)
+            {
+                Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
+                viewModel.ReferenceGroups.Clear();
 
+                foreach (var fasta in alignedSequences)
+                {
+                    // Select alignments that have the TargetOrigin equal to the fasta sequence ID
+                    var sequencesToAlign = alignments.Where(a => a.TargetOrigin == fasta.ID).ToList();
+                    Console.WriteLine($"Fasta ID: {fasta.ID}, Alignments to process: {sequencesToAlign.Count}");
 
+                    // Checks for alignments for the current fasta sequence
+                    if (!sequencesToAlign.Any())
+                    {
+                        Console.WriteLine($"No alignments found for fasta ID: {fasta.ID}");
+                        continue; // Ignore fasta sequences without alignments
+                    }
 
+                    // Eliminate duplicates and subsequences
+                    var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
+
+                    // Updates the interface with the alignments and assembly
+                    UpdateUIWithAlignmentAndAssembly(alignedSequences, filteredSequencesToAlign);
+                }
+            }
+            else
+            {
+                Console.WriteLine("DataContext is not of type SequenceViewModel.");
+            }
+        }
 
 
 

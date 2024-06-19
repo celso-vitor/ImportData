@@ -323,59 +323,55 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         public Alignment AlignerPCC(List<char>[] consensus, string smallSequence, string sourceOrigin)
         {
+            Dictionary<(char, char), int> substitutionScoreCache = new Dictionary<(char, char), int>();
+
             List<int> scores = new List<int>();
             List<int> startPositions = new List<int>();
             int totalMatches = 0;
             int totalAlignedPositions = 0;
             int totalSimilarities = 0;
-            int gapCount = 0;
             string alignedLargeSequence = "";
             int maxScore = int.MinValue;
             int bestStartIndex = 0;
 
-            for (int i = 0; i < consensus.Length; i++)
+            for (int i = 0; i < consensus.Length - smallSequence.Length + 1; i++) // Ajuste no limite para evitar gaps
             {
                 int score = 0;
                 int currentTotalMatches = 0;
                 int currentTotalSimilarities = 0;
-                int currentGapCount = 0;
                 int currentAlignedPositions = 0;
                 StringBuilder tempLargeSequenceBuilder = new StringBuilder();
 
                 for (int j = 0; j < smallSequence.Length; j++)
                 {
-                    if (i + j < consensus.Length) // Verificar limites do consenso
+                    List<int> tmpScore = new List<int>();
+                    foreach (var cons in consensus[i + j])
                     {
-                        List<int> tmpScore = new List<int>();
-                        foreach (var cons in consensus[i + j])
+                        // Usar o dicionário para armazenar e recuperar os scores de substituição
+                        int substitutionScore;
+                        if (!substitutionScoreCache.TryGetValue((cons, smallSequence[j]), out substitutionScore))
                         {
-                            tmpScore.Add(GetSubstitutionScore(cons, smallSequence[j]));
+                            substitutionScore = GetSubstitutionScore(cons, smallSequence[j]);
+                            substitutionScoreCache[(cons, smallSequence[j])] = substitutionScore;
                         }
+                        tmpScore.Add(substitutionScore);
+                    }
 
-                        int maxTmpScore = tmpScore.Max();
-                        score += maxTmpScore;
+                    int maxTmpScore = tmpScore.Max();
+                    score += maxTmpScore;
 
-                        if (maxTmpScore > 0)
-                        {
-                            tempLargeSequenceBuilder.Append(consensus[i + j][tmpScore.IndexOf(maxTmpScore)]);
-                            currentTotalMatches++;
-                            currentTotalSimilarities += maxTmpScore;
-                        }
-                        else
-                        {
-                            tempLargeSequenceBuilder.Append('-');
-                            currentGapCount++;
-                            score += GapPenalty; // Aplicar penalidade de gap
-                        }
-                        currentAlignedPositions++;
+                    if (maxTmpScore > 0)
+                    {
+                        tempLargeSequenceBuilder.Append(consensus[i + j][tmpScore.IndexOf(maxTmpScore)]);
+                        currentTotalMatches++;
+                        currentTotalSimilarities += maxTmpScore;
                     }
                     else
                     {
-                        tempLargeSequenceBuilder.Append('-');
-                        currentGapCount++;
-                        score += GapPenalty; // Aplicar penalidade de gap
-                        currentAlignedPositions++;
+                        // Adicionar a letra do consenso caso não haja correspondência direta
+                        tempLargeSequenceBuilder.Append(consensus[i + j][0]);
                     }
+                    currentAlignedPositions++;
                 }
 
                 scores.Add(score);
@@ -386,7 +382,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     alignedLargeSequence = tempLargeSequenceBuilder.ToString();
                     totalMatches = currentTotalMatches;
                     totalSimilarities = currentTotalSimilarities;
-                    gapCount = currentGapCount;
                     totalAlignedPositions = currentAlignedPositions;
                 }
             }
@@ -398,13 +393,10 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             int alignedAA = 0;
             for (int i = 0; i < alignedLargeSequence.Length; i++)
             {
-                if (alignedLargeSequence[i] != '-' && smallSequence[i] != '-')
+                if (alignedLargeSequence[i] == smallSequence[i])
                 {
                     alignedAA++;
-                    if (alignedLargeSequence[i] == smallSequence[i])
-                    {
-                        matchedIdentity++;
-                    }
+                    matchedIdentity++;
                 }
             }
 
@@ -430,13 +422,15 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 NormalizedAlignedAA = Math.Round(normalizedAlignedAA, 2),
                 AlignedLargeSequence = alignedLargeSequence,
                 AlignedSmallSequence = smallSequence,
-                GapsUsed = gapCount
+                GapsUsed = 0 // Gaps não utilizados
             };
 
             return aln;
         }
 
-  
+
+
+
 
         // Local Alignment
         public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)

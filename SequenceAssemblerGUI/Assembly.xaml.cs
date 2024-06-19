@@ -596,7 +596,7 @@ namespace SequenceAssemblerGUI
                     var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
 
                     //Updates the interface with the alignments and assembly
-                    UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
+                    UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, new List<(string ID, string Description, string Sequence)>
                     {
                         (fasta.ID, fasta.Description, fasta.Sequence)
                     });
