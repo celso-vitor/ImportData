@@ -27,6 +27,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public string AlignedSmallSequence { get; set; }
 
 
+        // Propriedade somente leitura existente
         public string StartPositionsString
         {
             get
@@ -34,6 +35,10 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 return string.Join(", ", StartPositions);
             }
         }
+
+        // Nova propriedade para armazenar os valores concatenados de AlignedSmallSequences
+        public string AlignedSmallSequencesString { get; set; }
+
 
 
     }

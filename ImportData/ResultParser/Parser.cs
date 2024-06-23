@@ -58,6 +58,9 @@ namespace SequenceAssemblerLogic.ResultParser
         }
         public Dictionary<string, List<IDResult>> DictDenovo { get; private set; }
         public Dictionary<string, List<IDResult>> DictPsm { get; private set; }
+        public Dictionary<string, List<IDResult>> deNovoDictTemp { get; private set; }
+        public Dictionary<string, List<IDResult>> psmDictTemp { get; private set; }
+
 
 
         public Dictionary<short, string> FileDictionary { get; private set; }
@@ -66,6 +69,8 @@ namespace SequenceAssemblerLogic.ResultParser
         {
             DictDenovo = new();
             DictPsm = new();
+            deNovoDictTemp = new();
+            psmDictTemp = new();
 
         }
 

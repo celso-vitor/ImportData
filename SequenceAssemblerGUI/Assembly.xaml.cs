@@ -541,13 +541,15 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                //Calculate and add consensus and individual coverage
+                // Calculate and add consensus and individual coverage
                 var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
                 groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
 
-                //Add coverage to reference group
+                // Add coverage to reference group
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
+
+
             }
         }
 
@@ -596,7 +598,7 @@ namespace SequenceAssemblerGUI
                     var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
 
                     //Updates the interface with the alignments and assembly
-                    UpdateUIWithAlignmentAndAssembly(viewModel, sequencesToAlign, new List<(string ID, string Description, string Sequence)>
+                    UpdateUIWithAlignmentAndAssembly(viewModel, filteredSequencesToAlign, new List<(string ID, string Description, string Sequence)>
                     {
                         (fasta.ID, fasta.Description, fasta.Sequence)
                     });
@@ -691,25 +693,32 @@ namespace SequenceAssemblerGUI
                 }
 
                 consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color, OriginalBackgroundColor = color });
+
+                // Print the consensus character being added
+                Console.Write(consensusChar);
             }
+
+            Console.WriteLine(); // New line after the consensus sequence
 
             double overallCoverage = (double)coloredPositions / referenceSequence.Length * 100;
             Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
             return (consensusSequence, overallCoverage);
         }
+    
+    
 
-        //var mainWindow = Application.Current.MainWindow as MainWindow;
-        //    if (mainWindow != null)
-        //    {
-        //        mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%";
-        //    }
+    //var mainWindow = Application.Current.MainWindow as MainWindow;
+    //    if (mainWindow != null)
+    //    {
+    //        mainWindow.LabelCoverage.Content = $"{overallCoverage:F2}%";
+    //    }
 
-        //    return (consensusSequence, overallCoverage);
-        //}
+    //    return (consensusSequence, overallCoverage);
+    //}
 
 
-        private void OnColorILChecked(object sender, RoutedEventArgs e)
+    private void OnColorILChecked(object sender, RoutedEventArgs e)
         {
             var viewModel = DataContext as SequenceViewModel;
             if (viewModel != null)

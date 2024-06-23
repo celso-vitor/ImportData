@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5" xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
+        Icon="pack://application:,,,/PA.png"
         Title="Protein Sequence Assembler" MinHeight="768" MinWidth="1240" Height="1080" Width="1024">
     <Grid>
         <Grid.RowDefinitions>

@@ -328,7 +328,7 @@ namespace SequenceAssemblerGUI
 
 
 
-        public void UpdateUIWithAlignmentAndAssembly(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
+        public void UpdateUIWithMSAAlignmentAndAssembly(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
         {
             if (DataContext is SequenceViewModel viewModel)
             {
@@ -564,7 +564,7 @@ namespace SequenceAssemblerGUI
                     var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(sequencesToAlign);
 
                     // Updates the interface with the alignments and assembly
-                    UpdateUIWithAlignmentAndAssembly(alignedSequences, filteredSequencesToAlign);
+                    UpdateUIWithMSAAlignmentAndAssembly(alignedSequences, filteredSequencesToAlign);
                 }
             }
             else

@@ -396,6 +396,14 @@ namespace SequenceAssemblerGUI
             deNovoDictTemp = new Dictionary<string, List<IDResult>>();
             psmDictTemp = new Dictionary<string, List<IDResult>>();
 
+            int totalPsmRegistries = newParser.psmDictTemp.Values.Sum(list => list.Count);
+            int totalDenovoRegistries = newParser.deNovoDictTemp.Values.Sum(list => list.Count);
+
+            Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
+            Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
+
+            LabelPSMCount.Content = totalPsmRegistries;
+            LabelDeNovoCount.Content = totalDenovoRegistries;
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
 
@@ -611,7 +619,7 @@ namespace SequenceAssemblerGUI
                     IntegerUpDownMinimumLength.IsEnabled = true;
                     TabItemResultBrowser2.IsEnabled = true;
 
-                    //UpdateMultiAlignmentTable();
+                    UpdateMultiAlignmentTable();
                     MyMultipleAlignment.ExecuteAssembly();
                 }
                 else
@@ -634,15 +642,15 @@ namespace SequenceAssemblerGUI
             var filteredAlignments = myAlignment
                 .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                             a.NormalizedSimilarity >= minNormalizedSimilarity &&
-                            a.GapsUsed >= maxGaps &&
+                            a.GapsUsed <= maxGaps &&
                             a.AlignedSmallSequence.Length >= minLengthFilter)
                 .ToList();
 
             // Remove duplicatas e subsequências dos alinhamentos filtrados
-            var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(filteredAlignments);
+            //var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(filteredAlignments);
 
             // Atualiza a fonte de itens do DataGridAlignments com as sequências FASTA carregadas e os alinhamentos filtrados
-            MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, filteredDuplicatesToAlign);
+            MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, filteredAlignments);
         }
 
         private void ProcessSingleAlignment()
@@ -688,7 +696,7 @@ namespace SequenceAssemblerGUI
                         Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
                         var alignments = filteredSequences.Select((seq, index) =>
                         {
-                            var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, sourceOrigins[index].origin);
+                            var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
                             alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
                             return alignment;
                         }).ToList();
@@ -702,6 +710,7 @@ namespace SequenceAssemblerGUI
                     List<Alignment> filteredAlnResults = myAlignment
                         .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                                     a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                                    a.GapsUsed <= maxGaps &&
                                     a.AlignedSmallSequence.Length >= minLengthFilter)
                         .ToList();
 
@@ -744,6 +753,7 @@ namespace SequenceAssemblerGUI
         private void UpdateTable()
         {
             ButtonUpdateAssembly.IsEnabled = true;
+            int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
             int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
             int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
             int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
@@ -752,6 +762,7 @@ namespace SequenceAssemblerGUI
             var filteredAlignments = myAlignment
                 .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
                             a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                            a.GapsUsed <= maxGaps &&
                             a.AlignedSmallSequence.Length >= minLengthFilter)
                 .ToList();
 

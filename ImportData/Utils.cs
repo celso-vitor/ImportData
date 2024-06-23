@@ -12,8 +12,15 @@ namespace SequenceAssemblerLogic
     {
         public static List<Alignment> EliminateDuplicatesAndSubsequences(List<Alignment> input)
         {
-            input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length));// Sort Alignment by Align Small Sequence length
+            // Ordena os alinhamentos pela extensão da AlignedSmallSequence.
+            input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length));
 
+            // Imprime as sequências e seus StartPositionStrings após a ordenação.
+            Console.WriteLine("Sequências e StartPositionStrings após a ordenação:");
+            foreach (var alignment in input)
+            {
+                Console.WriteLine($"AlignedSmallSequence: {alignment.AlignedSmallSequence}, StartPositionString: {alignment.StartPositionsString}");
+            }
 
             var result = new List<Alignment>();
             var set = new HashSet<string>();
@@ -21,21 +28,30 @@ namespace SequenceAssemblerLogic
             foreach (var alignment in input)
             {
                 string alignedSequence = alignment.AlignedSmallSequence;
+                string startPositionString = alignment.StartPositionsString;
+
                 if (set.Contains(alignedSequence))
                     continue;
 
                 bool shouldAdd = true;
+
                 foreach (var existingAlignment in result)
                 {
                     string existingSequence = existingAlignment.AlignedSmallSequence;
-                    if (IsSubsequence(existingSequence, alignedSequence))
+                    string existingStartPositionString = existingAlignment.StartPositionsString;
+
+                    // Verifica se a posição inicial é a mesma antes de comparar as sequências
+                    if (startPositionString == existingStartPositionString)
                     {
-                        shouldAdd = false;
-                        break;
-                    }
-                    else if (IsSubsequence(alignedSequence, existingSequence))
-                    {
-                        set.Remove(existingSequence);
+                        if (IsSubsequence(existingSequence, alignedSequence))
+                        {
+                            shouldAdd = false;
+                            break;
+                        }
+                        else if (IsSubsequence(alignedSequence, existingSequence))
+                        {
+                            set.Remove(existingSequence);
+                        }
                     }
                 }
 
@@ -60,6 +76,8 @@ namespace SequenceAssemblerLogic
             }
             return i == str1.Length;
         }
+
+
 
 
         public static List<string> FilterSequencesByNormalizedLength(List<string> sequences, string reference, int minConsecutiveAminoAcids)
