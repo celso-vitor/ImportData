@@ -125,5 +125,34 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return new string(consensusSequence);
         }
 
+        public static double CalculateCoverage(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
+        {
+            if (alignedSequences == null || alignedSequences.Count == 0)
+            {
+                return 0.0;
+            }
+
+            int sequenceLength = alignedSequences.First().Sequence.Length;
+            HashSet<int> coveredPositions = new HashSet<int>();
+
+            foreach (var alignment in alignments)
+            {
+                for (int i = 0; i < alignment.AlignedSmallSequence.Length; i++)
+                {
+                    int position = alignment.StartPositions.Max() + i;
+                    if (alignment.AlignedSmallSequence[i] != '-')
+                    {
+                        coveredPositions.Add(position);
+                    }
+                }
+            }
+
+            double coverage = (double)coveredPositions.Count / sequenceLength * 100;
+            return coverage;
+        }
+
+
     }
+
 }
+

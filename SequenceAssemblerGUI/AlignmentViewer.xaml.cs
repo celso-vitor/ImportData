@@ -312,7 +312,16 @@ namespace SequenceAssemblerGUI
                     }
                 }
             }
-
+            private string _coverage;
+            public string Coverage
+            {
+                get { return _coverage; }
+                set
+                {
+                    _coverage = value;
+                    OnPropertyChanged(nameof(Coverage));
+                }
+            }
             public void RefreshData()
             {
                 UpdateAllAlignments();
@@ -341,8 +350,9 @@ namespace SequenceAssemblerGUI
                 Brush consensusAdditionColor = Brushes.LightGreen;
                 Brush gapColor = Brushes.White;
 
-
-                //var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
+                // Calculate coverage
+                double coverage = AssemblyParameters.CalculateCoverage(alignedSequences, alignments);
+                viewModel.Coverage = $"{coverage:F2}%";
 
                 var sortedSequences = alignments.OrderBy(seq => seq.StartPositions.Max()).ToList();
                 var processedAlignments = new HashSet<string>();
@@ -364,8 +374,7 @@ namespace SequenceAssemblerGUI
                         groupViewModel.ReferenceSequence.Add(new VisualAlignment
                         {
                             Letra = letter.ToString(),
-                            CorDeFundo = Brushes.WhiteSmoke, // Background color for reference
-                            //ToolTipContent = $"Informação da letra: {letter}" // Add content to ToolTip
+                            CorDeFundo = Brushes.WhiteSmoke // Background color for reference
                         });
                     }
 
@@ -378,8 +387,7 @@ namespace SequenceAssemblerGUI
                             groupViewModel.ReferenceSequence.Add(new VisualAlignment
                             {
                                 Letra = " ",
-                                CorDeFundo = Brushes.WhiteSmoke,
-                                //ToolTipContent = "Espaço em branco" // Add content to ToolTip for whitespace
+                                CorDeFundo = Brushes.WhiteSmoke
                             });
                         }
                     }
@@ -389,12 +397,10 @@ namespace SequenceAssemblerGUI
                     foreach (var sequence in sortedSequences.Where(s => s.TargetOrigin == fasta.ID))
                     {
                         var alignmentKey = $"{sequence.SourceOrigin}-{sequence.StartPositions.Max()}";
-                        Console.WriteLine(alignmentKey);
                         if (processedAlignments.Contains(alignmentKey))
                         {
                             continue; // Skip already added alignments
                         }
-
 
                         processedAlignments.Add(alignmentKey);
 
@@ -420,7 +426,6 @@ namespace SequenceAssemblerGUI
 
                         // Add alignment to global table
                         viewModel.GlobalAlignments.Add(dataTableViewModel);
-                        Console.WriteLine($"Adicionado alinhamento: {sequence.SourceOrigin} para a referência: {fasta.ID}");
 
                         int startPosition = sequence.StartPositions.Max();
                         int rowIndex = AssemblyParameters.FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
@@ -519,7 +524,6 @@ namespace SequenceAssemblerGUI
                     if (groupViewModel.ReferenceSequence.Any() || groupViewModel.Alignments.Any()) // Only add reference groups that have sequences or alignments
                     {
                         viewModel.ReferenceGroups.Add(groupViewModel);
-                        Console.WriteLine($"Adicionado grupo de referência: {fasta.ID}");
                     }
                 }
 
@@ -540,6 +544,7 @@ namespace SequenceAssemblerGUI
                 viewModel.RefreshData();
             }
         }
+
         public void UpdateViewMultipleModel(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
         {
             if (DataContext is SequenceViewModel viewModel)

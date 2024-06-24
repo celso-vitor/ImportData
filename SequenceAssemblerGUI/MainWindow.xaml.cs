@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Windows.Threading;
 
 namespace SequenceAssemblerGUI
 {
@@ -33,7 +34,7 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> deNovoDictTemp;
 
 
-
+        private DispatcherTimer updateTimer;
         List<Contig> myContigs;
         List<Fasta> allFastaSequences;
         List<(string ID, string Sequence)> alignedSequences;
@@ -69,8 +70,34 @@ namespace SequenceAssemblerGUI
         public MainWindow()
         {
             InitializeComponent();
+
+            // Initialize the DispatcherTimer
+            updateTimer = new DispatcherTimer();
+            updateTimer.Interval = TimeSpan.FromSeconds(1); // Set the delay to 1 second
+            updateTimer.Tick += UpdateTimer_Tick;
+
+            // Attach event handlers
+            IntegerUpDownDeNovoMinLength.ValueChanged += (s, e) => RestartTimer();
+            IntegerUpDownDeNovoMaxLength.ValueChanged += (s, e) => RestartTimer();
+            IntegerUpDownDeNovoScore.ValueChanged += (s, e) => RestartTimer();
+            IntegerUpDownPSMMinLength.ValueChanged += (s, e) => RestartTimer();
+            IntegerUpDownPSMMaxLength.ValueChanged += (s, e) => RestartTimer();
+            IntegerUpDownPSMScore.ValueChanged += (s, e) => RestartTimer();
         }
 
+        // Event handler for the DispatcherTimer
+        private void UpdateTimer_Tick(object sender, EventArgs e)
+        {
+            updateTimer.Stop(); // Stop the timer
+            UpdateGeneral(); // Call the update method
+        }
+
+        // Method to restart the timer
+        private void RestartTimer()
+        {
+            updateTimer.Stop(); // Stop the timer if it's already running
+            updateTimer.Start(); // Start the timer
+        }
         private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
@@ -280,9 +307,6 @@ namespace SequenceAssemblerGUI
             var resultsPSM = psmDictTemp.SelectMany(kvp => kvp.Value).ToList();
             var resultsDenovo = deNovoDictTemp.SelectMany(kvp => kvp.Value).ToList();
 
-            Console.WriteLine("Initial Results PSM count: " + resultsPSM.Count);
-            Console.WriteLine("Initial Results DeNovo count: " + resultsDenovo.Count);
-
             LabelPSMCount.Content = resultsPSM.Count;
             LabelDeNovoCount.Content = resultsDenovo.Count;
             // Debug messages
@@ -311,7 +335,7 @@ namespace SequenceAssemblerGUI
             ContigAssembly.IsEnabled = true;
             IntegerUpDownAAOverlap.IsEnabled = true;
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
-            int maxContigs = 1000;// Example of count limit
+            int maxContigs = 10000;// Example of count limit
             int maxTimeMilliseconds = 10000; // Example of time limit in milliseconds (10 seconds)
 
 
@@ -431,10 +455,10 @@ namespace SequenceAssemblerGUI
             int psmMaxSequenceLength = (int)IntegerUpDownPSMMaxLength.Value;
             Parser.FilterDictMaxLengthPSM(psmMaxSequenceLength, psmDictTemp);
 
-            double filterPsmSocore = (int)IntegerUpDownPSMScore.Value;
-            Parser.FilterSequencesByScorePSM(filterPsmSocore, psmDictTemp);
+            double filterPsmScore = (double)IntegerUpDownPSMScore.Value;
+            Parser.FilterSequencesByScorePSM(filterPsmScore, psmDictTemp);
 
-            //Updates the list of filtered sequences
+            // Updates the list of filtered sequences
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                     .Union(psmDictTemp.Values.SelectMany(v => v))
                                     .Select(seq => seq.CleanPeptide)
@@ -444,11 +468,9 @@ namespace SequenceAssemblerGUI
             // Update misAlignment variable to reflect updated alignments
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
 
-
             // Update the GUI
             UpdatePlot();
             UpdateDataView();
-
         }
 
 
@@ -621,6 +643,8 @@ namespace SequenceAssemblerGUI
 
                     UpdateMultiAlignmentTable();
                     MyMultipleAlignment.ExecuteAssembly();
+                    ButtonUpdateAssembly.IsEnabled = true;
+
                 }
                 else
                 {
@@ -772,7 +796,7 @@ namespace SequenceAssemblerGUI
 
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
         {
-
+            UpdateGeneral();
 
             if (isMultipleAlignmentMode)
             {
