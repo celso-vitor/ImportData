@@ -91,9 +91,9 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return newRow;
         }
 
-        public static string CalculateConsensusSequence(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus)> consensusDetails)
+        public static string CalculateConsensusSequence(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)> consensusDetails)
         {
-            consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus)>();
+            consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)>();
 
             if (alignedSequences == null || alignedSequences.Count == 0)
             {
@@ -117,13 +117,15 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
                 char mostFrequentChar = mostFrequentCharGroup?.Key ?? '-';
                 bool isConsensus = mostFrequentCharGroup?.Count() == alignedSequences.Count;
+                bool isDifferent = positionChars.Distinct().Count() > 1; // Check if there are different bases at the position
 
                 consensusSequence[i] = mostFrequentChar;
-                consensusDetails.Add((i, mostFrequentChar, isConsensus));
+                consensusDetails.Add((i, mostFrequentChar, isConsensus, isDifferent));
             }
 
             return new string(consensusSequence);
         }
+
 
         public static double CalculateCoverage(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
         {

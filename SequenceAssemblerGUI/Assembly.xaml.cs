@@ -718,7 +718,7 @@ namespace SequenceAssemblerGUI
     //}
 
 
-    private void OnColorILChecked(object sender, RoutedEventArgs e)
+        private void OnColorILChecked(object sender, RoutedEventArgs e)
         {
             var viewModel = DataContext as SequenceViewModel;
             if (viewModel != null)
