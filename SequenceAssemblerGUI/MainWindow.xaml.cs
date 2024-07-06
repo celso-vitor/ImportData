@@ -541,13 +541,6 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Print each sequence before alignment
-                foreach (var item in fastaFileParser.MyItems)
-                {
-                    Console.WriteLine($"Before Alignment - SequenceIdentifier: {item.SequenceIdentifier}");
-                    Console.WriteLine($"Before Alignment - Description: {item.Description}");
-                    Console.WriteLine($"Before Alignment - Sequence: {item.Sequence}");
-                }
 
                 ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
                 var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
@@ -560,10 +553,6 @@ namespace SequenceAssemblerGUI
 
                 foreach (var seq in msaResult.alignments)
                 {
-                    // Print SequenceIdentifier, Description, and Sequence after alignment
-                    Console.WriteLine($"SequenceIdentifier: {seq.SequenceIdentifier}");
-                    Console.WriteLine($"Description: {seq.Description}");
-                    Console.WriteLine($"Sequence: {seq.Sequence}");
 
                     if (concatenatedSequences.ContainsKey(seq.SequenceIdentifier))
                     {
@@ -580,15 +569,6 @@ namespace SequenceAssemblerGUI
                                           .Select(kvp => (kvp.Key, kvp.Value.Sequence, kvp.Value.Description))
                                           .OrderBy(tuple => tuple.Key)
                                           .ToList();
-
-                // Print the final concatenated sequences with descriptions
-                foreach (var (identifier, sequence, description) in alignedSequences)
-                {
-                    Console.WriteLine($"SequenceIdentifier: {identifier}");
-                    Console.WriteLine($"Description: {description}");
-                    Console.WriteLine($"Sequence: {sequence}");
-                }
-
 
                 if (filteredSequences != null && filteredSequences.Any())
                 {

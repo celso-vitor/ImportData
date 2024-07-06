@@ -487,42 +487,47 @@ namespace SequenceAssemblerGUI
                         foreach (char seqChar in sequence.AlignedSmallSequence)
                         {
                             Brush backgroundColor;
-                            int refIndex = startPosition++;
                             string letter;
+                            int refIndex = startPosition++;
 
-                            if (seqChar == '-')
+                            // Verificar se o índice de referência está dentro do comprimento da sequência template
+                            if (refIndex < fasta.Sequence.Length)
                             {
-                                backgroundColor = gapColor;
-                                letter = "-"; // Show gap in interface
-                            }
-                            else if (refIndex < fasta.Sequence.Length)
-                            {
-                                if (seqChar == fasta.Sequence[refIndex])
+                                char refChar = fasta.Sequence[refIndex];
+
+                                if (seqChar == '-')
                                 {
+                                    // Gap na sequência alinhada
+                                    backgroundColor = gapColor;
+                                    letter = "-";
+                                }
+                                else if (seqChar == refChar)
+                                {
+                                    // Caractere corresponde à sequência template
                                     backgroundColor = correctAlignmentColor;
+                                    letter = seqChar.ToString();
                                 }
                                 else if (alignedSequences.Any(a => a.Sequence.Length > refIndex && a.Sequence[refIndex] == seqChar))
                                 {
+                                    // Caractere corresponde a outra sequência alinhada
                                     backgroundColor = correctAlignmentColor;
+                                    letter = seqChar.ToString();
                                 }
                                 else
                                 {
+                                    // Caractere não corresponde à sequência template nem a outras sequências alinhadas
                                     backgroundColor = incorrectAlignmentColor;
+                                    letter = seqChar.ToString();
                                 }
-                                letter = seqChar.ToString();
                             }
                             else
                             {
+                                // Fora do comprimento da sequência template
                                 backgroundColor = Brushes.WhiteSmoke;
                                 letter = seqChar.ToString();
                             }
 
-                            // Color 'I' and 'L' characters green if the checkbox is checked
-                            if (colorIL && (seqChar == 'I' || seqChar == 'L'))
-                            {
-                                backgroundColor = ilColor;
-                            }
-
+                            // Não colorir 'I' e 'L' de verde nos alinhamentos
                             var visualAlignment = new VisualAlignment
                             {
                                 Letra = letter,
@@ -531,6 +536,7 @@ namespace SequenceAssemblerGUI
                             };
                             sequenceViewModel.VisualAlignment.Add(visualAlignment);
                         }
+
 
                         while (groupViewModel.Seq.Count <= rowIndex)
                         {
@@ -579,6 +585,7 @@ namespace SequenceAssemblerGUI
                     {
                         backgroundColor = differentConsensusColor;
                     }
+
 
                     // Color 'I' and 'L' characters green in consensus if the checkbox is checked
                     if (colorIL && (consensusChar == 'I' || consensusChar == 'L'))
