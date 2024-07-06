@@ -27,7 +27,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding ReferenceHeader}" FontWeight="Bold" FontSize="10"/>
+                                        <TextBlock Text="{Binding ReferenceHeader}" FontWeight="Bold" FontSize="12"/>
                                         <ItemsControl ItemsSource="{Binding ReferenceSequence}" HorizontalAlignment="Left" Padding="10">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>

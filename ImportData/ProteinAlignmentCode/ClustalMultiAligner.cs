@@ -1,4 +1,5 @@
 ﻿using PatternTools.FastaTools;
+using SequenceAssemblerLogic.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,12 +11,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 {
     public class ClustalMultiAligner
     {
-
-
-        public ClustalMultiAligner()
-        {
-
-        }
+        public ClustalMultiAligner() { }
 
         public (List<char>[] consensus, List<FastaItem> alignments) AlignSequences(List<FastaItem> FastaToAlign)
         {
@@ -55,8 +51,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
 
-
-
                 process.WaitForExit();
 
                 // Verificar se houve algum erro
@@ -69,25 +63,23 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 else
                 {
                     // Ler e exibir a saída do arquivo
-
-                    return ConstructConsensus(outputFile);
-
+                    return ConstructConsensus(outputFile, FastaToAlign);
                 }
             }
         }
 
-        public static (List<char>[] consensus, List<FastaItem> fasta) ConstructConsensus(string file)
+        public static (List<char>[] consensus, List<FastaItem> fasta) ConstructConsensus(string file, List<FastaItem> originalFastaItems)
         {
             // Ler e exibir a saída do arquivo
             string result = File.ReadAllText(file);
-
             Console.WriteLine($"{result}");
 
-
             // Capture all lines of output
-            List<FastaItem> fastaSequences = CaptureOutputLines(result);
+            List<FastaItem> fastaSequences = CaptureOutputLines(result, originalFastaItems);
 
             Dictionary<string, string> concatenatedSequences = new();
+            Dictionary<string, string> descriptions = new();
+
             foreach (var seq in fastaSequences)
             {
                 if (concatenatedSequences.ContainsKey(seq.SequenceIdentifier))
@@ -97,6 +89,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 else
                 {
                     concatenatedSequences.Add(seq.SequenceIdentifier, seq.Sequence);
+                    descriptions.Add(seq.SequenceIdentifier, seq.Description); // Armazenar descrição
                 }
             }
 
@@ -135,35 +128,15 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 consensus[i].AddRange(aminoAcids);
             }
 
-            return (consensus, concatenatedSequences.Select(a => new FastaItem() { SequenceIdentifier = a.Key, Sequence = a.Value }).ToList());
-
+            return (consensus, concatenatedSequences.Select(a => new FastaItem() { SequenceIdentifier = a.Key, Sequence = a.Value, Description = descriptions[a.Key] }).ToList());
         }
 
-        private List<string> ReadSequencesFromOutput(string output)
-        {
-            var sequences = new List<string>();
-            var lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                if (!line.StartsWith(" ") && !line.StartsWith("CLUSTAL") && !line.Contains('*'))
-                {
-                    var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length > 1)
-                    {
-                        sequences.Add(parts[1]);
-                    }
-                }
-            }
-
-            return sequences;
-        }
-
-
-        private static List<FastaItem> CaptureOutputLines(string output)
+        private static List<FastaItem> CaptureOutputLines(string output, List<FastaItem> originalFastaItems)
         {
             List<FastaItem> fastaItems = new List<FastaItem>();
             var lines = output.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            var descriptionDict = originalFastaItems.ToDictionary(f => f.SequenceIdentifier, f => f.Description);
 
             foreach (var line in lines)
             {
@@ -178,7 +151,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                         FastaItem fastaItem = new FastaItem
                         {
                             SequenceIdentifier = sequenceIdentifier,
-                            Sequence = sequence
+                            Sequence = sequence,
+                            Description = descriptionDict.ContainsKey(sequenceIdentifier) ? descriptionDict[sequenceIdentifier] : string.Empty
                         };
 
                         fastaItems.Add(fastaItem);

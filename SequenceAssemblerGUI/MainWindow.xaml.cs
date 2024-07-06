@@ -506,6 +506,7 @@ namespace SequenceAssemblerGUI
             }
         }
 
+
         private void ProcessMultipleAlignment()
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
@@ -540,6 +541,14 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
+                // Print each sequence before alignment
+                foreach (var item in fastaFileParser.MyItems)
+                {
+                    Console.WriteLine($"Before Alignment - SequenceIdentifier: {item.SequenceIdentifier}");
+                    Console.WriteLine($"Before Alignment - Description: {item.Description}");
+                    Console.WriteLine($"Before Alignment - Sequence: {item.Sequence}");
+                }
+
                 ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
                 var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
                 Console.WriteLine("Multi-sequence alignment complete.");
@@ -547,24 +556,38 @@ namespace SequenceAssemblerGUI
                 // Print each sequence from the multi-sequence alignment and store them
                 Console.WriteLine("Aligned Sequences:");
 
-                Dictionary<string, string> concatenatedSequences = new();
+                Dictionary<string, (string Sequence, string Description)> concatenatedSequences = new();
+
                 foreach (var seq in msaResult.alignments)
                 {
+                    // Print SequenceIdentifier, Description, and Sequence after alignment
+                    Console.WriteLine($"SequenceIdentifier: {seq.SequenceIdentifier}");
+                    Console.WriteLine($"Description: {seq.Description}");
+                    Console.WriteLine($"Sequence: {seq.Sequence}");
+
                     if (concatenatedSequences.ContainsKey(seq.SequenceIdentifier))
                     {
-                        concatenatedSequences[seq.SequenceIdentifier] += seq.Sequence;
+                        var existing = concatenatedSequences[seq.SequenceIdentifier];
+                        concatenatedSequences[seq.SequenceIdentifier] = (existing.Sequence + seq.Sequence, existing.Description);
                     }
                     else
                     {
-                        concatenatedSequences.Add(seq.SequenceIdentifier, seq.Sequence);
+                        concatenatedSequences.Add(seq.SequenceIdentifier, (seq.Sequence, seq.Description));
                     }
                 }
 
-                alignedSequences = concatenatedSequences
-                                        .Select(kvp => (kvp.Key, kvp.Value))
-                                        .OrderBy(tuple => tuple.Item1)
-                                        .ToList();
+                var alignedSequences = concatenatedSequences
+                                          .Select(kvp => (kvp.Key, kvp.Value.Sequence, kvp.Value.Description))
+                                          .OrderBy(tuple => tuple.Key)
+                                          .ToList();
 
+                // Print the final concatenated sequences with descriptions
+                foreach (var (identifier, sequence, description) in alignedSequences)
+                {
+                    Console.WriteLine($"SequenceIdentifier: {identifier}");
+                    Console.WriteLine($"Description: {description}");
+                    Console.WriteLine($"Sequence: {sequence}");
+                }
 
 
                 if (filteredSequences != null && filteredSequences.Any())
@@ -609,7 +632,7 @@ namespace SequenceAssemblerGUI
                         var alignment = filteredSequences.Select((seq, index) =>
                         {
                             var alignment = alignermsa.AlignerPCC(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                            alignment.TargetOrigin = Sequence.ID; //Add SourceOrigin to alignment
+                            alignment.TargetOrigin = Sequence.Item1; //Add SourceOrigin to alignment
                             return alignment;
                         }).ToList();
                         myAlignment.AddRange(alignment);
@@ -633,7 +656,7 @@ namespace SequenceAssemblerGUI
                     
                     //Console.WriteLine(filteredDuplicatesToAlign);
 
-                    MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
+                   MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
 
                     TabItemResultBrowser2.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -674,7 +697,7 @@ namespace SequenceAssemblerGUI
             //var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(filteredAlignments);
 
             // Atualiza a fonte de itens do DataGridAlignments com as sequências FASTA carregadas e os alinhamentos filtrados
-            MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, filteredAlignments);
+            //MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, filteredAlignments);
         }
 
         private void ProcessSingleAlignment()

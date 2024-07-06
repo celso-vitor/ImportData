@@ -20,6 +20,13 @@ namespace SequenceAssemblerLogic.Tools
 
     public class FastaParser
     {
+        public List<Fasta> MyItems { get; private set; }
+
+        public FastaParser()
+        {
+            MyItems = new List<Fasta>();
+        }
+
         public static List<Fasta> ParseFastaFile(string filePath)
         {
             List<Fasta> sequences = new List<Fasta>();
@@ -34,6 +41,7 @@ namespace SequenceAssemblerLogic.Tools
                         sequences.Add(currentSequence);
                     }
 
+                    // Capture the entire line after '>' as both ID and Description
                     var parts = line.Substring(1).Split(new[] { ' ' }, 2);  // Split the line on the first space
                     currentSequence = new Fasta
                     {
@@ -55,10 +63,49 @@ namespace SequenceAssemblerLogic.Tools
             }
 
             return sequences;
-
         }
 
+        public static void LoadFasta(FastaParser fastaFileParser, StreamReader reader)
+        {
+            List<Fasta> sequences = new List<Fasta>();
+            Fasta currentSequence = null;
+
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.StartsWith(">"))
+                {
+                    if (currentSequence != null)
+                    {
+                        sequences.Add(currentSequence);
+                    }
+
+                    // Capture the entire line after '>' as both ID and Description
+                    var parts = line.Substring(1).Split(new[] { ' ' }, 2);  // Split the line on the first space
+                    currentSequence = new Fasta
+                    {
+                        ID = parts[0],
+                        Description = parts.Length > 1 ? parts[1] : string.Empty,
+                        Sequence = string.Empty
+                    };
+                }
+                else if (currentSequence != null)
+                {
+                    currentSequence.Sequence += line.Trim();
+                }
+            }
+
+            // Add last sequence
+            if (currentSequence != null)
+            {
+                sequences.Add(currentSequence);
+            }
+
+            fastaFileParser.MyItems.AddRange(sequences); // Adiciona as sequências à propriedade MyItems
+        }
     }
+
+
 
     public class FastaFormat
     {

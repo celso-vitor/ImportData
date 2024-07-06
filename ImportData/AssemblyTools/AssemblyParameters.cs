@@ -59,8 +59,6 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return new string(consensusSequence);
         }
 
-
-
         public static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
         {
             foreach (var row in rowEndPositions)
@@ -91,7 +89,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return newRow;
         }
 
-        public static string CalculateConsensusSequence(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)> consensusDetails)
+        public static string CalculateConsensusSequence(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)> consensusDetails)
         {
             consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)>();
 
@@ -127,7 +125,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
         }
 
 
-        public static double CalculateCoverage(List<(string ID, string Sequence)> alignedSequences, List<Alignment> alignments)
+        public static double CalculateCoverage(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
         {
             if (alignedSequences == null || alignedSequences.Count == 0)
             {
