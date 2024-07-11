@@ -582,31 +582,7 @@ namespace SequenceAssemblerGUI
 
                     SequenceAligner alignermsa = new SequenceAligner();
                     myAlignment = new List<Alignment>();
-
-                    var x = filteredSequences.FindAll(a => a.Contains("VADE")).ToList();
-
-
-                    //foreach ((string ID, string Sequence) in alignedSequences)
-                    //{
-
-                    //    var alignment = alignermsa.AlignMSA(msaResult.consensus, Sequence, "Sequence: " +  + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-
-                    //    var alignments = filteredSequences.Select((seq, index) =>
-                    //    {
-                    //        var alignment = alignermsa.AlignMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                    //        alignment.TargetOrigin = fastaSequence.ID; //Add SourceOrigin to alignment
-                    //        return alignment;
-                    //    }).ToList();
-                    //    myAlignment.AddRange(alignments);
-                    //}
-
-                    //for (int i = 0; i < filteredSequences.Count; i++)
-                    //{
-                    //    var alignment = alignermsa.AlignMSA(msaResult.consensus, filteredSequences[i], "Sequence: " + filteredSequences[i]);
-                    //    alignment.TargetOrigin = msaResult;
-                    //    myAlignment.Add(alignment);
-                    //}
-
+    
                     foreach (var Sequence in alignedSequences)
                     {
                         var alignment = filteredSequences.Select((seq, index) =>
@@ -619,8 +595,6 @@ namespace SequenceAssemblerGUI
                     }
 
 
-                    var alignment2 = alignermsa.AlignerPCC(msaResult.consensus, "LLAFS", "xx");
-
 
                     //Updates the alignment view with the necessary parameters
                     List<Alignment> alignments = myAlignment
@@ -631,7 +605,7 @@ namespace SequenceAssemblerGUI
                         .ToList();
 
 
-                    Console.WriteLine(alignments);
+                    //Console.WriteLine(alignments);
                    // var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
                     
                     //Console.WriteLine(filteredDuplicatesToAlign);

@@ -13,6 +13,8 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
+       
+
         <Menu Background="LightGray" VerticalAlignment="Center">
             <MenuItem Header="File">
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
@@ -162,9 +164,7 @@
                             <RowDefinition Height="*"/>
 
                             <RowDefinition Height="Auto"/>
-
-                            <RowDefinition Height="*"/>
-
+                            
                         </Grid.RowDefinitions>
 
                         <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
@@ -183,6 +183,15 @@
 
         </Grid>
 
+        <Border Grid.RowSpan="2"
+                Background="white"
+                x:Name="BorderStart"
+                Visibility="Collapsed">
+            <Grid>
+                <TextBlock Text="Hello"
+                           FontSize="50"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
 
