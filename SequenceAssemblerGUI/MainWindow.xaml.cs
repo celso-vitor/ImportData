@@ -84,7 +84,7 @@ namespace SequenceAssemblerGUI
             IntegerUpDownPSMMaxLength.ValueChanged += (s, e) => RestartTimer();
             IntegerUpDownPSMScore.ValueChanged += (s, e) => RestartTimer();
         }
-
+       
         // Event handler for the DispatcherTimer
         private void UpdateTimer_Tick(object sender, EventArgs e)
         {
@@ -146,7 +146,6 @@ namespace SequenceAssemblerGUI
                         dtPSM.Rows.Add(row);
                         sequencesForAssembly.Add(psm.Peptide);
                     }
-
                 }
 
                 DataView dvDenovo = new DataView(dtDenovo);
@@ -168,8 +167,12 @@ namespace SequenceAssemblerGUI
                 DeNovoAssembly.IsSelected = true;
                 TabItemResultBrowser.IsEnabled = false;
                 TabItemResultBrowser2.IsEnabled = false;
+
+                // Ocultar a imagem inicial após a importação dos resultados
+                BorderStart.Visibility = Visibility.Collapsed;
             }
         }
+
 
 
 
@@ -809,7 +812,10 @@ namespace SequenceAssemblerGUI
             compareWindow.Show();
         }
 
+        private void RadioButton_Unchecked(object sender, RoutedEventArgs e)
+        {
 
+        }
     }
 }
 

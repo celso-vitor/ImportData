@@ -23,12 +23,21 @@ using SequenceAssemblerLogic.Tools;
 
 namespace SequenceAssemblerGUI
 {
-    /// <summary>
-    /// Interaction logic for AlignmentViewer.xaml
-    /// </summary>
     public partial class AlignmentViewer : UserControl
     {
-        //public List<Alignment> AlignmentList { get; set; }
+        private bool colorIL = false; // Adiciona essa propriedade para controlar o estado do checkbox
+
+        public void OnColorILChecked(object sender, RoutedEventArgs e)
+        {
+            colorIL = true;
+            UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments); // Reaplica os alinhamentos com a nova configuração de cor
+        }
+
+        public void OnColorILUnchecked(object sender, RoutedEventArgs e)
+        {
+            colorIL = false;
+            UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments); // Reaplica os alinhamentos sem a configuração de cor
+        }
 
         private List<(string ID, string Sequence, string Description)> currentAlignedSequences;
         private List<Alignment> currentAlignments;
@@ -338,27 +347,6 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private bool colorIL = false;
-
-        private void OnColorILChecked(object sender, RoutedEventArgs e)
-        {
-            colorIL = true;
-            if (currentAlignedSequences != null && currentAlignments != null)
-            {
-                UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments);
-            }
-        }
-
-        private void OnColorILUnchecked(object sender, RoutedEventArgs e)
-        {
-            colorIL = false;
-            if (currentAlignedSequences != null && currentAlignments != null)
-            {
-                UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments);
-            }
-        }
-
-
         public void UpdateUIWithMSAAlignmentAndAssembly(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
         {
             if (alignedSequences == null || alignments == null)
@@ -366,33 +354,28 @@ namespace SequenceAssemblerGUI
                 throw new ArgumentNullException("alignedSequences or alignments", "Aligned sequences and alignments cannot be null.");
             }
 
-            // Store the aligned sequences and alignments in the class-level variables
             currentAlignedSequences = alignedSequences;
             currentAlignments = alignments;
 
-            // Existing method implementation
             if (DataContext is SequenceViewModel viewModel)
             {
                 viewModel.ReferenceGroups.Clear();
-                viewModel.GlobalAlignments.Clear(); // Add this line to clear the global alignment table
+                viewModel.GlobalAlignments.Clear();
 
-                // Defines a color dictionary for alignment
                 Brush correctAlignmentColor = Brushes.LightGreen;
                 Brush incorrectAlignmentColor = Brushes.LightCoral;
                 Brush consensusAdditionColor = Brushes.LightGreen;
                 Brush gapColor = Brushes.White;
-                Brush differentConsensusColor = Brushes.Orange; // Define the different consensus color
-                Brush ilColor = Brushes.LightGreen; // Define the color for I and L characters
+                Brush differentConsensusColor = Brushes.Orange;
 
-                // Calculate coverage
                 double coverage = AssemblyParameters.CalculateCoverage(alignedSequences, alignments);
                 viewModel.Coverage = $"{coverage:F2}%";
 
                 var sortedSequences = alignments.OrderBy(seq => seq.StartPositions.Max()).ToList();
                 var processedAlignments = new HashSet<string>();
-
-                // Determine the maximum length of sequences to ensure alignment
                 int maxLength = alignedSequences.Max(s => s.Sequence.Length);
+
+                Dictionary<int, List<char>> positionChars = new Dictionary<int, List<char>>();
 
                 foreach (var fasta in alignedSequences)
                 {
@@ -401,17 +384,17 @@ namespace SequenceAssemblerGUI
                         ReferenceHeader = $"{fasta.ID} - {fasta.Description}",
                     };
 
-                    // Process reference sequence with background coloring
-                    foreach (char letter in fasta.Sequence)
+                    for (int i = 0; i < fasta.Sequence.Length; i++)
                     {
+                        char letter = fasta.Sequence[i];
                         groupViewModel.ReferenceSequence.Add(new VisualAlignment
                         {
                             Letra = letter.ToString(),
-                            CorDeFundo = Brushes.WhiteSmoke // Background color for reference
+                            CorDeFundo = Brushes.WhiteSmoke,
+                            ToolTipContent = $"Position: {i + 1}, Letter: {letter}, ID: {fasta.ID}, Description: {fasta.Description}"
                         });
                     }
 
-                    // Add whitespace to ensure the same length for all reference strings
                     int refLength = groupViewModel.ReferenceSequence.Count;
                     if (refLength < maxLength)
                     {
@@ -420,7 +403,8 @@ namespace SequenceAssemblerGUI
                             groupViewModel.ReferenceSequence.Add(new VisualAlignment
                             {
                                 Letra = " ",
-                                CorDeFundo = Brushes.WhiteSmoke
+                                CorDeFundo = Brushes.WhiteSmoke,
+                                ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}, Description: {fasta.Description}"
                             });
                         }
                     }
@@ -432,7 +416,7 @@ namespace SequenceAssemblerGUI
                         var alignmentKey = $"{sequence.SourceOrigin}-{sequence.StartPositions.Max()}";
                         if (processedAlignments.Contains(alignmentKey))
                         {
-                            continue; // Skip already added alignments
+                            continue;
                         }
 
                         processedAlignments.Add(alignmentKey);
@@ -457,7 +441,6 @@ namespace SequenceAssemblerGUI
                             AlignedSmallSequence = sequence.AlignedSmallSequence
                         };
 
-                        // Add alignment to global table
                         viewModel.GlobalAlignments.Add(dataTableViewModel);
 
                         int startPosition = sequence.StartPositions.Max();
@@ -478,65 +461,58 @@ namespace SequenceAssemblerGUI
                             sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                             {
                                 Letra = " ",
-                                CorDeFundo = Brushes.WhiteSmoke
+                                CorDeFundo = Brushes.WhiteSmoke,
+                                ToolTipContent = $"Position: {i + 1}, Letter: , ID: {sequence.SourceOrigin}"
                             });
                         }
 
                         rowEndPositions[rowIndex] = startPosition + sequence.AlignedSmallSequence.Length;
 
-                        foreach (char seqChar in sequence.AlignedSmallSequence)
+                        for (int i = 0; i < sequence.AlignedSmallSequence.Length; i++)
                         {
+                            char seqChar = sequence.AlignedSmallSequence[i];
                             Brush backgroundColor;
-                            string letter;
+                            string letter = seqChar.ToString();
                             int refIndex = startPosition++;
 
-                            // Verificar se o índice de referência está dentro do comprimento da sequência template
+                            if (!positionChars.ContainsKey(refIndex))
+                            {
+                                positionChars[refIndex] = new List<char>();
+                            }
+                            positionChars[refIndex].Add(seqChar);
+
                             if (refIndex < fasta.Sequence.Length)
                             {
                                 char refChar = fasta.Sequence[refIndex];
-
                                 if (seqChar == '-')
                                 {
-                                    // Gap na sequência alinhada
                                     backgroundColor = gapColor;
-                                    letter = "-";
                                 }
-                                else if (seqChar == refChar)
+                                else if (seqChar == refChar || alignedSequences.Any(a => a.Sequence.Length > refIndex && a.Sequence[refIndex] == seqChar))
                                 {
-                                    // Caractere corresponde à sequência template
                                     backgroundColor = correctAlignmentColor;
-                                    letter = seqChar.ToString();
-                                }
-                                else if (alignedSequences.Any(a => a.Sequence.Length > refIndex && a.Sequence[refIndex] == seqChar))
-                                {
-                                    // Caractere corresponde a outra sequência alinhada
-                                    backgroundColor = correctAlignmentColor;
-                                    letter = seqChar.ToString();
                                 }
                                 else
                                 {
-                                    // Caractere não corresponde à sequência template nem a outras sequências alinhadas
                                     backgroundColor = incorrectAlignmentColor;
-                                    letter = seqChar.ToString();
+                                    if (colorIL && (positionChars[refIndex].All(c => c == 'I' || c == 'L')))
+                                    {
+                                        backgroundColor = Brushes.LightGreen; // Color 'I' or 'L' green if all chars at this position are 'I' or 'L'
+                                    }
                                 }
                             }
                             else
                             {
-                                // Fora do comprimento da sequência template
                                 backgroundColor = Brushes.WhiteSmoke;
-                                letter = seqChar.ToString();
                             }
 
-                            // Não colorir 'I' e 'L' de verde nos alinhamentos
-                            var visualAlignment = new VisualAlignment
+                            sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                             {
                                 Letra = letter,
                                 CorDeFundo = backgroundColor,
-                                ToolTipContent = $"Start Position: {sequence.StartPositions.Max()} - Source: {sequence.SourceOrigin}"
-                            };
-                            sequenceViewModel.VisualAlignment.Add(visualAlignment);
+                                ToolTipContent = $"Position: {refIndex + 1}, Letter: {letter}, ID: {sequence.SourceOrigin}"
+                            });
                         }
-
 
                         while (groupViewModel.Seq.Count <= rowIndex)
                         {
@@ -549,7 +525,6 @@ namespace SequenceAssemblerGUI
                         }
                     }
 
-                    // Add whitespace to aligned strings to ensure the same length
                     foreach (var sequenceViewModel in groupViewModel.Seq)
                     {
                         int currentLength = sequenceViewModel.VisualAlignment.Count;
@@ -560,19 +535,19 @@ namespace SequenceAssemblerGUI
                                 sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                                 {
                                     Letra = " ",
-                                    CorDeFundo = Brushes.WhiteSmoke
+                                    CorDeFundo = Brushes.WhiteSmoke,
+                                    ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}"
                                 });
                             }
                         }
                     }
 
-                    if (groupViewModel.ReferenceSequence.Any() || groupViewModel.Alignments.Any()) // Only add reference groups that have sequences or alignments
+                    if (groupViewModel.ReferenceSequence.Any() || groupViewModel.Alignments.Any())
                     {
                         viewModel.ReferenceGroups.Add(groupViewModel);
                     }
                 }
 
-                // Add consensus sequence visualization
                 var consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)>();
                 var consensusSequence = AssemblyParameters.CalculateConsensusSequence(alignedSequences, alignments, out consensusDetails);
                 viewModel.ConsensusSequence.Clear();
@@ -584,25 +559,24 @@ namespace SequenceAssemblerGUI
                     if (detail.IsDifferent)
                     {
                         backgroundColor = differentConsensusColor;
-                    }
-
-
-                    // Color 'I' and 'L' characters green in consensus if the checkbox is checked
-                    if (colorIL && (consensusChar == 'I' || consensusChar == 'L'))
-                    {
-                        backgroundColor = ilColor;
+                        if (colorIL && positionChars.ContainsKey(detail.Position) && positionChars[detail.Position].All(c => c == 'I' || c == 'L'))
+                        {
+                            backgroundColor = Brushes.LightGreen; // Apply green color to 'I' or 'L' in the consensus if all chars at this position are 'I' or 'L'
+                        }
                     }
 
                     viewModel.ConsensusSequence.Add(new VisualAlignment
                     {
                         Letra = consensusChar.ToString(),
-                        CorDeFundo = backgroundColor
+                        CorDeFundo = backgroundColor,
+                        ToolTipContent = $"Position: {detail.Position + 1}, Letter: {consensusChar}, IsConsensus: {detail.IsConsensus}, IsDifferent: {detail.IsDifferent}"
                     });
                 }
 
                 viewModel.RefreshData();
             }
         }
+
 
 
         public void UpdateViewMultipleModel(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)

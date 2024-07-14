@@ -3,7 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SequenceAssemblerGUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5" xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:local="clr-namespace:SequenceAssemblerGUI"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:toolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit.NET5"
+        xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Icon="pack://application:,,,/PA.png"
         Title="Protein Sequence Assembler" MinHeight="768" MinWidth="1240" Height="1080" Width="1024">
@@ -13,21 +16,17 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-       
-
-        <Menu Background="LightGray" VerticalAlignment="Center">
+        <Menu Background="LightGray" VerticalAlignment="Center" Grid.Row="0">
             <MenuItem Header="File">
                 <MenuItem x:Name="MenuItemImportResults" Header="Import Results" Click="MenuItemImportResults_Click"/>
             </MenuItem>
-
         </Menu>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="130"/>
                 <RowDefinition Height="3*"/>
             </Grid.RowDefinitions>
-
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -45,8 +44,6 @@
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="0" Maximum="20"/>
                                 <Label Content="MaxLength" />
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="0" Maximum="80"/>
-
-
                             </WrapPanel>
                         </GroupBox>
 
@@ -60,18 +57,15 @@
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="0" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
-
-                        <!--<Button x:Name="ButtonUpdate" Content="Update" Click="ButtonUpdate_Click" Width="61" IsEnabled ="False" Height="24"/>-->
-
                     </WrapPanel>
 
                     <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,2,2,2">
                             <RadioButton Content="Local Alignment mode" VerticalAlignment="Center" Margin="2,2,2,2" Checked="RadioButtonAlignmentMode_Checked"/>
-                            <RadioButton Content="Multiple Alignment Mode" VerticalAlignment="Center" Margin="2,2,2,2" IsChecked="True" Checked="RadioButtonMultipleAlignmentMode_Checked"/>
+                            <RadioButton Content="Multiple Alignment Mode" VerticalAlignment="Center" Margin="2,2,2,2" Checked="RadioButtonMultipleAlignmentMode_Checked"/>
                         </StackPanel>
 
-                        <Button x:Name="ButtonProcess" Content="Process" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
+                        <Button x:Name="ButtonProcess" Content="Template (fasta)" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
                     </WrapPanel>
 
                     <GroupBox Header="Assembly">
@@ -79,20 +73,18 @@
                             <Label Content="Maximum Gaps"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="100" IsEnabled="False"/>
                             <Label Content="Minimum Identity"/>
-                            <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled ="False"/>
+                            <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled="False"/>
                             <Label Content="Minimum Normalized Similarity"/>
-                            <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled ="False"/>
+                            <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled="False"/>
                             <Label Content="Minimum Length"/>
-                            <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled ="False"/>
-                            <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="61" Margin="10,0,0,0" IsEnabled ="False"/>
+                            <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled="False"/>
+                            <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="61" Margin="10,0,0,0" IsEnabled="False"/>
 
                             <Label Content="AA Overlap"/>
                             <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10" IsEnabled="False"/>
                             <Button x:Name="ContigAssembly" Content="ContigAssembly" Click="OpenCompareSequencesWindow_Click" Width="114" HorizontalAlignment="Center" Height="29" IsEnabled="False"/>
-
                         </WrapPanel>
                     </GroupBox>
-
                 </StackPanel>
 
                 <GroupBox Grid.Column="1" Header="Statistics">
@@ -112,19 +104,11 @@
 
                         <Label Content="DeNovo: " Grid.Row="1"/>
                         <Label x:Name="LabelDeNovoCount" Content="?" Grid.Row="1" Grid.Column="1"/>
-
-                        <!--<Label Content="Coverage: " Grid.Row="2"/>
-                        <Label x:Name="LabelCoverage" Content="?" Grid.Row="2" Grid.Column="1"/>-->
                     </Grid>
-
                 </GroupBox>
             </Grid>
 
-
-
-
-
-            <TabControl Grid.Row="2">
+            <TabControl Grid.Row="1">
                 <TabItem x:Name="DeNovoAssembly" Header="De Novo Assembly">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -140,31 +124,25 @@
                             <TabItem Header="DeNovo">
                                 <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
                             </TabItem>
-                            <TabItem  Header="PSM">
+                            <TabItem Header="PSM">
                                 <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
                             </TabItem>
 
                             <TabItem Header="ContigAssembly">
                                 <Grid>
-                                    <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" IsEnabled ="False"/>
+                                    <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" IsEnabled="False"/>
                                     <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Grid>
-
                             </TabItem>
                         </TabControl>
-
                     </Grid>
-
                 </TabItem>
 
-
-                <TabItem x:Name="TabItemResultBrowser2" Header="Multiple Alignment" IsEnabled ="False">
+                <TabItem x:Name="TabItemResultBrowser2" Header="Multiple Alignment" IsEnabled="False">
                     <Grid Background="WhiteSmoke">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
-
                             <RowDefinition Height="Auto"/>
-                            
                         </Grid.RowDefinitions>
 
                         <DataGrid x:Name="DataGridFasta" Grid.Row="0"/>
@@ -172,26 +150,29 @@
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
 
                         <local:AlignmentViewer x:Name="MyMultipleAlignment"/>
-
                     </Grid>
-                </TabItem >
+                </TabItem>
 
-                <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer" IsEnabled ="False">
+                <TabItem x:Name="TabItemResultBrowser" Header="Alignment Viewer" IsEnabled="False">
                     <local:Assembly x:Name="MyAssembly"/>
                 </TabItem>
             </TabControl>
-
         </Grid>
 
-        <Border Grid.RowSpan="2"
-                Background="white"
+        <Border Grid.Row="1"
+                Background="White"
                 x:Name="BorderStart"
-                Visibility="Collapsed">
-            <Grid>
-                <TextBlock Text="Hello"
-                           FontSize="50"/>
+                Visibility="Visible">
+            <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/PA.png" Width="510" Height="537"/>
+                    <TextBlock Text="SequenceAssembler"
+                               FontSize="50"
+                               Foreground="Black"
+                               HorizontalAlignment="Center"
+                               FontFamily="Courier New"/>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>
 </Window>
-
