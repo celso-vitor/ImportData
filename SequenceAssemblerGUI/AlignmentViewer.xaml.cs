@@ -25,22 +25,27 @@ namespace SequenceAssemblerGUI
 {
     public partial class AlignmentViewer : UserControl
     {
-        private bool colorIL = false; // Adiciona essa propriedade para controlar o estado do checkbox
+        private bool colorIL = true;
+        private List<(string ID, string Sequence, string Description)> currentAlignedSequences;
+        private List<Alignment> currentAlignments;
 
         public void OnColorILChecked(object sender, RoutedEventArgs e)
         {
             colorIL = true;
-            UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments); // Reaplica os alinhamentos com a nova configuração de cor
+            if (currentAlignedSequences != null && currentAlignments != null)
+            {
+                UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments);
+            }
         }
 
         public void OnColorILUnchecked(object sender, RoutedEventArgs e)
         {
             colorIL = false;
-            UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments); // Reaplica os alinhamentos sem a configuração de cor
+            if (currentAlignedSequences != null && currentAlignments != null)
+            {
+                UpdateUIWithMSAAlignmentAndAssembly(currentAlignedSequences, currentAlignments);
+            }
         }
-
-        private List<(string ID, string Sequence, string Description)> currentAlignedSequences;
-        private List<Alignment> currentAlignments;
 
         public AlignmentViewer()
         {
@@ -576,6 +581,7 @@ namespace SequenceAssemblerGUI
                 viewModel.RefreshData();
             }
         }
+
 
 
 

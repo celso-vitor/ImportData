@@ -13,8 +13,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Margin="10,0,10,10">
-            <!--<Button x:Name="DownloadConsensus" Content="Download Consensus Sequence" Click="DownloadConsensusButton_Click" Width="202" Margin="0,5,10,0"/>-->
-            <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="False" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
+            <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="True" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
         </StackPanel>
         <TabControl Grid.Row="1">
             <TabItem Header="Assembly Viewer">
