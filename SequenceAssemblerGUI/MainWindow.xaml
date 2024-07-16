@@ -165,9 +165,9 @@
                 Visibility="Visible">
             <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/PA.png" Width="510" Height="537"/>
+                    <Image Source="pack://application:,,,/PA.png" Width="510" Height="600"/>
                     <TextBlock Text="SequenceAssembler"
-                               FontSize="50"
+                               FontSize="80"
                                Foreground="Black"
                                HorizontalAlignment="Center"
                                FontFamily="Courier New"/>

@@ -26,8 +26,8 @@
                                         <ItemsControl ItemsSource="{Binding ReferenceSequence}" Padding="4">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
-                                                        <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Border Background="{Binding BackgroundColor}" Width="20" Height="20" Margin="1">
+                                                        <TextBlock Text="{Binding Char}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -49,13 +49,13 @@
                                                         <ItemsControl ItemsSource="{Binding VisualAlignment}" Grid.Column="0" >
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate>
-                                                                    <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
+                                                                    <Border Width="20" Height="20" Margin="1" Background="{Binding BackgroundColor}">
                                                                         <Border.ToolTip>
                                                                             <ToolTip>
                                                                                 <TextBlock Text="{Binding ToolTipContent}" />
                                                                             </ToolTip>
                                                                         </Border.ToolTip>
-                                                                        <TextBlock Text="{Binding Letra}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                        <TextBlock Text="{Binding Char}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>

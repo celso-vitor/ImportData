@@ -37,7 +37,7 @@ namespace SequenceAssemblerGUI
         private DispatcherTimer updateTimer;
         List<Contig> myContigs;
         List<Fasta> allFastaSequences;
-        List<(string ID, string Sequence)> alignedSequences;
+        List<(string ID, string Sequence, string Description)> alignedSequences;
         List<Alignment> myAlignment;
 
         DataTable dtDenovo = new DataTable
@@ -532,6 +532,13 @@ namespace SequenceAssemblerGUI
                 // Stores loaded FASTA files
                 var allFastaSequences = loadedFastaFiles.SelectMany(fasta => fasta).ToList();
 
+                // Check if at least two sequences are loaded
+                if (allFastaSequences.Count < 2)
+                {
+                    MessageBox.Show("You must select at least two FASTA sequences for multiple alignment.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 Console.WriteLine($"Loaded {allFastaSequences.Count} fasta sequences.");
 
                 // Perform multi-sequence alignment using Clustal
@@ -544,7 +551,6 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-
                 ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
                 var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
                 Console.WriteLine("Multi-sequence alignment complete.");
@@ -556,7 +562,6 @@ namespace SequenceAssemblerGUI
 
                 foreach (var seq in msaResult.alignments)
                 {
-
                     if (concatenatedSequences.ContainsKey(seq.SequenceIdentifier))
                     {
                         var existing = concatenatedSequences[seq.SequenceIdentifier];
@@ -569,9 +574,9 @@ namespace SequenceAssemblerGUI
                 }
 
                 var alignedSequences = concatenatedSequences
-                                          .Select(kvp => (kvp.Key, kvp.Value.Sequence, kvp.Value.Description))
-                                          .OrderBy(tuple => tuple.Key)
-                                          .ToList();
+                                        .Select(kvp => (kvp.Key, kvp.Value.Sequence, kvp.Value.Description))
+                                        .OrderBy(tuple => tuple.Key)
+                                        .ToList();
 
                 if (filteredSequences != null && filteredSequences.Any())
                 {
@@ -585,7 +590,7 @@ namespace SequenceAssemblerGUI
 
                     SequenceAligner alignermsa = new SequenceAligner();
                     myAlignment = new List<Alignment>();
-    
+
                     foreach (var Sequence in alignedSequences)
                     {
                         var alignment = filteredSequences.Select((seq, index) =>
@@ -597,8 +602,6 @@ namespace SequenceAssemblerGUI
                         myAlignment.AddRange(alignment);
                     }
 
-
-
                     //Updates the alignment view with the necessary parameters
                     List<Alignment> alignments = myAlignment
                         .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
@@ -607,13 +610,7 @@ namespace SequenceAssemblerGUI
                                     a.AlignedSmallSequence.Length >= minLengthFilter)
                         .ToList();
 
-
-                    //Console.WriteLine(alignments);
-                   // var filteredDuplicatesToAlign = Utils.EliminateDuplicatesAndSubsequences(alignments);
-                    
-                    //Console.WriteLine(filteredDuplicatesToAlign);
-
-                   MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
+                    MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
 
                     TabItemResultBrowser2.IsSelected = true;
                     NormalizedSimilarityUpDown.IsEnabled = true;
@@ -632,6 +629,7 @@ namespace SequenceAssemblerGUI
                 }
             }
         }
+
 
         private void UpdateMultiAlignmentTable()
         {
