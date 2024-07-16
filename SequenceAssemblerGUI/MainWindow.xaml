@@ -42,7 +42,7 @@
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
                                 <Label Content="MinLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMinLength" Value="5" Minimum="0" Maximum="20"/>
-                                <Label Content="MaxLength" />
+                                <Label Content="MaxLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMMaxLength" Value="30" Minimum="0" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
@@ -51,9 +51,9 @@
                             <WrapPanel>
                                 <Label Content="AA Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="0" Maximum="100"/>
-                                <Label Content="MinLength" />
+                                <Label Content="MinLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="0" Maximum="20"/>
-                                <Label Content="MaxLength" />
+                                <Label Content="MaxLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="0" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
@@ -131,7 +131,7 @@
                             <TabItem Header="ContigAssembly">
                                 <Grid>
                                     <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" IsEnabled="False"/>
-                                    <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>
@@ -174,5 +174,13 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <!-- Loading Overlay -->
+        <Grid x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="2">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="30"/>
+                <TextBlock Text="Loading, please wait..." Foreground="White" HorizontalAlignment="Center" Margin="10"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
