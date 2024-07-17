@@ -288,7 +288,6 @@ namespace SequenceAssemblerGUI
                 DataView dvPSM = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPSM;
 
-                ButtonProcess.IsEnabled = true;
             }
 
             // Retrieves PSM and DeNovo sequences
@@ -312,19 +311,7 @@ namespace SequenceAssemblerGUI
 
             LabelPSMCount.Content = resultsPSM.Count;
             LabelDeNovoCount.Content = resultsDenovo.Count;
-            // Debug messages
-            //Console.WriteLine("Sequences from PSM:");
-            //foreach (var sequence in sequencesNovorPSM.Keys)
-            //{
-            //    Console.WriteLine(sequencesNovorPSM.Keys);
-            //}
-
-            //Console.WriteLine("Sequences from DeNovo:");
-            //foreach (var sequence in sequencesNovorDeNovo.Keys)
-            //{
-            //    Console.WriteLine(sequencesNovorDeNovo.Keys);
-            //}
-
+      
             DataGridContig.IsEnabled = true;
             loadingLabel.Visibility = Visibility.Visible;
 
@@ -338,9 +325,12 @@ namespace SequenceAssemblerGUI
             ContigAssembly.IsEnabled = true;
             IntegerUpDownAAOverlap.IsEnabled = true;
             int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
-            int maxContigs = 10000;// Example of count limit
-            int maxTimeMilliseconds = 10000; // Example of time limit in milliseconds (10 seconds)
+            int maxContigs = 10000; // Exemplo de limite de contagem
+            int maxTimeMilliseconds = 10000; // Exemplo de limite de tempo em milissegundos (10 segundos)
+            int k = 21; // Escolha um tamanho de k-mer apropriado
 
+            // Limpe a lista myContigs antes de começar
+            myContigs?.Clear();
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -350,26 +340,34 @@ namespace SequenceAssemblerGUI
                 {
                     ContigAssembler ca = new ContigAssembler();
 
-                    // Creation of resultsPSM and resultsDenovo lists
+                    // Criação das listas resultsPSM e resultsDenovo
                     var resultsPSM = psmDictTemp.SelectMany(kvp => kvp.Value).ToList();
                     var resultsDenovo = deNovoDictTemp.SelectMany(kvp => kvp.Value).ToList();
 
-                    //Console.WriteLine("Initial Results PSM count: " + resultsPSM.Count);
-                    //Console.WriteLine("Initial Results DeNovo count: " + resultsDenovo.Count);
-
-
-                    // Combine and check for duplications
+                    // Combine e verifique duplicações
                     var combinedResults = resultsPSM.Concat(resultsDenovo).ToList();
                     Console.WriteLine("Combined results count before assembling: " + combinedResults.Count);
                     var contigs = ca.AssembleContigSequencesWithLimits(combinedResults, overlapAAForContigs, maxContigs, maxTimeMilliseconds);
 
+                    // Extraia sequências dos contigs
+                    var sequences = contigs.Select(c => c.Sequence).ToList();
+
+                    // Monte a sequência consenso usando gráfico De Bruijn
+                    string deBruijnConsensus = ContigAssembler.AssembleContigSequencesWithDeBruijnGraph(sequences, k);
+
+                    // Realize alinhamento múltiplo de sequências com Clustal Omega
+                    string alignment = ClustalMultiAligner.AlignWithClustalOmega(sequences);
+
+                    // Gere a sequência consenso final
+                    string consensusSequence = ClustalMultiAligner.GenerateConsensusSequence(alignment);
+
+                    Console.WriteLine("Consensus Sequence: " + consensusSequence);
 
                     string fastaFilePath = Path.Combine("..", "..", "..", "Debug", "contigs.fasta");
-                    SaveContigsToFile(fastaFilePath, contigs).Wait(); // Call asynchronous method synchronously
+                    SaveContigsToFile(fastaFilePath, contigs).Wait(); // Chame o método assíncrono de forma síncrona
 
                     return contigs;
                 });
-
 
                 stopwatch.Stop();
                 Console.WriteLine($"Time taken to assemble contigs: {stopwatch.ElapsedMilliseconds} ms");
@@ -382,8 +380,8 @@ namespace SequenceAssemblerGUI
 
                 Console.WriteLine("Assembled Contigs count: " + myContigs.Count);
 
-                // Update UI
-                IntegerUpDownMaximumGaps.IsEnabled = true;
+                // Atualize a UI
+                //IntegerUpDownMaximumGaps.IsEnabled = true;
                 ButtonProcess.IsEnabled = true;
                 DataGridContig.ItemsSource = myContigs.Select(a => new
                 {
@@ -398,6 +396,7 @@ namespace SequenceAssemblerGUI
                 Console.WriteLine("Error in UpdateContig: " + ex.Message);
             }
         }
+
         private async Task SaveContigsToFile(string filePath, List<Contig> contigs)
         {
             using (StreamWriter writer = new StreamWriter(filePath))
@@ -411,6 +410,7 @@ namespace SequenceAssemblerGUI
                 }
             }
         }
+
 
         //---------------------------------------------------------
 
@@ -487,12 +487,15 @@ namespace SequenceAssemblerGUI
         private void RadioButtonAlignmentMode_Checked(object sender, RoutedEventArgs e)
         {
             isMultipleAlignmentMode = false;
+            ButtonProcess.IsEnabled = true;
+
         }
 
         // Method fired when multi-alignment mode RadioButton is selected
         private void RadioButtonMultipleAlignmentMode_Checked(object sender, RoutedEventArgs e)
         {
             isMultipleAlignmentMode = true;
+            ButtonProcess.IsEnabled = true;
         }
 
         // Method triggered when the processing button is clicked

@@ -151,6 +151,19 @@ namespace SequenceAssemblerLogic.ResultParser
                             DictDenovo.Add(di2.Name, registries);
                         }
                     }
+                    //else if (firstLine.StartsWith("Fraction"))
+                    //{
+                    //    var registries = LoadPeaksDeNovorRegistriesEdit(fileName, fileCounter);
+                    //    Console.WriteLine($"Loaded {registries.Count} DeNovo registries from {fileName}");
+                    //    if (DictDenovo.ContainsKey(di2.Name))
+                    //    {
+                    //        DictDenovo[di2.Name].AddRange(registries);
+                    //    }
+                    //    else
+                    //    {
+                    //        DictDenovo.Add(di2.Name, registries);
+                    //    }
+                    //}
                     else
                     {
                         var registries = LoadNovorDeNovoRegistries(fileName, fileCounter);
@@ -262,6 +275,35 @@ namespace SequenceAssemblerLogic.ResultParser
             }
             return myRegistries;
         }
+
+        //private List<IDResult> LoadPeaksDeNovorRegistriesEdit(string denovofileName, short fileCounter)
+        //{
+        //    var lines = File.ReadAllLines(denovofileName);
+        //    var myRegistries = new List<IDResult>();
+
+        //    // Assuming the first line is the header, so starting from index 1
+        //    for (int i = 1; i < lines.Length; i++)
+        //    {
+        //        // Use regex to split by comma, but handle commas inside quotes correctly
+        //        var columns = Regex.Split(lines[i], ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
+        //        var deNovoRegistry = new IDResult
+        //        {
+        //            ScanNumber = int.Parse(columns[4].Split(':')[1]), // Assuming Scan is F4:17259, we get 17259
+        //            File = fileCounter,
+        //            RT = double.Parse(columns[11]),
+        //            Mz = double.Parse(columns[9]),
+        //            Z = int.Parse(columns[10]),
+        //            PepMass = double.Parse(columns[14]),
+        //            Score = double.Parse(columns[6]),
+        //            Peptide = Regex.Replace(columns[3], " ", ""), // Removing spaces from peptide
+        //            AaScore = columns[17].Split(' ').Select(b => int.Parse(b)).ToList()
+        //        };
+
+        //        myRegistries.Add(deNovoRegistry);
+        //    }
+        //    return myRegistries;
+        //}
 
         public List<IDResult> LoadSepr2Registries(string sepr2FileName, short fileCounter)
         {
