@@ -2,8 +2,6 @@
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using SequenceAssemblerLogic;
-using SequenceAssemblerLogic.ContigCode;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 using SequenceAssemblerLogic.Tools;
@@ -24,6 +22,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
+using System.Text;
+using SequenceAssemblerLogic;
 
 namespace SequenceAssemblerGUI
 {
@@ -33,9 +33,7 @@ namespace SequenceAssemblerGUI
         Dictionary<string, List<IDResult>> psmDictTemp;
         Dictionary<string, List<IDResult>> deNovoDictTemp;
 
-
         private DispatcherTimer updateTimer;
-        List<Contig> myContigs;
         List<Fasta> allFastaSequences;
         List<(string ID, string Sequence, string Description)> alignedSequences;
         List<Alignment> myAlignment;
@@ -43,27 +41,27 @@ namespace SequenceAssemblerGUI
         DataTable dtDenovo = new DataTable
         {
             Columns =
-            {
-                new DataColumn("IsTag"),
-                new DataColumn("Folder"),
-                new DataColumn("File"),
-                new DataColumn("Sequence"),
-                new DataColumn("Score", typeof(double)),
-                new DataColumn("AAScores"),
-                new DataColumn("ScanNumber", typeof(int)),
-            }
+        {
+            new DataColumn("IsTag"),
+            new DataColumn("Folder"),
+            new DataColumn("File"),
+            new DataColumn("Sequence"),
+            new DataColumn("Score", typeof(double)),
+            new DataColumn("AAScores"),
+            new DataColumn("ScanNumber", typeof(int)),
+        }
         };
 
         DataTable dtPSM = new DataTable
         {
             Columns =
-            {
-                new DataColumn("Folder"),
-                new DataColumn("File"),
-                new DataColumn("Sequence"),
-                new DataColumn("Score", typeof(double)),
-                new DataColumn("ScanNumber", typeof(int)),
-            }
+        {
+            new DataColumn("Folder"),
+            new DataColumn("File"),
+            new DataColumn("Sequence"),
+            new DataColumn("Score", typeof(double)),
+            new DataColumn("ScanNumber", typeof(int)),
+        }
         };
         private List<string> filteredSequences;
 
@@ -84,13 +82,36 @@ namespace SequenceAssemblerGUI
             IntegerUpDownPSMMaxLength.ValueChanged += (s, e) => RestartTimer();
             IntegerUpDownPSMScore.ValueChanged += (s, e) => RestartTimer();
         }
-       
+
         // Event handler for the DispatcherTimer
-        private void UpdateTimer_Tick(object sender, EventArgs e)
+        private async void UpdateTimer_Tick(object sender, EventArgs e)
         {
             updateTimer.Stop(); // Stop the timer
             UpdateGeneral(); // Call the update method
+
+            ShowLoadingIndicator();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // Reexecutar o alinhamento apropriado baseado no modo de alinhamento selecionado
+                    if (isMultipleAlignmentMode)
+                    {
+                        MultipleAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                    }
+                    else
+                    {
+                        LocalAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                    }
+                }
+                finally
+                {
+                    HideLoadingIndicator();
+                }
+            });
         }
+
 
         // Method to restart the timer
         private void RestartTimer()
@@ -98,97 +119,100 @@ namespace SequenceAssemblerGUI
             updateTimer.Stop(); // Stop the timer if it's already running
             updateTimer.Start(); // Start the timer
         }
-        private void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
+
+        private async void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = true;
 
             if ((bool)folderBrowserDialog.ShowDialog())
             {
-                dtDenovo.Clear();
-                dtPSM.Clear();
-                List<string> sequencesForAssembly = new();
+                ShowLoadingIndicator();
 
-                foreach (string folderPath in folderBrowserDialog.SelectedPaths)
+                await Task.Run(() =>
                 {
-                    DirectoryInfo mainDir = new DirectoryInfo(folderPath);
-                    string folderName = mainDir.Name;
-
-                    foreach (DirectoryInfo subDir in mainDir.GetDirectories())
+                    try
                     {
-                        folderName += $",{subDir.Name}";
+                        dtDenovo.Clear();
+                        dtPSM.Clear();
+                        List<string> sequencesForAssembly = new();
+
+                        foreach (string folderPath in folderBrowserDialog.SelectedPaths)
+                        {
+                            DirectoryInfo mainDir = new DirectoryInfo(folderPath);
+                            string folderName = mainDir.Name;
+
+                            foreach (DirectoryInfo subDir in mainDir.GetDirectories())
+                            {
+                                folderName += $",{subDir.Name}";
+                            }
+
+                            newParser = new();
+                            newParser.LoadUniversal(mainDir);
+
+                            foreach (var denovo in newParser.DictDenovo.Values.SelectMany(x => x))
+                            {
+                                DataRow row = dtDenovo.NewRow();
+                                row["IsTag"] = denovo.IsTag ? "T" : "F";
+                                row["Folder"] = folderName;
+                                row["File"] = newParser.FileDictionary[denovo.File];
+                                row["ScanNumber"] = denovo.ScanNumber;
+                                row["Sequence"] = denovo.Peptide;
+                                row["Score"] = denovo.Score;
+                                row["AAScores"] = string.Join("-", denovo.AaScore);
+                                dtDenovo.Rows.Add(row);
+                            }
+
+                            foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
+                            {
+                                DataRow row = dtPSM.NewRow();
+                                row["Folder"] = folderName;
+                                row["File"] = newParser.FileDictionary[psm.File];
+                                row["ScanNumber"] = psm.ScanNumber;
+                                row["Sequence"] = psm.Peptide;
+                                row["Score"] = psm.Score;
+                                dtPSM.Rows.Add(row);
+                                sequencesForAssembly.Add(psm.Peptide);
+                            }
+                        }
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            DataView dvDenovo = new DataView(dtDenovo);
+                            DataGridDeNovo.ItemsSource = dvDenovo;
+
+                            DataView dvPsm = new DataView(dtPSM);
+                            DataGridPSM.ItemsSource = dvPsm;
+
+                            UpdateGeneral();
+
+                            DeNovoAssembly.IsSelected = true;
+                            TabItemResultBrowser.IsEnabled = false;
+                            TabItemResultBrowser2.IsEnabled = false;
+
+                            // Ocultar a imagem inicial após a importação dos resultados
+                            BorderStart.Visibility = Visibility.Collapsed;
+                        });
                     }
-
-                    newParser = new();
-                    newParser.LoadUniversal(mainDir);
-
-                    foreach (var denovo in newParser.DictDenovo.Values.SelectMany(x => x))
+                    finally
                     {
-                        DataRow row = dtDenovo.NewRow();
-                        row["IsTag"] = denovo.IsTag ? "T" : "F";
-                        row["Folder"] = folderName;
-                        row["File"] = newParser.FileDictionary[denovo.File];
-                        row["ScanNumber"] = denovo.ScanNumber;
-                        row["Sequence"] = denovo.Peptide;
-                        row["Score"] = denovo.Score;
-                        row["AAScores"] = string.Join("-", denovo.AaScore);
-                        dtDenovo.Rows.Add(row);
+                        Dispatcher.Invoke(HideLoadingIndicator);
                     }
-
-                    foreach (var psm in newParser.DictPsm.Values.SelectMany(x => x))
-                    {
-                        DataRow row = dtPSM.NewRow();
-                        row["Folder"] = folderName;
-                        row["File"] = newParser.FileDictionary[psm.File];
-                        row["ScanNumber"] = psm.ScanNumber;
-                        row["Sequence"] = psm.Peptide;
-                        row["Score"] = psm.Score;
-                        dtPSM.Rows.Add(row);
-                        sequencesForAssembly.Add(psm.Peptide);
-                    }
-                }
-
-                DataView dvDenovo = new DataView(dtDenovo);
-                DataGridDeNovo.ItemsSource = dvDenovo;
-
-                DataView dvPsm = new DataView(dtPSM);
-                DataGridPSM.ItemsSource = dvPsm;
-
-                int totalPsmRegistries = newParser.DictPsm.Values.Sum(list => list.Count);
-                int totalDenovoRegistries = newParser.DictDenovo.Values.Sum(list => list.Count);
-
-                Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
-                Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
-
-                LabelPSMCount.Content = totalPsmRegistries;
-                LabelDeNovoCount.Content = totalDenovoRegistries;
-
-                UpdateGeneral();
-                DeNovoAssembly.IsSelected = true;
-                TabItemResultBrowser.IsEnabled = false;
-                TabItemResultBrowser2.IsEnabled = false;
-
-                // Ocultar a imagem inicial após a importação dos resultados
-                BorderStart.Visibility = Visibility.Collapsed;
+                });
             }
         }
 
 
-
-
         private void UpdatePlot()
         {
-
             PlotModel plotModel1 = new()
             {
                 Title = "Sequences",
                 IsLegendVisible = true, // Ensure the legend is visible
             };
 
-
             BarSeries bsPSM = new() { XAxisKey = "x", YAxisKey = "y", Title = "PSM" };
             BarSeries bsDeNovo = new() { XAxisKey = "x", YAxisKey = "y", Title = "DeNovo" };
-
 
             var categoryAxis1 = new CategoryAxis() { Key = "y", Position = AxisPosition.Bottom };
             var linearAxis = new LinearAxis() { Key = "x", Position = AxisPosition.Left };
@@ -208,15 +232,15 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            // Add the values from the dictionaries to the corresponding BarSeries
+            // Add the values from the filtered dictionaries to the corresponding BarSeries
             foreach (var kvp in deNovoDictTemp)
             {
-                bsDeNovo.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
+                bsDeNovo.Items.Add(new BarItem { Value = kvp.Value.Count });
             }
 
             foreach (var kvp in psmDictTemp)
             {
-                bsPSM.Items.Add(new BarItem { Value = kvp.Value.Select(a => a.Peptide).Distinct().Count() });
+                bsPSM.Items.Add(new BarItem { Value = kvp.Value.Count });
             }
 
             plotModel1.Series.Add(bsPSM);
@@ -224,7 +248,6 @@ namespace SequenceAssemblerGUI
             plotModel1.Axes.Add(linearAxis);
             plotModel1.Axes.Add(categoryAxis1);
             PlotViewEnzymeEfficiency.Model = plotModel1;
-
         }
 
         public async void UpdateDataView()
@@ -287,130 +310,18 @@ namespace SequenceAssemblerGUI
 
                 DataView dvPSM = new DataView(dtPSM);
                 DataGridPSM.ItemsSource = dvPSM;
-
             }
 
-            // Retrieves PSM and DeNovo sequences
-            Dictionary<string, string> sequencesNovorPSM =
-                (from s in psmDictTemp.Values
-                 from psmID in s
-                 select new { psmID.CleanPeptide, Source = "PSM" })
-                .Distinct()
-                .ToDictionary(p => p.CleanPeptide, p => p.Source);
-
-            Dictionary<string, string> sequencesNovorDeNovo =
-                (from s in deNovoDictTemp.Values
-                 from denovoID in s
-                 select new { denovoID.CleanPeptide, Source = "DeNovo" })
-                .Distinct()
-                .ToDictionary(p => p.CleanPeptide, p => p.Source);
-
-            // Creation of resultsPSM and resultsDenovo lists
-            var resultsPSM = psmDictTemp.SelectMany(kvp => kvp.Value).ToList();
-            var resultsDenovo = deNovoDictTemp.SelectMany(kvp => kvp.Value).ToList();
-
-            LabelPSMCount.Content = resultsPSM.Count;
-            LabelDeNovoCount.Content = resultsDenovo.Count;
-      
-            DataGridContig.IsEnabled = true;
-            loadingLabel.Visibility = Visibility.Visible;
-
-            await UpdateContig();
-
-            loadingLabel.Visibility = Visibility.Hidden;
-        }
-
-        private async Task UpdateContig()
-        {
-            ContigAssembly.IsEnabled = true;
-            IntegerUpDownAAOverlap.IsEnabled = true;
-            int overlapAAForContigs = (int)IntegerUpDownAAOverlap.Value;
-            int maxContigs = 10000; // Exemplo de limite de contagem
-            int maxTimeMilliseconds = 10000; // Exemplo de limite de tempo em milissegundos (10 segundos)
-            int k = 21; // Escolha um tamanho de k-mer apropriado
-
-            // Limpe a lista myContigs antes de começar
-            myContigs?.Clear();
-
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-            try
+            // Update the counts in the UI
+            Dispatcher.Invoke(() =>
             {
-                myContigs = await Task.Run(() =>
-                {
-                    ContigAssembler ca = new ContigAssembler();
+                int filteredPsmCount = psmDictTemp.Values.Sum(list => list.Count);
+                int filteredDeNovoCount = deNovoDictTemp.Values.Sum(list => list.Count);
 
-                    // Criação das listas resultsPSM e resultsDenovo
-                    var resultsPSM = psmDictTemp.SelectMany(kvp => kvp.Value).ToList();
-                    var resultsDenovo = deNovoDictTemp.SelectMany(kvp => kvp.Value).ToList();
-
-                    // Combine e verifique duplicações
-                    var combinedResults = resultsPSM.Concat(resultsDenovo).ToList();
-                    Console.WriteLine("Combined results count before assembling: " + combinedResults.Count);
-                    var contigs = ca.AssembleContigSequencesWithLimits(combinedResults, overlapAAForContigs, maxContigs, maxTimeMilliseconds);
-
-                    // Extraia sequências dos contigs
-                    var sequences = contigs.Select(c => c.Sequence).ToList();
-
-                    // Monte a sequência consenso usando gráfico De Bruijn
-                    string deBruijnConsensus = ContigAssembler.AssembleContigSequencesWithDeBruijnGraph(sequences, k);
-
-                    // Realize alinhamento múltiplo de sequências com Clustal Omega
-                    string alignment = ClustalMultiAligner.AlignWithClustalOmega(sequences);
-
-                    // Gere a sequência consenso final
-                    string consensusSequence = ClustalMultiAligner.GenerateConsensusSequence(alignment);
-
-                    Console.WriteLine("Consensus Sequence: " + consensusSequence);
-
-                    string fastaFilePath = Path.Combine("..", "..", "..", "Debug", "contigs.fasta");
-                    SaveContigsToFile(fastaFilePath, contigs).Wait(); // Chame o método assíncrono de forma síncrona
-
-                    return contigs;
-                });
-
-                stopwatch.Stop();
-                Console.WriteLine($"Time taken to assemble contigs: {stopwatch.ElapsedMilliseconds} ms");
-
-                if (myContigs == null)
-                {
-                    Console.WriteLine("Failed to assemble contigs.");
-                    return;
-                }
-
-                Console.WriteLine("Assembled Contigs count: " + myContigs.Count);
-
-                // Atualize a UI
-                //IntegerUpDownMaximumGaps.IsEnabled = true;
-                ButtonProcess.IsEnabled = true;
-                DataGridContig.ItemsSource = myContigs.Select(a => new
-                {
-                    Sequence = a.Sequence,
-                    IDTotal = a.IDs.Count(),
-                    IDsDenovo = a.IDs.Count(id => !id.IsPSM),
-                    IDsPSM = a.IDs.Count(id => id.IsPSM)
-                }).ToList();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error in UpdateContig: " + ex.Message);
-            }
+                LabelPSMCount.Content = filteredPsmCount.ToString();
+                LabelDeNovoCount.Content = filteredDeNovoCount.ToString();
+            });
         }
-
-        private async Task SaveContigsToFile(string filePath, List<Contig> contigs)
-        {
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                int contigNumber = 1;
-                foreach (var contig in contigs)
-                {
-                    await writer.WriteLineAsync($">Contig{contigNumber}");
-                    await writer.WriteLineAsync(contig.Sequence);
-                    contigNumber++;
-                }
-            }
-        }
-
 
         //---------------------------------------------------------
 
@@ -429,14 +340,12 @@ namespace SequenceAssemblerGUI
             Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
             Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
 
-            LabelPSMCount.Content = totalPsmRegistries;
-            LabelDeNovoCount.Content = totalDenovoRegistries;
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
 
             foreach (var kvp in newParser.DictDenovo)
             {
-                List<IDResult> listNovor = (from rg in kvp.Value.Select(a => a).ToList()
+                List<IDResult> listNovor = (from rg in kvp.Value
                                             from rg2 in DeNovoTagExtractor.DeNovoRegistryToTags(rg, denovoMinScore, denovoMinSequeceLength)
                                             select rg2).ToList();
 
@@ -445,7 +354,7 @@ namespace SequenceAssemblerGUI
 
             foreach (var kvp in newParser.DictPsm)
             {
-                psmDictTemp.Add(kvp.Key, kvp.Value.Select(a => a).ToList());
+                psmDictTemp.Add(kvp.Key, kvp.Value.ToList());
             }
 
             // Apply filters to the filtered dictionaries
@@ -461,22 +370,31 @@ namespace SequenceAssemblerGUI
             double filterPsmScore = (double)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmScore, psmDictTemp);
 
+            // Counts for filtered PSM and DeNovo
+            int filteredPsmCount = psmDictTemp.Values.Sum(list => list.Count);
+            int filteredDeNovoCount = deNovoDictTemp.Values.Sum(list => list.Count);
+
             // Updates the list of filtered sequences
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
-                                    .Union(psmDictTemp.Values.SelectMany(v => v))
-                                    .Select(seq => seq.CleanPeptide)
-                                    .Distinct()
-                                    .ToList();
+                                .Union(psmDictTemp.Values.SelectMany(v => v))
+                                .Select(seq => seq.CleanPeptide)
+                                .Distinct()
+                                .ToList();
 
             // Update misAlignment variable to reflect updated alignments
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
 
             // Update the GUI
-            UpdatePlot();
-            UpdateDataView();
+            Dispatcher.Invoke(() =>
+            {
+                UpdatePlot();
+                UpdateDataView();
+
+                // Update the counts in the UI
+                LabelPSMCount.Content = filteredPsmCount.ToString();
+                LabelDeNovoCount.Content = filteredDeNovoCount.ToString();
+            });
         }
-
-
         //---------------------------------------------------------
         //Method is a open fasta file 
 
@@ -498,7 +416,9 @@ namespace SequenceAssemblerGUI
             ButtonProcess.IsEnabled = true;
         }
 
-        // Method triggered when the processing button is clicked
+        private string[] lastOpenedFileNames; // Variável para armazenar os nomes dos arquivos abertos
+
+        // Dentro do método ButtonProcess_Click, armazene os nomes dos arquivos:
         private async void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
@@ -510,6 +430,7 @@ namespace SequenceAssemblerGUI
             if (openFileDialog.ShowDialog() == true)
             {
                 ShowLoadingIndicator();
+                lastOpenedFileNames = openFileDialog.FileNames; // Armazena os nomes dos arquivos selecionados
 
                 await Task.Run(() =>
                 {
@@ -517,11 +438,11 @@ namespace SequenceAssemblerGUI
                     {
                         if (isMultipleAlignmentMode)
                         {
-                            ProcessMultipleAlignment(openFileDialog.FileNames);
+                            MultipleAlignment(lastOpenedFileNames);
                         }
                         else
                         {
-                            ProcessSingleAlignment(openFileDialog.FileNames);
+                            LocalAlignment(lastOpenedFileNames);
                         }
                     }
                     finally
@@ -532,23 +453,12 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private void ShowLoadingIndicator()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                LoadingOverlay.Visibility = Visibility.Visible;
-            });
-        }
 
-        private void HideLoadingIndicator()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                LoadingOverlay.Visibility = Visibility.Collapsed;
-            });
-        }
 
-        private void ProcessMultipleAlignment(string[] fileNames)
+        //---------------------------------------------------------
+
+        // Multiple Alignment
+        private void MultipleAlignment(string[] fileNames)
         {
             var loadedFastaFiles = fileNames.Select(FastaFormat.LoadFasta).ToList();
 
@@ -616,7 +526,7 @@ namespace SequenceAssemblerGUI
 
             if (filteredSequences != null && filteredSequences.Any())
             {
-                //Gets the origins of the filtered sequences
+                // Gets the origins of the filtered sequences
                 var sourceOrigins = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
 
                 int maxGaps = 0;
@@ -635,24 +545,42 @@ namespace SequenceAssemblerGUI
                 SequenceAligner alignermsa = new SequenceAligner();
                 myAlignment = new List<Alignment>();
 
-                foreach (var Sequence in alignedSequences)
+                int psmUsedCount = 0;
+                int deNovoUsedCount = 0;
+
+                foreach (var sequence in alignedSequences)
                 {
                     var alignment = filteredSequences.Select((seq, index) =>
                     {
-                        var alignment = alignermsa.AlignerPCC(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                        alignment.TargetOrigin = Sequence.Item1; //Add SourceOrigin to alignment
+                        var alignment = alignermsa.AlignerMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
+                        alignment.TargetOrigin = sequence.Item1; // Add SourceOrigin to alignment
+
+                        // Update counts based on identification method
+                        if (sourceOrigins[index].identificationMethod == "PSM")
+                        {
+                            psmUsedCount++;
+                        }
+                        else if (sourceOrigins[index].identificationMethod == "DeNovo")
+                        {
+                            deNovoUsedCount++;
+                        }
+
                         return alignment;
                     }).ToList();
                     myAlignment.AddRange(alignment);
                 }
 
-                //Updates the alignment view with the necessary parameters
+                // Updates the alignment view with the necessary parameters
                 List<Alignment> alignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                 Dispatcher.Invoke(() =>
                 {
                     UpdateViewMultipleModel(alignedSequences, alignments);
                     UpdateMultiAlignmentTable();
+
+                    // Update the UI with the counts
+                    PSMUsedCount.Content = psmUsedCount.ToString();
+                    DeNovoUsedCount.Content = deNovoUsedCount.ToString();
                 });
             }
             else
@@ -664,7 +592,51 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private void ProcessSingleAlignment(string[] fileNames)
+        private void UpdateMultiAlignmentTable()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
+                int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
+                int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
+                int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
+
+                var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+                UpdateViewMultipleModel(alignedSequences, filteredAlignments);
+
+                int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
+                int deNovoUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("DeNovo"));
+
+                // Log dos valores para depuração
+                Console.WriteLine($"PSM Used Count: {psmUsedCount}");
+                Console.WriteLine($"DeNovo Used Count: {deNovoUsedCount}");
+
+                PSMUsedCount.Content = psmUsedCount.ToString();
+                DeNovoUsedCount.Content = deNovoUsedCount.ToString();
+            });
+        }
+
+
+        private void UpdateViewMultipleModel(List<(string Key, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
+                TabItemResultBrowser2.IsSelected = true;
+                NormalizedSimilarityUpDown.IsEnabled = true;
+                IdentityUpDown.IsEnabled = true;
+                IntegerUpDownMinimumLength.IsEnabled = true;
+                IntegerUpDownMaximumGaps.IsEnabled = true;
+                TabItemResultBrowser2.IsEnabled = true;
+                ButtonUpdateAssembly.IsEnabled = true;
+                MyMultipleAlignment.ExecuteAssembly();
+            });
+        }
+
+        //---------------------------------------------------------
+
+        // Local Alignment
+        private void LocalAlignment(string[] fileNames)
         {
             var loadedFastaFiles = fileNames.Select(FastaFormat.LoadFasta).ToList();
 
@@ -703,6 +675,10 @@ namespace SequenceAssemblerGUI
 
                 SequenceAligner aligner = new SequenceAligner();
 
+                // Initialize counts for PSM and DeNovo used in alignments
+                int psmUsedCount = 0;
+                int deNovoUsedCount = 0;
+
                 // Align PSM and De Novo sequences with sequences from all FASTA files
                 myAlignment = new List<Alignment>();
                 foreach (var fastaSequence in allFastaSequences)
@@ -710,8 +686,19 @@ namespace SequenceAssemblerGUI
                     Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
                     var alignments = filteredSequences.Select((seq, index) =>
                     {
-                        var alignment = aligner.AlignSequences(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
+                        var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
                         alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
+
+                        // Update counts based on identification method
+                        if (sourceOrigins[index].origin == "PSM")
+                        {
+                            psmUsedCount++;
+                        }
+                        else if (sourceOrigins[index].origin == "DeNovo")
+                        {
+                            deNovoUsedCount++;
+                        }
+
                         return alignment;
                     }).ToList();
                     myAlignment.AddRange(alignments);
@@ -722,11 +709,20 @@ namespace SequenceAssemblerGUI
                 // Filters alignment results based on defined criteria
                 List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
+                //var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(filteredAlnResults);
+
                 Dispatcher.Invoke(() =>
                 {
                     // Update the ViewModel in the Assembly control
-                    UpdateViewLocalModel(allFastaSequences, filteredAlnResults);
-                    UpdateTable();
+                    MyAssembly.UpdateViewLocalModel(allFastaSequences, filteredAlnResults);
+                    UpdateLocalTable();
+
+                    // Log dos valores para depuração
+                    Console.WriteLine($"PSM Used Count: {psmUsedCount}");
+                    Console.WriteLine($"DeNovo Used Count: {deNovoUsedCount}");
+                    // Update the UI with the counts
+                    PSMUsedCount.Content = psmUsedCount.ToString();
+                    DeNovoUsedCount.Content = deNovoUsedCount.ToString();
                 });
             }
             else
@@ -738,90 +734,32 @@ namespace SequenceAssemblerGUI
             }
         }
 
-        private List<Alignment> FilterAlignments(List<Alignment> alignments, int maxGaps, int minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter)
-        {
-            return alignments
-                .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
-                            a.NormalizedSimilarity >= minNormalizedSimilarity &&
-                            a.GapsUsed <= maxGaps &&
-                            a.AlignedSmallSequence.Length >= minLengthFilter)
-                .ToList();
-        }
 
-        private void UpdateMultiAlignmentTable()
+        private void UpdateLocalTable()
         {
             Dispatcher.Invoke(() =>
             {
-                ButtonUpdateAssembly.IsEnabled = true;
                 int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
                 int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
                 int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-                // Filtra a lista de alinhamentos com base nos critérios definidos
                 var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
-
-                // Atualiza a fonte de itens do DataGridAlignments com as sequências FASTA carregadas e os alinhamentos filtrados
-                UpdateViewMultipleModel(alignedSequences, filteredAlignments);
-            });
-        }
-
-        private void UpdateTable()
-        {
-            Dispatcher.Invoke(() =>
-            {
-                ButtonUpdateAssembly.IsEnabled = true;
-                int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
-                int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
-                int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
-                int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
-
-                // Filters the list of alignments based on defined criteria
-                var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
-
-                // Updates the DataGridAlignments item source with the loaded FASTA sequences and filtered alignments
                 UpdateViewLocalModel(allFastaSequences, filteredAlignments);
+
+                int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
+                int deNovoUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("DeNovo"));
+
+                // Log dos valores para depuração
+                Console.WriteLine($"PSM Used Count: {psmUsedCount}");
+                Console.WriteLine($"DeNovo Used Count: {deNovoUsedCount}");
+
+                PSMUsedCount.Content = psmUsedCount.ToString();
+                DeNovoUsedCount.Content = deNovoUsedCount.ToString();
             });
         }
 
-        private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
-        {
-            ShowLoadingIndicator();
 
-            Task.Run(() =>
-            {
-                try
-                {
-                    if (isMultipleAlignmentMode)
-                    {
-                        UpdateMultiAlignmentTable();
-                    }
-                    else
-                    {
-                        UpdateTable();
-                    }
-                }
-                finally
-                {
-                    Dispatcher.Invoke(HideLoadingIndicator);
-                }
-            });
-        }
-
-        private void UpdateViewMultipleModel(List<(string Key, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                MyMultipleAlignment.UpdateViewMultipleModel(alignedSequences, alignments);
-                TabItemResultBrowser2.IsSelected = true;
-                NormalizedSimilarityUpDown.IsEnabled = true;
-                IdentityUpDown.IsEnabled = true;
-                IntegerUpDownMinimumLength.IsEnabled = true;
-                TabItemResultBrowser2.IsEnabled = true;
-                ButtonUpdateAssembly.IsEnabled = true;
-                MyMultipleAlignment.ExecuteAssembly();
-            });
-        }
 
         private void UpdateViewLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
         {
@@ -832,12 +770,99 @@ namespace SequenceAssemblerGUI
                 NormalizedSimilarityUpDown.IsEnabled = true;
                 IdentityUpDown.IsEnabled = true;
                 IntegerUpDownMinimumLength.IsEnabled = true;
+                IntegerUpDownMaximumGaps.IsEnabled = true;
                 TabItemResultBrowser.IsEnabled = true;
-                MyAssembly.ExecuteAssembly();
                 ButtonUpdateAssembly.IsEnabled = true;
+                MyAssembly.ExecuteAssembly();
+            });
+        }
+        private List<Alignment> FilterAlignments(List<Alignment> alignments, int maxGaps, int minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter)
+        {
+            return alignments
+                .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
+                            a.NormalizedSimilarity >= minNormalizedSimilarity &&
+                            a.GapsUsed <= maxGaps &&
+                            a.AlignedSmallSequence.Length >= minLengthFilter)
+                .ToList();
+        }
+
+
+
+        //---------------------------------------------------------
+
+        // Update Alignments
+        private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
+        {
+            ShowLoadingIndicator();
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (myAlignment == null || !myAlignment.Any())
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show("There are no alignments to filter. Please align sequences first.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        });
+                        return;
+                    }
+
+                    // Obter valores dos filtros da UI
+                    int maxGaps = 0;
+                    int minNormalizedIdentityScore = 0;
+                    int minNormalizedSimilarity = 0;
+                    int minLengthFilter = 0;
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                        minNormalizedIdentityScore = (int)IdentityUpDown.Value;
+                        minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
+                        minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
+                    });
+
+                    // Filtrar os alinhamentos existentes com base nos critérios definidos
+                    var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (isMultipleAlignmentMode)
+                        {
+                            UpdateViewMultipleModel(alignedSequences, filteredAlignments);
+                            UpdateMultiAlignmentTable();
+                        }
+                        else
+                        {
+                            UpdateViewLocalModel(allFastaSequences, filteredAlignments);
+                            UpdateLocalTable();
+                        }
+                    });
+                }
+                finally
+                {
+                    Dispatcher.Invoke(HideLoadingIndicator);
+                }
             });
         }
 
+
+
+        private void ShowLoadingIndicator()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+            });
+        }
+
+        private void HideLoadingIndicator()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+            });
+        }
 
         private void DataGridDeNovo_LoadingRow(object sender, System.Windows.Controls.DataGridRowEventArgs e)
         {
@@ -849,21 +874,6 @@ namespace SequenceAssemblerGUI
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
-        private void TabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Implement as needed
-        }
-
-        private void OpenCompareSequencesWindow_Click(object sender, RoutedEventArgs e)
-        {
-            CompareSequence compareWindow = new CompareSequence(this);
-            compareWindow.Show();
-        }
-
-        private void RadioButton_Unchecked(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
 

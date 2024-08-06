@@ -1,4 +1,5 @@
 ﻿using SequenceAssemblerLogic.ProteinAlignmentCode;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -6,56 +7,6 @@ namespace SequenceAssemblerLogic.ResultParser
 {
     public class Parser
     {
-        public static List<IDResult> EliminateDuplicatesAndSubsequences(List<IDResult> input)
-        {
-            input.Sort((x, y) => x.Peptide.Length.CompareTo(y.Peptide.Length)); // Ordenar Alignment por comprimento de AlignedSmallSequence
-
-
-            var result = new List<IDResult>();
-            var set = new HashSet<string>();
-
-            foreach (var alignment in input)
-            {
-                string alignedSequence = alignment.Peptide;
-                if (set.Contains(alignedSequence))
-                    continue;
-
-                bool shouldAdd = true;
-                foreach (var existingAlignment in result)
-                {
-                    string existingSequence = existingAlignment.Peptide;
-                    if (IsSubsequence(existingSequence, alignedSequence))
-                    {
-                        shouldAdd = false;
-                        break;
-                    }
-                    else if (IsSubsequence(alignedSequence, existingSequence))
-                    {
-                        set.Remove(existingSequence);
-                    }
-                }
-
-                if (shouldAdd)
-                {
-                    result.Add(alignment);
-                    set.Add(alignedSequence);
-                }
-            }
-
-            return result;
-        }
-
-        private static bool IsSubsequence(string str1, string str2)
-        {
-            int i = 0, j = 0;
-            while (i < str1.Length && j < str2.Length)
-            {
-                if (str1[i] == str2[j])
-                    i++;
-                j++;
-            }
-            return i == str1.Length;
-        }
         public Dictionary<string, List<IDResult>> DictDenovo { get; private set; }
         public Dictionary<string, List<IDResult>> DictPsm { get; private set; }
         public Dictionary<string, List<IDResult>> deNovoDictTemp { get; private set; }
@@ -210,12 +161,12 @@ namespace SequenceAssemblerLogic.ResultParser
                     IsPSM = false,
                     ScanNumber = int.Parse(cols[1]),
                     File = fileCounter,
-                    RT = double.Parse(cols[2]),
-                    Mz = double.Parse(cols[3]),
+                    RT = double.Parse(cols[2], CultureInfo.InvariantCulture),
+                    Mz = double.Parse(cols[3], CultureInfo.InvariantCulture),
                     Z = int.Parse(cols[4]),
-                    PepMass = double.Parse(cols[5]),
-                    Err = double.Parse(cols[6]),
-                    Score = double.Parse(cols[8]),
+                    PepMass = double.Parse(cols[5], CultureInfo.InvariantCulture),
+                    Err = double.Parse(cols[6], CultureInfo.InvariantCulture),
+                    Score = AdjustScore(double.Parse(cols[8], CultureInfo.InvariantCulture)),
                     Peptide = Regex.Replace(cols[9], " ", ""),
                     AaScore = Regex.Split(cols[10], "-").Select(a => int.Parse(a)).ToList()
                 };
@@ -235,18 +186,24 @@ namespace SequenceAssemblerLogic.ResultParser
                 {
                     ScanNumber = int.Parse(columns[2]),
                     File = fileCounter,
-                    RT = double.Parse(columns[3]),
-                    Mz = double.Parse(columns[4]),
+                    RT = double.Parse(columns[3], CultureInfo.InvariantCulture),
+                    Mz = double.Parse(columns[4], CultureInfo.InvariantCulture),
                     Z = int.Parse(columns[5]),
-                    PepMass = double.Parse(columns[6]),
-                    Err = double.Parse(columns[7]),
-                    Score = double.Parse(columns[9]),
+                    PepMass = double.Parse(columns[6], CultureInfo.InvariantCulture),
+                    Err = double.Parse(columns[7], CultureInfo.InvariantCulture),
+                    Score = AdjustScore(double.Parse(columns[9], CultureInfo.InvariantCulture)),
                     Peptide = Regex.Replace(columns[14], " ", ""),
                     AaScore = Regex.Split(columns[16], "-").Select(b => int.Parse(b)).ToList()
                 };
                 myRegistries.Add(psmRegistry);
             }
             return myRegistries;
+        }
+
+        // Método para ajustar o valor do score
+        private double AdjustScore(double score)
+        {
+            return score > 100 ? score / 10.0 : score; // Exemplo de ajuste: se o score for maior que 100, divide por 10
         }
 
         private List<IDResult> LoadPeaksDeNovorRegistries(string denovofileName, short fileCounter)
@@ -333,5 +290,3 @@ namespace SequenceAssemblerLogic.ResultParser
 
     }
 }
-
-

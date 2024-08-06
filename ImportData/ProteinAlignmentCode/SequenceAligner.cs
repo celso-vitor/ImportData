@@ -1,5 +1,4 @@
-﻿using SequenceAssemblerLogic.ContigCode;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -186,142 +185,128 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             Console.WriteLine("Normalized Aligned AA:  " + alignment.NormalizedAlignedAA);
         }
 
-        // Multiple Alignment
-        //public Alignment AlignMSA(List<char> consensus, string smallSequence, string sourceOrigin)
-        //{
-        //    int n = consensus.Count;
-        //    int m = smallSequence.Length;
 
-        //    int[,] scoreMatrix = new int[n + 1, m + 1];
-        //    int[,] tracebackMatrix = new int[n + 1, m + 1];
+        public static Alignment AlignerPCC1(List<char>[] consensus, string smallSequence)
+        {
+            Dictionary<(char, char), int> substitutionScoreCache = new Dictionary<(char, char), int>();
 
-        //    // Inicializa a matriz de pontuação e a matriz de traceback
-        //    for (int i = 0; i <= n; i++)
-        //    {
-        //        for (int j = 0; j <= m; j++)
-        //        {
-        //            scoreMatrix[i, j] = 0;
-        //            tracebackMatrix[i, j] = 0;
-        //        }
-        //    }
+            List<int> scores = new List<int>();
+            List<int> startPositions = new List<int>();
+            int totalMatches = 0;
+            int totalAlignedPositions = 0;
+            int totalSimilarities = 0;
+            string alignedLargeSequence = "";
+            int maxScore = int.MinValue;
+            int bestStartIndex = 0;
 
-        //    int maxScore = 0;
-        //    int maxI = 0;
-        //    int maxJ = 0;
+            StringBuilder logBuilder = new StringBuilder(); // Para registro de log
+            SequenceAligner aligner = new SequenceAligner();
 
-        //    // Instancia da classe SequenceAligner
-        //    SequenceAligner aligner = new SequenceAligner();
+            for (int i = 0; i < consensus.Length - smallSequence.Length + 1; i++) // Ajuste no limite para evitar gaps
+            {
+                int score = 0;
+                int currentTotalMatches = 0;
+                int currentTotalSimilarities = 0;
+                int currentAlignedPositions = 0;
+                StringBuilder tempLargeSequenceBuilder = new StringBuilder();
 
-        //    // Preenche a matriz de pontuação
-        //    for (int i = 1; i <= n; i++)
-        //    {
-        //        for (int j = 1; j <= m; j++)
-        //        {
-        //            char consensusChar = consensus[i - 1];
-        //            char smallChar = smallSequence[j - 1];
+                logBuilder.AppendLine($"Alignment starting at position {i}:");
 
-        //            int matchScore = aligner.GetSubstitutionScore(consensusChar, smallChar);
-        //            int scoreDiag = scoreMatrix[i - 1, j - 1] + matchScore;
-        //            int scoreUp = scoreMatrix[i - 1, j] + aligner.GapPenalty; // Penalidade de gap na sequência de referência
-        //            int scoreLeft = scoreMatrix[i, j - 1] + aligner.GapPenalty; // Penalidade de gap na sequência menor
+                for (int j = 0; j < smallSequence.Length; j++)
+                {
+                    List<int> tmpScore = new List<int>();
+                    foreach (var cons in consensus[i + j])
+                    {
+                        // Usar o dicionário para armazenar e recuperar os scores de substituição
+                        int substitutionScore;
+                        if (!substitutionScoreCache.TryGetValue((cons, smallSequence[j]), out substitutionScore))
+                        {
+                            substitutionScore = aligner.GetSubstitutionScore(cons, smallSequence[j]);
+                            substitutionScoreCache[(cons, smallSequence[j])] = substitutionScore;
+                        }
+                        tmpScore.Add(substitutionScore);
+                    }
 
-        //            // Alinhar somente onde há correspondência sem gaps na sequência menor
-        //            scoreMatrix[i, j] = Math.Max(scoreDiag, Math.Max(scoreUp, scoreLeft));
+                    int maxTmpScore = tmpScore.Max();
+                    score += maxTmpScore;
 
-        //            if (scoreMatrix[i, j] == scoreDiag) tracebackMatrix[i, j] = 1;
-        //            if (scoreMatrix[i, j] == scoreUp) tracebackMatrix[i, j] = 2;
-        //            if (scoreMatrix[i, j] == scoreLeft) tracebackMatrix[i, j] = 3;
+                    if (maxTmpScore > 0)
+                    {
+                        tempLargeSequenceBuilder.Append(consensus[i + j][tmpScore.IndexOf(maxTmpScore)]);
+                        currentTotalMatches++;
+                        currentTotalSimilarities += maxTmpScore;
+                    }
+                    else
+                    {
+                        // Adicionar a letra do consenso caso não haja correspondência direta
+                        tempLargeSequenceBuilder.Append(consensus[i + j][0]);
+                    }
+                    currentAlignedPositions++;
 
-        //            if (scoreMatrix[i, j] > maxScore)
-        //            {
-        //                maxScore = scoreMatrix[i, j];
-        //                maxI = i;
-        //                maxJ = j;
-        //            }
-        //        }
-        //    }
+                    logBuilder.AppendLine($"Pos {j}: consensus {consensus[i + j][0]} vs smallSeq {smallSequence[j]} => score {maxTmpScore}");
+                }
 
-        //    // Realiza o traceback para encontrar o alinhamento
-        //    List<char> alignedConsensus = new List<char>();
-        //    List<char> alignedSmall = new List<char>();
-        //    int matchedIdentity = 0;
-        //    int similarityScore = 0;
-        //    int gapsUsed = 0;
+                scores.Add(score);
+                if (score > maxScore)
+                {
+                    maxScore = score;
+                    bestStartIndex = i;
+                    alignedLargeSequence = tempLargeSequenceBuilder.ToString();
+                    totalMatches = currentTotalMatches;
+                    totalSimilarities = currentTotalSimilarities;
+                    totalAlignedPositions = currentAlignedPositions;
+                }
 
-        //    int currentI = maxI;
-        //    int currentJ = maxJ;
+                logBuilder.AppendLine($"Score: {score}, Matches: {currentTotalMatches}, Similarities: {currentTotalSimilarities}, Aligned positions: {currentAlignedPositions}");
+            }
 
-        //    while (currentI > 0 && currentJ > 0 && scoreMatrix[currentI, currentJ] > 0)
-        //    {
-        //        if (tracebackMatrix[currentI, currentJ] == 1)
-        //        {
-        //            char consensusChar = consensus[currentI - 1];
-        //            char smallChar = smallSequence[currentJ - 1];
-        //            alignedConsensus.Add(consensusChar);
-        //            alignedSmall.Add(smallChar);
-        //            if (consensusChar == smallChar)
-        //            {
-        //                matchedIdentity++;
-        //            }
-        //            similarityScore += aligner.GetSubstitutionScore(consensusChar, smallChar);
-        //            currentI--;
-        //            currentJ--;
-        //        }
-        //        else if (tracebackMatrix[currentI, currentJ] == 2)
-        //        {
-        //            alignedConsensus.Add(consensus[currentI - 1]);
-        //            alignedSmall.Add('-');
-        //            gapsUsed++;
-        //            currentI--;
-        //        }
-        //        else if (tracebackMatrix[currentI, currentJ] == 3)
-        //        {
-        //            alignedConsensus.Add('-');
-        //            alignedSmall.Add(smallSequence[currentJ - 1]);
-        //            gapsUsed++;
-        //            currentJ--;
-        //        }
-        //    }
+            startPositions.Add(bestStartIndex);
 
-        //    alignedConsensus.Reverse();
-        //    alignedSmall.Reverse();
+            // Calcular Identidade e Métricas Normalizadas
+            int matchedIdentity = 0;
+            int alignedAA = 0;
+            for (int i = 0; i < alignedLargeSequence.Length; i++)
+            {
+                if (alignedLargeSequence[i] == smallSequence[i])
+                {
+                    alignedAA++;
+                    matchedIdentity++;
+                }
+            }
 
-        //    string alignedLarge = new string(alignedConsensus.ToArray());
-        //    string alignedSmallStr = new string(alignedSmall.ToArray());
-        //    int alignedAA = alignedSmallStr.Count(c => c != '-');
-        //    double normalizedIdentityScore = (double)matchedIdentity / alignedSmallStr.Length;
-        //    double normalizedSimilarityScore = (double)similarityScore / GetMaximumSimilarity(smallSequence);
+            // Máxima similaridade possível para a smallSequence
+            double maxSimilarity = aligner.GetMaximumSimilarity(smallSequence);
 
-        //    // Calcula a posição inicial correta sem gaps na sequência menor
-        //    int startLargeSeqPos = currentI;
-        //    int startSmallSeqPos = currentJ;
+            double identity = (double)matchedIdentity / smallSequence.Length * 100;
+            double normalizedIdentityScore = (double)matchedIdentity / totalAlignedPositions * 100;
+            double similarityScore = totalSimilarities;
+            double normalizedSimilarity = (similarityScore / maxSimilarity) * 100;
+            double alignedAANormalized = (double)alignedAA / smallSequence.Length * 100;
+            double normalizedAlignedAA = (double)alignedAA / totalAlignedPositions * 100;
 
-        //    // Converte as posições iniciais para uma List<int>
-        //    List<int> startPositions = new List<int> { startLargeSeqPos, startSmallSeqPos };
+            Alignment aln = new Alignment()
+            {
+                StartPositions = startPositions,
+                Identity = matchedIdentity,
+                NormalizedIdentityScore = Math.Round(normalizedIdentityScore, 2),
+                SimilarityScore = similarityScore,
+                NormalizedSimilarity = Math.Round(normalizedSimilarity, 2),
+                AlignedAA = alignedAA,
+                NormalizedAlignedAA = Math.Round(normalizedAlignedAA, 2),
+                AlignedLargeSequence = alignedLargeSequence,
+                AlignedSmallSequence = smallSequence,
+                GapsUsed = 0 // Gaps não utilizados
+            };
 
-        //    // Construa o objeto de retorno Alignment
-        //    Alignment alignment = new Alignment
-        //    {
-        //        SourceOrigin = sourceOrigin,
-        //        Identity = matchedIdentity,
-        //        AlignedLargeSequence = alignedLarge,
-        //        AlignedSmallSequence = alignedSmallStr,
-        //        StartPositions = startPositions,
-        //        NormalizedIdentityScore = Math.Round(normalizedIdentityScore * 100, 2),
-        //        GapsUsed = gapsUsed,
-        //        SimilarityScore = similarityScore,
-        //        NormalizedSimilarity = Math.Round(normalizedSimilarityScore * 100, 2),
-        //        AlignedAA = alignedAA,
-        //        NormalizedAlignedAA = Math.Round(((double)alignedAA / alignedSmallStr.Length) * 100, 2)
-        //    };
+            // Salvar o log em um arquivo
+            string logFilePath = Path.Combine("..", "..", "..", "Debug", "alignment_details.log");
+            File.AppendAllText(logFilePath, logBuilder.ToString());
 
-        //    return alignment;
-        //}
+            return aln;
+        }
 
 
-
-
-        public Alignment AlignerPCC(List<char>[] consensus, string smallSequence, string sourceOrigin)
+        public Alignment AlignerMSA(List<char>[] consensus, string smallSequence, string sourceOrigin)
         {
             Dictionary<(char, char), int> substitutionScoreCache = new Dictionary<(char, char), int>();
 
@@ -433,7 +418,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
 
         // Local Alignment
-        public Alignment AlignSequences(string largeSeq, string smallSeq, string sourceOrigin)
+        public Alignment AlignerLocal(string largeSeq, string smallSeq, string sourceOrigin)
         {
             int largeLen = largeSeq.Length;
             int smallLen = smallSeq.Length;
@@ -560,87 +545,5 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             };
         }
 
-        // Global Alignment
-        public static (string alignedSeqA, string alignedSeqB, int totalAlignedBases, double identityPercentage) AlignSequences(string seq1, string seq2, int gapPenalty)
-        {
-            int m = seq1.Length;
-            int n = seq2.Length;
-            int[,] score = new int[m + 1, n + 1];
-
-            // Inicialização da matriz de pontuação
-            for (int i = 0; i <= m; i++)
-                score[i, 0] = i * gapPenalty;
-            for (int j = 0; j <= n; j++)
-                score[0, j] = j * gapPenalty;
-
-            // Preenchimento da matriz de pontuação
-            for (int i = 1; i <= m; i++)
-            {
-                for (int j = 1; j <= n; j++)
-                {
-                    int match = score[i - 1, j - 1] + (seq1[i - 1] == seq2[j - 1] ? 1 : -1);
-                    int delete = score[i - 1, j] + gapPenalty;
-                    int insert = score[i, j - 1] + gapPenalty;
-                    score[i, j] = Math.Max(Math.Max(match, delete), insert);
-                }
-            }
-
-            // Reconstrução do alinhamento
-            int k = m, l = n;
-            StringBuilder alignedSeq1 = new StringBuilder();
-            StringBuilder alignedSeq2 = new StringBuilder();
-            int totalAlignedBases = 0;
-            int matches = 0;
-
-            while (k > 0 && l > 0)
-            {
-                if (score[k, l] == score[k - 1, l - 1] + (seq1[k - 1] == seq2[l - 1] ? 1 : -1))
-                {
-                    alignedSeq1.Insert(0, seq1[k - 1]);
-                    alignedSeq2.Insert(0, seq2[l - 1]);
-                    if (seq1[k - 1] == seq2[l - 1])
-                    {
-                        matches++;
-                    }
-                    totalAlignedBases++;
-                    k--;
-                    l--;
-                }
-                else if (score[k, l] == score[k - 1, l] + gapPenalty)
-                {
-                    alignedSeq1.Insert(0, seq1[k - 1]);
-                    alignedSeq2.Insert(0, '-');
-                    totalAlignedBases++;
-                    k--;
-                }
-                else
-                {
-                    alignedSeq1.Insert(0, '-');
-                    alignedSeq2.Insert(0, seq2[l - 1]);
-                    totalAlignedBases++;
-                    l--;
-                }
-            }
-
-            while (k > 0)
-            {
-                alignedSeq1.Insert(0, seq1[k - 1]);
-                alignedSeq2.Insert(0, '-');
-                totalAlignedBases++;
-                k--;
-            }
-
-            while (l > 0)
-            {
-                alignedSeq1.Insert(0, '-');
-                alignedSeq2.Insert(0, seq2[l - 1]);
-                totalAlignedBases++;
-                l--;
-            }
-
-            double identityPercentage = (double)matches / totalAlignedBases;
-
-            return (alignedSeq1.ToString(), alignedSeq2.ToString(), totalAlignedBases, identityPercentage);
-        }
     }
 }

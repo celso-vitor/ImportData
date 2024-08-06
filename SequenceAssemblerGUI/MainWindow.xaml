@@ -9,7 +9,7 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Icon="pack://application:,,,/PA.png"
-        Title="Protein Sequence Assembler" MinHeight="768" MinWidth="1240" Height="1080" Width="1024">
+        Title="Protein Sequence Assembler" MinHeight="768" MinWidth="1140" Height="1080" Width="1024">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -31,10 +31,10 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
-                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="1"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel>
+                <StackPanel HorizontalAlignment="Left" Width="720">
                     <WrapPanel>
                         <GroupBox Header="PSM">
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -50,7 +50,7 @@
                         <GroupBox Header="DeNovo">
                             <WrapPanel>
                                 <Label Content="AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="95" Minimum="0" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="0" Maximum="100"/>
                                 <Label Content="MinLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="0" Maximum="20"/>
                                 <Label Content="MaxLength"/>
@@ -79,37 +79,34 @@
                             <Label Content="Minimum Length"/>
                             <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled="False"/>
                             <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="61" Margin="10,0,0,0" IsEnabled="False"/>
-
-                            <Label Content="AA Overlap"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownAAOverlap" Value="3" Minimum="1" Maximum="10" IsEnabled="False"/>
-                            <Button x:Name="ContigAssembly" Content="ContigAssembly" Click="OpenCompareSequencesWindow_Click" Width="114" HorizontalAlignment="Center" Height="29" IsEnabled="False"/>
                         </WrapPanel>
                     </GroupBox>
                 </StackPanel>
 
-                <GroupBox Grid.Column="1" Header="Statistics">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                            <RowDefinition Height="30"/>
-                        </Grid.RowDefinitions>
-
-                        <Label Content="PSMs: "/>
-                        <Label x:Name="LabelPSMCount" Content="?" Grid.Row="0" Grid.Column="1"/>
-
-                        <Label Content="DeNovo: " Grid.Row="1"/>
-                        <Label x:Name="LabelDeNovoCount" Content="?" Grid.Row="1" Grid.Column="1"/>
-                    </Grid>
+                <GroupBox Header="Statistics" VerticalAlignment="Center" Height="130" Margin="725,0,9,0">
+                    <WrapPanel Orientation="Horizontal" Height="81" Margin="0,0,-19,0">
+                        <StackPanel>
+                            <Label Content="PSMs Total: "/>
+                            <Label Content="DeNovo Total: " Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Margin="10,0,0,0">
+                            <Label x:Name="LabelPSMCount" Content="?" />
+                            <Label x:Name="LabelDeNovoCount" Content="?" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Margin="30,0,0,0">
+                            <Label Content="PSMs Used in Alignment: " />
+                            <Label Content="DeNovo Used in Alignment: " Margin="0,5,0,0" Width="159"/>
+                        </StackPanel>
+                        <StackPanel Margin="10,0,0,0">
+                            <Label x:Name="PSMUsedCount" Content="?" />
+                            <Label x:Name="DeNovoUsedCount" Content="?" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </WrapPanel>
                 </GroupBox>
             </Grid>
 
             <TabControl Grid.Row="1">
-                <TabItem x:Name="DeNovoAssembly" Header="De Novo Assembly">
+                <TabItem x:Name="DeNovoAssembly" Header="PSM and  DeNovo">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -126,13 +123,6 @@
                             </TabItem>
                             <TabItem Header="PSM">
                                 <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
-                            </TabItem>
-
-                            <TabItem Header="ContigAssembly">
-                                <Grid>
-                                    <DataGrid x:Name="DataGridContig" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" IsEnabled="False"/>
-                                    <Label x:Name="loadingLabel" Content="Loading..." Background="LightGray" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
                             </TabItem>
                         </TabControl>
                     </Grid>
@@ -165,7 +155,7 @@
                 Visibility="Visible">
             <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/PA.png" Width="510" Height="600"/>
+                    <Image Source="pack://application:,,,/PA.png" Width="444" Height="517"/>
                     <TextBlock Text="SequenceAssembler"
                                FontSize="80"
                                Foreground="Black"
