@@ -68,6 +68,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             }
         }
 
+        // Template consensus (Fasta)
         public static (List<char>[] consensus, List<FastaItem> fasta) ConstructConsensus(string file, List<FastaItem> originalFastaItems)
         {
             // Ler e exibir a saída do arquivo
@@ -89,7 +90,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 else
                 {
                     concatenatedSequences.Add(seq.SequenceIdentifier, seq.Sequence);
-                    descriptions.Add(seq.SequenceIdentifier, seq.Description); // Armazenar descrição
+                    descriptions.Add(seq.SequenceIdentifier, seq.Description); 
                 }
             }
 
@@ -174,51 +175,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
         }
-
-
-        public static string AlignWithClustalOmega(List<string> sequences)
-        {
-            string inputFilePath = Path.GetTempFileName();
-            string outputFilePath = Path.GetTempFileName();
-
-            File.WriteAllLines(inputFilePath, sequences.Select((seq, index) => $">seq{index}\n{seq}"));
-
-            Process clustalOmegaProcess = new Process();
-            clustalOmegaProcess.StartInfo.FileName = Path.Combine("..", "..", "..", "Clustal", "clustalo.exe"); // Assuming clustalo is in PATH
-            clustalOmegaProcess.StartInfo.Arguments = $" -i {inputFilePath} -o {outputFilePath} --force";
-            clustalOmegaProcess.StartInfo.RedirectStandardOutput = true;
-            clustalOmegaProcess.StartInfo.RedirectStandardError = true;
-            clustalOmegaProcess.StartInfo.UseShellExecute = false;
-            clustalOmegaProcess.StartInfo.CreateNoWindow = true;
-
-            clustalOmegaProcess.Start();
-            clustalOmegaProcess.WaitForExit();
-
-            string alignment = File.ReadAllText(outputFilePath);
-
-            File.Delete(inputFilePath);
-            File.Delete(outputFilePath);
-
-            return alignment;
-        }
-
-        public static string GenerateConsensusSequence(string alignment)
-        {
-            var lines = alignment.Split('\n').Where(line => !line.StartsWith(">")).ToList();
-            if (lines.Count == 0)
-                return string.Empty;
-
-            int seqLength = lines.Max(line => line.Length);
-
-            char[] consensus = new char[seqLength];
-            for (int i = 0; i < seqLength; i++)
-            {
-                var column = lines.Where(seq => seq.Length > i).Select(seq => seq[i]).GroupBy(c => c).OrderByDescending(g => g.Count()).First();
-                consensus[i] = column.Key;
-            }
-
-            return new string(consensus);
-        }
-
+  
     }
 }

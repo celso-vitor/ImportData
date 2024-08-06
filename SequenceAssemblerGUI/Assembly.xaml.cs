@@ -16,6 +16,7 @@ using System.IO;
 using Microsoft.Win32;
 using SequenceAssemblerGUI;
 using static SequenceAssemblerGUI.Assembly;
+using System.Text;
 
 
 namespace SequenceAssemblerGUI
@@ -165,7 +166,7 @@ namespace SequenceAssemblerGUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-     
+
 
         public class ConsensusChar : INotifyPropertyChanged
         {
@@ -199,6 +200,7 @@ namespace SequenceAssemblerGUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
 
         public class SequencesViewModel : INotifyPropertyChanged
         {
@@ -491,8 +493,12 @@ namespace SequenceAssemblerGUI
 
         }
 
+
+
         public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
         {
+            bool isFirstEntry = true; // Indicador para a primeira entrada no arquivo de log
+
             foreach (var (id, description, referenceSequence) in referenceSequences)
             {
                 var groupViewModel = new ReferenceGroupViewModel
@@ -535,7 +541,7 @@ namespace SequenceAssemblerGUI
 
                     groupViewModel.Alignments.Add(dataTableViewModel);
                     int startPosition = sequence.StartPositions.Min() - 1;
-                    int rowIndex = FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
+                    int rowIndex = SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
 
                     for (int i = 0; i < startPosition; i++)
                     {
@@ -560,7 +566,14 @@ namespace SequenceAssemblerGUI
                         }
                         else if (refIndex < referenceSequence.Length)
                         {
-                            corDeFundo = seqChar == referenceSequence[refIndex] ? Brushes.LightGreen : Brushes.LightCoral;
+                            if (seqChar == referenceSequence[refIndex])
+                            {
+                                corDeFundo = Brushes.LightGreen;
+                            }
+                            else
+                            {
+                                corDeFundo = Brushes.LightCoral;
+                            }
                             letra = seqChar.ToString();
                         }
                         else
@@ -600,31 +613,47 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Calculate and add consensus and individual coverage
-                var (consensusChars, totalCoverage) = BuildConsensus(sequencesToAlign, referenceSequence);
-                groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>(consensusChars);
+                // Calculate and add consensus and individual coverage using the new method
+                var (consensusChars, totalCoverage) = SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.BuildConsensus(sequencesToAlign, referenceSequence);
+                groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>();
+
+                // Adicione a lógica de interface do usuário para definir cores e outras propriedades de exibição
+                foreach (var (consensusChar, isFromReference, isDifferent) in consensusChars)
+                {
+                    SolidColorBrush color;
+                    if (isFromReference) // Letras recuperadas da sequência de referência
+                    {
+                        color = Brushes.White;
+                    }
+                    else if (consensusChar == ' ') // Caso especial para gap
+                    {
+                        color = Brushes.LightGray;
+                    }
+                    else if (isDifferent)
+                    {
+                        color = Brushes.Orange;
+                    }
+                    else
+                    {
+                        color = Brushes.LightGreen;
+                    }
+
+                    groupViewModel.ConsensusSequence.Add(new ConsensusChar
+                    {
+                        Char = consensusChar.ToString(),
+                        BackgroundColor = color,
+                        OriginalBackgroundColor = color
+                    });
+                }
+
+                // Save the consensus and reference sequence to file
+                SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.SaveConsensusToFile(referenceSequence, consensusChars.Select(c => c.Char).ToList(), id, description, isFirstEntry);
+                isFirstEntry = false; // Atualize o indicador após a primeira escrita
 
                 // Add coverage to reference group
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
-
-
             }
-        }
-
-        private static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
-        {
-            foreach (var row in rowEndPositions)
-            {
-                if (row.Value <= startPosition)
-                {
-                    return row.Key;
-                }
-            }
-
-            int newRow = rowEndPositions.Count;
-            rowEndPositions[newRow] = 0;
-            return newRow;
         }
 
 
@@ -684,89 +713,6 @@ namespace SequenceAssemblerGUI
             Console.WriteLine("Assembly executed successfully.");
         }
 
-        public (List<ConsensusChar>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
-        {
-            if (sequencesToAlign == null || !sequencesToAlign.Any())
-            {
-                throw new InvalidOperationException("The list of sequences to align is empty.");
-            }
-
-            Console.WriteLine($"Building consensus for {sequencesToAlign.Count} sequences.");
-
-            int maxLength = Math.Max(
-                sequencesToAlign
-                    .Where(seq => seq.StartPositions != null && seq.StartPositions.Any())
-                    .Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length),
-                referenceSequence.Length);
-
-            List<ConsensusChar> consensusSequence = new List<ConsensusChar>();
-            int totalSequences = sequencesToAlign.Count;
-            int coloredPositions = 0;
-
-            for (int i = 0; i < maxLength; i++)
-            {
-                var column = new List<char>();
-                bool fromReferenceOnly = false;
-
-                if (i < referenceSequence.Length)
-                {
-                    column.Add(referenceSequence[i]);
-                    fromReferenceOnly = true;
-                }
-
-                foreach (var seq in sequencesToAlign)
-                {
-                    if (seq.StartPositions == null || !seq.StartPositions.Any())
-                    {
-                        continue;
-                    }
-
-                    int pos = i - (seq.StartPositions.Min() - 1);
-                    if (pos >= 0 && pos < seq.AlignedSmallSequence.Length)
-                    {
-                        char charToAdd = seq.AlignedSmallSequence[pos];
-                        if (charToAdd != '-')
-                        {
-                            column.Add(charToAdd);
-                            fromReferenceOnly = false;
-                        }
-                    }
-                }
-
-                char consensusChar = column.GroupBy(c => c).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault();
-                SolidColorBrush color;
-
-                if (fromReferenceOnly)
-                {
-                    color = new SolidColorBrush(Colors.White);
-                }
-                else if (column.All(c => c == consensusChar))
-                {
-                    color = new SolidColorBrush(Colors.LightGreen);
-                    coloredPositions++;
-                }
-                else
-                {
-                    color = new SolidColorBrush(Colors.Orange);
-                    coloredPositions++;
-                }
-
-                consensusSequence.Add(new ConsensusChar { Char = consensusChar.ToString(), BackgroundColor = color, OriginalBackgroundColor = color });
-
-                // Print the consensus character being added
-                Console.Write(consensusChar);
-            }
-
-            Console.WriteLine(); // New line after the consensus sequence
-
-            double overallCoverage = (double)coloredPositions / referenceSequence.Length * 100;
-            Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
-
-            return (consensusSequence, overallCoverage);
-        }
-
-
-       
 
         private void DataGridAlignments_LoadingRow(object sender, DataGridRowEventArgs e)
         {

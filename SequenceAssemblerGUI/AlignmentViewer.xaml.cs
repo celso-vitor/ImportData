@@ -382,6 +382,8 @@ namespace SequenceAssemblerGUI
 
                 Dictionary<int, List<char>> positionChars = new Dictionary<int, List<char>>();
 
+                bool isFirstEntry = true; // Indicador para a primeira entrada no arquivo de log
+
                 foreach (var fasta in alignedSequences)
                 {
                     var groupViewModel = new ReferenceGroupViewModel
@@ -578,9 +580,14 @@ namespace SequenceAssemblerGUI
                     });
                 }
 
+                // Save the consensus and reference sequences to file for MSA
+                AssemblyParameters.SaveMSALogToFile(alignedSequences, consensusSequence.Select(c => c).ToList(), "MSA Consensus", "Multiple Sequence Alignment", isFirstEntry);
+                isFirstEntry = false; // Atualize o indicador após a primeira escrita
+
                 viewModel.RefreshData();
             }
         }
+
 
 
 

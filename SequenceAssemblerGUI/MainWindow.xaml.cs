@@ -96,13 +96,16 @@ namespace SequenceAssemblerGUI
                 try
                 {
                     // Reexecutar o alinhamento apropriado baseado no modo de alinhamento selecionado
-                    if (isMultipleAlignmentMode)
+                    if (lastOpenedFileNames != null && lastOpenedFileNames.Length > 0)
                     {
-                        MultipleAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
-                    }
-                    else
-                    {
-                        LocalAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                        if (isMultipleAlignmentMode)
+                        {
+                            MultipleAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                        }
+                        else
+                        {
+                            LocalAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                        }
                     }
                 }
                 finally
@@ -113,12 +116,14 @@ namespace SequenceAssemblerGUI
         }
 
 
+
         // Method to restart the timer
         private void RestartTimer()
         {
             updateTimer.Stop(); // Stop the timer if it's already running
             updateTimer.Start(); // Start the timer
         }
+
 
         private async void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
@@ -201,7 +206,6 @@ namespace SequenceAssemblerGUI
                 });
             }
         }
-
 
         private void UpdatePlot()
         {
@@ -533,14 +537,19 @@ namespace SequenceAssemblerGUI
                 int minNormalizedIdentityScore = 0;
                 int minNormalizedSimilarity = 0;
                 int minLengthFilter = 0;
+                int minConsecutiveAminoAcids = 0;
 
                 Dispatcher.Invoke(() =>
                 {
-                    maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                    //maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                     minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                     minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
+                    
                 });
+
+                // Filter sequences by normalized length before alignment
+                filteredSequences = Utils.FilterSequencesByNormalizedLength(filteredSequences, string.Join("", allFastaSequences.Select(f => f.Sequence)), minLengthFilter);
 
                 SequenceAligner alignermsa = new SequenceAligner();
                 myAlignment = new List<Alignment>();
@@ -550,28 +559,30 @@ namespace SequenceAssemblerGUI
 
                 foreach (var sequence in alignedSequences)
                 {
-                    var alignment = filteredSequences.Select((seq, index) =>
-                    {
-                        var alignment = alignermsa.AlignerMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                        alignment.TargetOrigin = sequence.Item1; // Add SourceOrigin to alignment
-
-                        // Update counts based on identification method
-                        if (sourceOrigins[index].identificationMethod == "PSM")
+                    var alignment = filteredSequences
+                        .Where(seq => seq.Length >= minLengthFilter) // Filter sequences based on minLengthFilter here
+                        .Select((seq, index) =>
                         {
-                            psmUsedCount++;
-                        }
-                        else if (sourceOrigins[index].identificationMethod == "DeNovo")
-                        {
-                            deNovoUsedCount++;
-                        }
+                            var alignment = alignermsa.AlignerMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
+                            alignment.TargetOrigin = sequence.ID; // Add SourceOrigin to alignment
 
-                        return alignment;
-                    }).ToList();
+                            // Update counts based on identification method
+                            if (sourceOrigins[index].identificationMethod == "PSM")
+                            {
+                                psmUsedCount++;
+                            }
+                            else if (sourceOrigins[index].identificationMethod == "DeNovo")
+                            {
+                                deNovoUsedCount++;
+                            }
+
+                            return alignment;
+                        }).Where(aln => aln.GapsUsed <= maxGaps).ToList(); // Filtrar por maxGaps aqui
                     myAlignment.AddRange(alignment);
                 }
 
                 // Updates the alignment view with the necessary parameters
-                List<Alignment> alignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+                List<Alignment> alignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                 Dispatcher.Invoke(() =>
                 {
@@ -596,12 +607,12 @@ namespace SequenceAssemblerGUI
         {
             Dispatcher.Invoke(() =>
             {
-                int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
+                //int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
                 int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
                 int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-                var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+                var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
                 UpdateViewMultipleModel(alignedSequences, filteredAlignments);
 
                 int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
@@ -616,7 +627,6 @@ namespace SequenceAssemblerGUI
             });
         }
 
-
         private void UpdateViewMultipleModel(List<(string Key, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
         {
             Dispatcher.Invoke(() =>
@@ -626,7 +636,7 @@ namespace SequenceAssemblerGUI
                 NormalizedSimilarityUpDown.IsEnabled = true;
                 IdentityUpDown.IsEnabled = true;
                 IntegerUpDownMinimumLength.IsEnabled = true;
-                IntegerUpDownMaximumGaps.IsEnabled = true;
+                //IntegerUpDownMaximumGaps.IsEnabled = true;
                 TabItemResultBrowser2.IsEnabled = true;
                 ButtonUpdateAssembly.IsEnabled = true;
                 MyMultipleAlignment.ExecuteAssembly();
@@ -664,10 +674,11 @@ namespace SequenceAssemblerGUI
                 int minNormalizedIdentityScore = 0;
                 int minNormalizedSimilarity = 0;
                 int minLengthFilter = 0;
+                int minConsecutiveAminoAcids = 0;
 
                 Dispatcher.Invoke(() =>
                 {
-                    maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                    //maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                     minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                     minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                     minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
@@ -679,37 +690,40 @@ namespace SequenceAssemblerGUI
                 int psmUsedCount = 0;
                 int deNovoUsedCount = 0;
 
+                // Filter sequences by normalized length before alignment
+                filteredSequences = Utils.FilterSequencesByNormalizedLength(filteredSequences, string.Join("", allFastaSequences.Select(f => f.Sequence)), minLengthFilter);
+
                 // Align PSM and De Novo sequences with sequences from all FASTA files
                 myAlignment = new List<Alignment>();
                 foreach (var fastaSequence in allFastaSequences)
                 {
                     Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
-                    var alignments = filteredSequences.Select((seq, index) =>
-                    {
-                        var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
-                        alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
-
-                        // Update counts based on identification method
-                        if (sourceOrigins[index].origin == "PSM")
+                    var alignments = filteredSequences
+                        .Where(seq => seq.Length >= minLengthFilter) // Filter sequences based on minLengthFilter here
+                        .Select((seq, index) =>
                         {
-                            psmUsedCount++;
-                        }
-                        else if (sourceOrigins[index].origin == "DeNovo")
-                        {
-                            deNovoUsedCount++;
-                        }
+                            var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
+                            alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
 
-                        return alignment;
-                    }).ToList();
+                            // Update counts based on identification method
+                            if (sourceOrigins[index].origin == "PSM")
+                            {
+                                psmUsedCount++;
+                            }
+                            else if (sourceOrigins[index].origin == "DeNovo")
+                            {
+                                deNovoUsedCount++;
+                            }
+
+                            return alignment;
+                        }).Where(aln => aln.GapsUsed <= maxGaps).ToList(); // Filtrar por maxGaps aqui
                     myAlignment.AddRange(alignments);
                 }
 
                 Console.WriteLine($"Generated {myAlignment.Count} alignments.");
 
                 // Filters alignment results based on defined criteria
-                List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
-
-                //var filteredSequencesToAlign = Utils.EliminateDuplicatesAndSubsequences(filteredAlnResults);
+                List<Alignment> filteredAlnResults = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                 Dispatcher.Invoke(() =>
                 {
@@ -739,12 +753,12 @@ namespace SequenceAssemblerGUI
         {
             Dispatcher.Invoke(() =>
             {
-                int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
+                //int maxGaps = IntegerUpDownMaximumGaps.Value ?? 0;
                 int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
                 int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-                var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+                var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
                 UpdateViewLocalModel(allFastaSequences, filteredAlignments);
 
                 int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
@@ -761,6 +775,7 @@ namespace SequenceAssemblerGUI
 
 
 
+
         private void UpdateViewLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
         {
             Dispatcher.Invoke(() =>
@@ -770,21 +785,21 @@ namespace SequenceAssemblerGUI
                 NormalizedSimilarityUpDown.IsEnabled = true;
                 IdentityUpDown.IsEnabled = true;
                 IntegerUpDownMinimumLength.IsEnabled = true;
-                IntegerUpDownMaximumGaps.IsEnabled = true;
+                //IntegerUpDownMaximumGaps.IsEnabled = true;
                 TabItemResultBrowser.IsEnabled = true;
                 ButtonUpdateAssembly.IsEnabled = true;
                 MyAssembly.ExecuteAssembly();
             });
         }
-        private List<Alignment> FilterAlignments(List<Alignment> alignments, int maxGaps, int minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter)
+        private List<Alignment> FilterAlignments(List<Alignment> alignments, int minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter)
         {
             return alignments
                 .Where(a => a.NormalizedIdentityScore >= minNormalizedIdentityScore &&
-                            a.NormalizedSimilarity >= minNormalizedSimilarity &&
-                            a.GapsUsed <= maxGaps &&
+                            a.NormalizedSimilarity >= minNormalizedSimilarity &&           
                             a.AlignedSmallSequence.Length >= minLengthFilter)
                 .ToList();
         }
+
 
 
 
@@ -816,14 +831,14 @@ namespace SequenceAssemblerGUI
 
                     Dispatcher.Invoke(() =>
                     {
-                        maxGaps = (int)IntegerUpDownMaximumGaps.Value;
+                        //maxGaps = (int)IntegerUpDownMaximumGaps.Value;
                         minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                         minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                         minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
                     });
 
                     // Filtrar os alinhamentos existentes com base nos critérios definidos
-                    var filteredAlignments = FilterAlignments(myAlignment, maxGaps, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
+                    var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                     Dispatcher.Invoke(() =>
                     {

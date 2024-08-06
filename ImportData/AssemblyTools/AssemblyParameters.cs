@@ -151,8 +151,134 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return coverage;
         }
 
+        public static void SaveMSALogToFile(List<(string ID, string Sequence, string Description)> references, List<char> consensusChars, string id, string description, bool isFirstEntry)
+        {
+            string path = Path.Combine("..", "..", "..", "Debug", "msa_consensus_log.txt");
+            StringBuilder consensusString = new StringBuilder();
+
+            if (isFirstEntry)
+            {
+                File.WriteAllText(path, string.Empty); // Limpar o arquivo no início do método
+                consensusString.AppendLine("Method used: Multiple Sequence Alignment");
+            }
+
+            consensusString.AppendLine($"ID: {id} - Description: {description}");
+            consensusString.AppendLine("Reference Sequences:");
+            foreach (var reference in references)
+            {
+                consensusString.AppendLine($"ID: {reference.ID} - Description: {reference.Description}");
+                consensusString.AppendLine(reference.Sequence);
+            }
+            consensusString.AppendLine("Consensus Sequence:");
+            foreach (var consensusChar in consensusChars)
+            {
+                consensusString.Append(consensusChar);
+            }
+            consensusString.AppendLine();
+
+            File.AppendAllText(path, consensusString.ToString());
+        }
+
+        //---------------------------------------------------------------------------------------
+
+        // Consenso Local Alignment
+        public static (List<(char Char, bool IsFromReference, bool IsDifferent)>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
+        {
+            if (sequencesToAlign == null || !sequencesToAlign.Any())
+            {
+                throw new InvalidOperationException("The list of sequences to align is empty.");
+            }
+
+            Console.WriteLine($"Building consensus for {sequencesToAlign.Count} sequences.");
+
+            int maxLength = Math.Max(
+                sequencesToAlign
+                    .Where(seq => seq.StartPositions != null && seq.StartPositions.Any())
+                    .Max(seq => seq.StartPositions.Min() - 1 + seq.AlignedSmallSequence.Length),
+                referenceSequence.Length);
+
+            List<(char Char, bool IsFromReference, bool IsDifferent)> consensusSequence = new List<(char Char, bool IsFromReference, bool IsDifferent)>();
+            int totalSequences = sequencesToAlign.Count;
+            int coveredPositions = 0; // Contador de posições cobertas
+            int referenceLength = referenceSequence.Length;
+
+            for (int i = 0; i < maxLength; i++)
+            {
+                var column = new List<char>();
+                bool fromReferenceOnly = false;
+
+                if (i < referenceSequence.Length)
+                {
+                    column.Add(referenceSequence[i]);
+                    fromReferenceOnly = true;
+                }
+
+                foreach (var seq in sequencesToAlign)
+                {
+                    if (seq.StartPositions == null || !seq.StartPositions.Any())
+                    {
+                        continue;
+                    }
+
+                    int pos = i - (seq.StartPositions.Min() - 1);
+                    if (pos >= 0 && pos < seq.AlignedSmallSequence.Length)
+                    {
+                        char charToAdd = seq.AlignedSmallSequence[pos];
+                        if (charToAdd != '-')
+                        {
+                            column.Add(charToAdd);
+                            fromReferenceOnly = false;
+                        }
+                    }
+                }
+
+                char consensusChar = column.GroupBy(c => c).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault();
+                bool isDifferent = column.Any(c => c != consensusChar && c != '-');
+                consensusSequence.Add((consensusChar, fromReferenceOnly, isDifferent));
+
+                if (!fromReferenceOnly)
+                {
+                    coveredPositions++; // Incrementa o contador de posições cobertas
+                }
+
+                // Print the consensus character being added
+                Console.Write(consensusChar);
+            }
+
+            Console.WriteLine(); // New line after the consensus sequence
+
+            double overallCoverage = (double)coveredPositions / referenceLength * 100;
+            Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
+
+            return (consensusSequence, overallCoverage);
+        }
+
+        public static void SaveConsensusToFile(string referenceSequence, List<char> consensusChars, string id, string description, bool isFirstEntry)
+        {
+            string path = Path.Combine("..", "..", "..", "Debug", "local_consensus_log.txt");
+            StringBuilder consensusString = new StringBuilder();
+
+            if (isFirstEntry)
+            {
+                File.WriteAllText(path, string.Empty); // Limpar o arquivo no início do método
+                consensusString.AppendLine("Method used: Local Alignment");
+            }
+
+            consensusString.AppendLine($"ID: {id} - Description: {description}");
+            consensusString.AppendLine("Reference Sequence:");
+            consensusString.AppendLine(referenceSequence);
+            consensusString.AppendLine("Consensus Sequence:");
+            foreach (var consensusChar in consensusChars)
+            {
+                consensusString.Append(consensusChar);
+            }
+            consensusString.AppendLine();
+
+            File.AppendAllText(path, consensusString.ToString());
+        }
 
     }
 
 }
+
 

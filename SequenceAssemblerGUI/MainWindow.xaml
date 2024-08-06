@@ -70,8 +70,8 @@
 
                     <GroupBox Header="Assembly">
                         <WrapPanel HorizontalAlignment="Center">
-                            <Label Content="Maximum Gaps"/>
-                            <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="1" Maximum="100" IsEnabled="False"/>
+                            <!--<Label Content="Maximum Gaps"/>-->
+                            <!--<toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="0" Maximum="100" IsEnabled="False"/>-->
                             <Label Content="Minimum Identity"/>
                             <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled="False"/>
                             <Label Content="Minimum Normalized Similarity"/>
