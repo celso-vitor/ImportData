@@ -10,55 +10,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
 {
     public class AssemblyParameters
     {
-        public static string GenerateConsensusSequence(List<Alignment> alignments, int referenceLength)
-        {
-            if (alignments == null || alignments.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            // Assumindo que todas as sequências alinhadas têm o mesmo comprimento
-            char[] consensusSequence = new char[referenceLength];
-
-            for (int i = 0; i < referenceLength; i++)
-            {
-                Dictionary<char, int> frequency = new Dictionary<char, int>();
-
-                foreach (var alignment in alignments)
-                {
-                    if (i < alignment.AlignedSmallSequence.Length)
-                    {
-                        char aminoAcid = alignment.AlignedSmallSequence[i];
-
-                        if (aminoAcid != '-')
-                        {
-                            if (frequency.ContainsKey(aminoAcid))
-                            {
-                                frequency[aminoAcid]++;
-                            }
-                            else
-                            {
-                                frequency[aminoAcid] = 1;
-                            }
-                        }
-                    }
-                }
-
-                // Encontrar o aminoácido mais frequente
-                if (frequency.Count > 0)
-                {
-                    char consensusChar = frequency.OrderByDescending(f => f.Value).First().Key;
-                    consensusSequence[i] = consensusChar;
-                }
-                else
-                {
-                    consensusSequence[i] = '-'; // Adicionar gap se não houver aminoácido dominante
-                }
-            }
-
-            return new string(consensusSequence);
-        }
-
+       
         public static int FindAvailableRow(Dictionary<int, int> rowEndPositions, int startPosition, int length)
         {
             foreach (var row in rowEndPositions)
@@ -89,6 +41,9 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return newRow;
         }
 
+        //--------------------------------------------------------------------------
+
+        // Multiple Alignment
         public static string CalculateConsensusSequence(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments, out List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)> consensusDetails)
         {
             consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)>();
@@ -158,7 +113,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
             if (isFirstEntry)
             {
-                File.WriteAllText(path, string.Empty); // Limpar o arquivo no início do método
+                File.WriteAllText(path, string.Empty); 
                 consensusString.AppendLine("Method used: Multiple Sequence Alignment");
             }
 
@@ -189,8 +144,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
                 throw new InvalidOperationException("The list of sequences to align is empty.");
             }
 
-            Console.WriteLine($"Building consensus for {sequencesToAlign.Count} sequences.");
-
+        
             int maxLength = Math.Max(
                 sequencesToAlign
                     .Where(seq => seq.StartPositions != null && seq.StartPositions.Any())
@@ -199,7 +153,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
             List<(char Char, bool IsFromReference, bool IsDifferent)> consensusSequence = new List<(char Char, bool IsFromReference, bool IsDifferent)>();
             int totalSequences = sequencesToAlign.Count;
-            int coveredPositions = 0; // Contador de posições cobertas
+            int coveredPositions = 0; 
             int referenceLength = referenceSequence.Length;
 
             for (int i = 0; i < maxLength; i++)
@@ -238,17 +192,14 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
                 if (!fromReferenceOnly)
                 {
-                    coveredPositions++; // Incrementa o contador de posições cobertas
+                    coveredPositions++; 
                 }
 
-                // Print the consensus character being added
-                Console.Write(consensusChar);
+               
             }
 
-            Console.WriteLine(); // New line after the consensus sequence
 
             double overallCoverage = (double)coveredPositions / referenceLength * 100;
-            Console.WriteLine($"Overall Coverage: {overallCoverage:F2}%");
 
             return (consensusSequence, overallCoverage);
         }
@@ -260,7 +211,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
 
             if (isFirstEntry)
             {
-                File.WriteAllText(path, string.Empty); // Limpar o arquivo no início do método
+                File.WriteAllText(path, string.Empty); 
                 consensusString.AppendLine("Method used: Local Alignment");
             }
 

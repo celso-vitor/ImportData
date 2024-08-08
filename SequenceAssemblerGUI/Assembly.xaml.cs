@@ -659,22 +659,20 @@ namespace SequenceAssemblerGUI
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
-            ExecuteAssembly();
+            ExecuteLocalAssembly();
         }
 
         public void UpdateViewLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
         {
             if (DataContext is SequenceViewModel viewModel)
             {
-                Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
+              
                 viewModel.ReferenceGroups.Clear();
 
                 foreach (var fasta in allFastaSequences)
                 {
                     //Select alignments that have the TargetOrigin equal to the fasta sequence ID
                     var sequencesToAlign = alignments.Where(a => a.TargetOrigin == fasta.ID).ToList();
-                    Console.WriteLine($"Fasta ID: {fasta.ID}, Description: {fasta.Description}, Alignments to process: {sequencesToAlign.Count}");
-
                     //Checks for alignments for the current fasta sequence
                     if (!sequencesToAlign.Any())
                     {
@@ -700,7 +698,7 @@ namespace SequenceAssemblerGUI
 
 
 
-        public void ExecuteAssembly()
+        public void ExecuteLocalAssembly()
         {
             if (!(DataContext is SequenceViewModel viewModel))
             {

@@ -324,6 +324,8 @@ namespace SequenceAssemblerGUI
 
                 LabelPSMCount.Content = filteredPsmCount.ToString();
                 LabelDeNovoCount.Content = filteredDeNovoCount.ToString();
+
+                
             });
         }
 
@@ -340,9 +342,6 @@ namespace SequenceAssemblerGUI
 
             int totalPsmRegistries = newParser.psmDictTemp.Values.Sum(list => list.Count);
             int totalDenovoRegistries = newParser.deNovoDictTemp.Values.Sum(list => list.Count);
-
-            Console.WriteLine($"Total dos Registros de Psm: {totalPsmRegistries}");
-            Console.WriteLine($"Total dos Registros de DeNovo: {totalDenovoRegistries}");
 
             int denovoMinSequeceLength = (int)IntegerUpDownDeNovoMinLength.Value;
             int denovoMinScore = (int)IntegerUpDownDeNovoScore.Value;
@@ -398,6 +397,8 @@ namespace SequenceAssemblerGUI
                 LabelPSMCount.Content = filteredPsmCount.ToString();
                 LabelDeNovoCount.Content = filteredDeNovoCount.ToString();
             });
+
+            
         }
         //---------------------------------------------------------
         //Method is a open fasta file 
@@ -504,9 +505,6 @@ namespace SequenceAssemblerGUI
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
             var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
             Console.WriteLine("Multi-sequence alignment complete.");
-
-            // Print each sequence from the multi-sequence alignment and store them
-            Console.WriteLine("Aligned Sequences:");
 
             Dictionary<string, (string Sequence, string Description)> concatenatedSequences = new();
 
@@ -639,7 +637,7 @@ namespace SequenceAssemblerGUI
                 //IntegerUpDownMaximumGaps.IsEnabled = true;
                 TabItemResultBrowser2.IsEnabled = true;
                 ButtonUpdateAssembly.IsEnabled = true;
-                MyMultipleAlignment.ExecuteAssembly();
+                MyMultipleAlignment.ExecuteMultipleAssembly();
             });
         }
 
@@ -731,9 +729,6 @@ namespace SequenceAssemblerGUI
                     MyAssembly.UpdateViewLocalModel(allFastaSequences, filteredAlnResults);
                     UpdateLocalTable();
 
-                    // Log dos valores para depuração
-                    Console.WriteLine($"PSM Used Count: {psmUsedCount}");
-                    Console.WriteLine($"DeNovo Used Count: {deNovoUsedCount}");
                     // Update the UI with the counts
                     PSMUsedCount.Content = psmUsedCount.ToString();
                     DeNovoUsedCount.Content = deNovoUsedCount.ToString();
@@ -788,7 +783,7 @@ namespace SequenceAssemblerGUI
                 //IntegerUpDownMaximumGaps.IsEnabled = true;
                 TabItemResultBrowser.IsEnabled = true;
                 ButtonUpdateAssembly.IsEnabled = true;
-                MyAssembly.ExecuteAssembly();
+                MyAssembly.ExecuteLocalAssembly();
             });
         }
         private List<Alignment> FilterAlignments(List<Alignment> alignments, int minNormalizedIdentityScore, int minNormalizedSimilarity, int minLengthFilter)

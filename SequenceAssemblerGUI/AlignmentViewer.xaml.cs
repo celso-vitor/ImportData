@@ -596,14 +596,12 @@ namespace SequenceAssemblerGUI
         {
             if (DataContext is SequenceViewModel viewModel)
             {
-                Console.WriteLine("Updating ViewModel with fasta sequences and alignments.");
                 viewModel.ReferenceGroups.Clear();
 
                 foreach (var fasta in alignedSequences)
                 {
                     // Select alignments that have the TargetOrigin equal to the fasta sequence ID
                     var sequencesToAlign = alignments.Where(a => a.TargetOrigin == fasta.ID).ToList();
-                    Console.WriteLine($"Fasta ID: {fasta.ID}, Sequence: {fasta.Sequence}, Description: {fasta.Description}, Alignments to process: {sequencesToAlign.Count}");
 
                     // Checks for alignments for the current fasta sequence
                     if (!sequencesToAlign.Any())
@@ -630,18 +628,16 @@ namespace SequenceAssemblerGUI
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
         {
-            ExecuteAssembly();
+            ExecuteMultipleAssembly();
         }
 
-        public void ExecuteAssembly()
+        public void ExecuteMultipleAssembly()
         {
             if (!(DataContext is SequenceViewModel viewModel))
             {
                 MessageBox.Show("Failed to get the data context.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-
-            Console.WriteLine("Assembly executed successfully.");
         }
 
 

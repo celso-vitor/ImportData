@@ -79,7 +79,6 @@ namespace SequenceAssemblerLogic.ResultParser
                     if (firstLine.StartsWith("#id"))
                     {
                         var registries = LoadNovorPsmRegistries(fileName, fileCounter);
-                        Console.WriteLine($"Loaded {registries.Count} PSM registries from {fileName}");
                         if (DictPsm.ContainsKey(di2.Name))
                         {
                             DictPsm[di2.Name].AddRange(registries);
@@ -92,7 +91,6 @@ namespace SequenceAssemblerLogic.ResultParser
                     else if (firstLine.StartsWith("Fraction"))
                     {
                         var registries = LoadPeaksDeNovorRegistries(fileName, fileCounter);
-                        Console.WriteLine($"Loaded {registries.Count} DeNovo registries from {fileName}");
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
                             DictDenovo[di2.Name].AddRange(registries);
@@ -118,7 +116,6 @@ namespace SequenceAssemblerLogic.ResultParser
                     else
                     {
                         var registries = LoadNovorDeNovoRegistries(fileName, fileCounter);
-                        Console.WriteLine($"Loaded {registries.Count} NovorDeNovo registries from {fileName}");
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
                             DictDenovo[di2.Name].AddRange(registries);
@@ -134,8 +131,6 @@ namespace SequenceAssemblerLogic.ResultParser
                 {
                     FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
                     var registries = LoadSepr2Registries(fileName, fileCounter);
-                    Console.WriteLine($"Loaded {registries.Count} SEPR2 registries from {fileName}");
-
                     if (DictPsm.ContainsKey(di2.Name))
                     {
                         DictPsm[di2.Name].AddRange(registries);

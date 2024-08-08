@@ -15,13 +15,6 @@ namespace SequenceAssemblerLogic
             // Ordena os alinhamentos pela extensão da AlignedSmallSequence.
             input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length));
 
-            // Imprime as sequências e seus StartPositionStrings após a ordenação.
-            Console.WriteLine("Sequências e StartPositionStrings após a ordenação:");
-            foreach (var alignment in input)
-            {
-                Console.WriteLine($"AlignedSmallSequence: {alignment.AlignedSmallSequence}, StartPositionString: {alignment.StartPositionsString}");
-            }
-
             var result = new List<Alignment>();
             var set = new HashSet<string>();
 
