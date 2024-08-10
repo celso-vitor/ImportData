@@ -18,7 +18,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             string inputFile = Path.Combine("..", "..", "..", "Debug", "tmp.fasta");
             string outputFile = Path.Combine("..", "..", "..", "Debug", "output.aln");
             string arguments = $"-i \"{inputFile}\" -o \"{outputFile}\" --outfmt=clu --force";
-            string clustalOmegaPath = Path.Combine("..", "..", "..", "Clustal", "clustalo.exe"); // Caminho para o executável do Clustal Omega
+            string clustalOmegaPath = Path.Combine("..", "..", "..", "Clustal", "clustalo.exe"); // Path to the Clustal Omega executable
 
             // Save the Fasta Sequences to the work directory
             using (StreamWriter sw = new StreamWriter(inputFile))
@@ -30,7 +30,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
             }
 
-            // Configurar o processo
+            // Configure the process
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = clustalOmegaPath,
@@ -41,19 +41,19 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 CreateNoWindow = true
             };
 
-            // Executar o processo
+            // Run the process
             using (Process process = new Process())
             {
                 process.StartInfo = processStartInfo;
                 process.Start();
 
-                // Ler as saídas do processo
+                // Read process outputs
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
 
                 process.WaitForExit();
 
-                // Verificar se houve algum erro
+                // Check if there was any error
                 if (process.ExitCode != 0)
                 {
                     Console.WriteLine("Erro ao executar Clustal Omega:");
@@ -62,7 +62,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 }
                 else
                 {
-                    // Ler e exibir a saída do arquivo
+                    // Read and display file output
                     return ConstructConsensus(outputFile, FastaToAlign);
                 }
             }
@@ -71,7 +71,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         // Template consensus (Fasta)
         public static (List<char>[] consensus, List<FastaItem> fasta) ConstructConsensus(string file, List<FastaItem> originalFastaItems)
         {
-            // Ler e exibir a saída do arquivo
+            // Read and display file output
             string result = File.ReadAllText(file);
             Console.WriteLine($"{result}");
 

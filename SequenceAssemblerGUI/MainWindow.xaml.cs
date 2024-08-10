@@ -95,16 +95,16 @@ namespace SequenceAssemblerGUI
             {
                 try
                 {
-                    // Reexecutar o alinhamento apropriado baseado no modo de alinhamento selecionado
+                    // Re-perform the appropriate alignment based on the selected alignment mode
                     if (lastOpenedFileNames != null && lastOpenedFileNames.Length > 0)
                     {
                         if (isMultipleAlignmentMode)
                         {
-                            MultipleAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                            MultipleAlignment(lastOpenedFileNames); // Use the variable that stores the names of loaded FASTA files
                         }
                         else
                         {
-                            LocalAlignment(lastOpenedFileNames); // Use a variável que armazena os nomes dos arquivos FASTA carregados
+                            LocalAlignment(lastOpenedFileNames); // Use the variable that stores the names of loaded FASTA files
                         }
                     }
                 }
@@ -195,7 +195,7 @@ namespace SequenceAssemblerGUI
                             TabItemResultBrowser.IsEnabled = false;
                             TabItemResultBrowser2.IsEnabled = false;
 
-                            // Ocultar a imagem inicial após a importação dos resultados
+                            // Hide the splash image after importing results
                             BorderStart.Visibility = Visibility.Collapsed;
                         });
                     }
@@ -421,9 +421,9 @@ namespace SequenceAssemblerGUI
             ButtonProcess.IsEnabled = true;
         }
 
-        private string[] lastOpenedFileNames; // Variável para armazenar os nomes dos arquivos abertos
+        private string[] lastOpenedFileNames; // Variable to store the names of open files
 
-        // Dentro do método ButtonProcess_Click, armazene os nomes dos arquivos:
+       
         private async void ButtonProcess_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog
@@ -435,8 +435,7 @@ namespace SequenceAssemblerGUI
             if (openFileDialog.ShowDialog() == true)
             {
                 ShowLoadingIndicator();
-                lastOpenedFileNames = openFileDialog.FileNames; // Armazena os nomes dos arquivos selecionados
-
+                lastOpenedFileNames = openFileDialog.FileNames; // Stores the names of selected files
                 await Task.Run(() =>
                 {
                     try
@@ -557,25 +556,23 @@ namespace SequenceAssemblerGUI
 
                 foreach (var sequence in alignedSequences)
                 {
-                    var alignment = filteredSequences
-                        .Where(seq => seq.Length >= minLengthFilter) // Filter sequences based on minLengthFilter here
-                        .Select((seq, index) =>
+                    var alignment = filteredSequences.Select((seq, index) =>
+                    {
+                        var alignment = alignermsa.AlignerMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
+                        alignment.TargetOrigin = sequence.Item1; // Add SourceOrigin to alignment
+
+                        // Update counts based on identification method
+                        if (sourceOrigins[index].identificationMethod == "PSM")
                         {
-                            var alignment = alignermsa.AlignerMSA(msaResult.consensus, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                            alignment.TargetOrigin = sequence.ID; // Add SourceOrigin to alignment
+                            psmUsedCount++;
+                        }
+                        else if (sourceOrigins[index].identificationMethod == "DeNovo")
+                        {
+                            deNovoUsedCount++;
+                        }
 
-                            // Update counts based on identification method
-                            if (sourceOrigins[index].identificationMethod == "PSM")
-                            {
-                                psmUsedCount++;
-                            }
-                            else if (sourceOrigins[index].identificationMethod == "DeNovo")
-                            {
-                                deNovoUsedCount++;
-                            }
-
-                            return alignment;
-                        }).Where(aln => aln.GapsUsed <= maxGaps).ToList(); // Filtrar por maxGaps aqui
+                        return alignment;
+                    }).ToList();
                     myAlignment.AddRange(alignment);
                 }
 
@@ -696,25 +693,23 @@ namespace SequenceAssemblerGUI
                 foreach (var fastaSequence in allFastaSequences)
                 {
                     Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
-                    var alignments = filteredSequences
-                        .Where(seq => seq.Length >= minLengthFilter) // Filter sequences based on minLengthFilter here
-                        .Select((seq, index) =>
+                    var alignments = filteredSequences.Select((seq, index) =>
+                    {
+                        var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
+                        alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
+
+                        // Update counts based on identification method
+                        if (sourceOrigins[index].origin == "PSM")
                         {
-                            var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].origin);
-                            alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
+                            psmUsedCount++;
+                        }
+                        else if (sourceOrigins[index].origin == "DeNovo")
+                        {
+                            deNovoUsedCount++;
+                        }
 
-                            // Update counts based on identification method
-                            if (sourceOrigins[index].origin == "PSM")
-                            {
-                                psmUsedCount++;
-                            }
-                            else if (sourceOrigins[index].origin == "DeNovo")
-                            {
-                                deNovoUsedCount++;
-                            }
-
-                            return alignment;
-                        }).Where(aln => aln.GapsUsed <= maxGaps).ToList(); // Filtrar por maxGaps aqui
+                        return alignment;
+                    }).ToList();
                     myAlignment.AddRange(alignments);
                 }
 

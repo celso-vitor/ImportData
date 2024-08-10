@@ -9,7 +9,7 @@
         xmlns:oxy="http://oxyplot.org/wpf"
         mc:Ignorable="d"
         Icon="pack://application:,,,/PA.png"
-        Title="Protein Sequence Assembler" MinHeight="768" MinWidth="1140" Height="1080" Width="1024">
+        Title="Protein Sequence Assembler" MinHeight="830" MinWidth="1420" Height="900" Width="1420">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -34,10 +34,11 @@
                     <ColumnDefinition Width="1"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel HorizontalAlignment="Left" Width="720">
-                    <WrapPanel>
+                <StackPanel HorizontalAlignment="Left">
+                    <WrapPanel Width="982">
+
                         <GroupBox Header="PSM">
-                            <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <WrapPanel Margin="0,10,13,0">
                                 <Label Content="Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownPSMScore" Value="4" Minimum="1" Maximum="100"/>
                                 <Label Content="MinLength"/>
@@ -48,7 +49,7 @@
                         </GroupBox>
 
                         <GroupBox Header="DeNovo">
-                            <WrapPanel>
+                            <WrapPanel Margin="0,10,13,0">
                                 <Label Content="AA Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="0" Maximum="100"/>
                                 <Label Content="MinLength"/>
@@ -57,47 +58,49 @@
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMaxLength" Value="30" Minimum="0" Maximum="80"/>
                             </WrapPanel>
                         </GroupBox>
+
+                        <GroupBox Header="Alignment Mode" Margin="10,0,0,0">
+                            <WrapPanel  Orientation="Vertical" Height="50" Width="165">
+                                <RadioButton Content="Local Alignment"  Checked="RadioButtonAlignmentMode_Checked" Width="338" Margin="8,10,10,10" />
+                                <RadioButton Content="Multiple Alignment" Checked="RadioButtonMultipleAlignmentMode_Checked" Margin="8,0,0,0" />
+                            </WrapPanel>
+                        </GroupBox>
+
+                        <Button x:Name="ButtonProcess" Content="Template (fasta)" HorizontalAlignment="Left" Margin="8,15,10,10" Click="ButtonProcess_Click" IsEnabled="False" Width="109" Height="38"/>
+
                     </WrapPanel>
 
-                    <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,2,2,2">
-                            <RadioButton Content="Local Alignment mode" VerticalAlignment="Center" Margin="2,2,2,2" Checked="RadioButtonAlignmentMode_Checked"/>
-                            <RadioButton Content="Multiple Alignment Mode" VerticalAlignment="Center" Margin="2,2,2,2" Checked="RadioButtonMultipleAlignmentMode_Checked"/>
-                        </StackPanel>
 
-                        <Button x:Name="ButtonProcess" Content="Template (fasta)" VerticalAlignment="Center" Click="ButtonProcess_Click" IsEnabled="False" Width="123" Height="26"/>
-                    </WrapPanel>
-
-                    <GroupBox Header="Assembly">
-                        <WrapPanel HorizontalAlignment="Center">
-                            <!--<Label Content="Maximum Gaps"/>-->
-                            <!--<toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="2" Minimum="0" Maximum="100" IsEnabled="False"/>-->
+                    <GroupBox Header="Assembly" Width="665" HorizontalAlignment="Left">
+                        <WrapPanel Margin="3,5,13,0">
+                            <!--<Label Content="Maximum Gaps"/>
+                            <toolkit:IntegerUpDown x:Name="IntegerUpDownMaximumGaps" Value="1" Minimum="0" Maximum="100" IsEnabled="False"/>-->
                             <Label Content="Minimum Identity"/>
                             <xctk:IntegerUpDown x:Name="IdentityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled="False"/>
                             <Label Content="Minimum Normalized Similarity"/>
                             <xctk:IntegerUpDown x:Name="NormalizedSimilarityUpDown" Minimum="0" Maximum="100" Value="80" Width="40" IsEnabled="False"/>
                             <Label Content="Minimum Length"/>
                             <xctk:IntegerUpDown x:Name="IntegerUpDownMinimumLength" Minimum="2" Maximum="100" Value="3" Width="40" IsEnabled="False"/>
-                            <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="61" Margin="10,0,0,0" IsEnabled="False"/>
+                            <Button x:Name="ButtonUpdateAssembly" Content="Update" Click="ButtonUpdate_Assembly" Width="96" IsEnabled="False" Margin="10,0,0,0"/>
                         </WrapPanel>
                     </GroupBox>
                 </StackPanel>
 
-                <GroupBox Header="Statistics" VerticalAlignment="Center" Height="130" Margin="725,0,9,0">
-                    <WrapPanel Orientation="Horizontal" Height="81" Margin="0,0,-19,0">
+                <GroupBox Header="Statistics" VerticalAlignment="Center" Height="130" Margin="980,0,9,0">
+                    <WrapPanel Orientation="Horizontal" Height="81" Margin="45,0,-2,0">
                         <StackPanel>
                             <Label Content="PSMs Total: "/>
                             <Label Content="DeNovo Total: " Margin="0,5,0,0"/>
                         </StackPanel>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="5,0,0,0">
                             <Label x:Name="LabelPSMCount" Content="?" />
-                            <Label x:Name="LabelDeNovoCount" Content="?" Margin="0,5,0,0"/>
+                            <Label x:Name="LabelDeNovoCount" Content="?" Margin="0,4,0,0"/>
                         </StackPanel>
-                        <StackPanel Margin="30,0,0,0">
+                        <StackPanel Margin="20,0,0,0">
                             <Label Content="PSMs Used in Alignment: " />
                             <Label Content="DeNovo Used in Alignment: " Margin="0,5,0,0" Width="159"/>
                         </StackPanel>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="5,0,0,0">
                             <Label x:Name="PSMUsedCount" Content="?" />
                             <Label x:Name="DeNovoUsedCount" Content="?" Margin="0,5,0,0"/>
                         </StackPanel>
@@ -106,7 +109,7 @@
             </Grid>
 
             <TabControl Grid.Row="1">
-                <TabItem x:Name="DeNovoAssembly" Header="PSM and  DeNovo">
+                <TabItem x:Name="DeNovoAssembly" Header="PSM and DeNovo">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -119,10 +122,27 @@
 
                         <TabControl Grid.Row="1" Grid.RowSpan="2">
                             <TabItem Header="DeNovo">
-                                <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow"/>
+                                <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow" AutoGenerateColumns="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="IsTag" Binding="{Binding IsTag}" Width="40"/>
+                                        <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
+                                        <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
+                                        <DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
+                                        <DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="*"/>
+                                        <DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </TabItem>
                             <TabItem Header="PSM">
-                                <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow"/>
+                                <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" AutoGenerateColumns="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
+                                        <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
+                                        <DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
+                                        <DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="*"/>
+                                        <DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </TabItem>
                         </TabControl>
                     </Grid>
