@@ -66,7 +66,7 @@
                             </WrapPanel>
                         </GroupBox>
 
-                        <Button x:Name="ButtonProcess" Content="Template (fasta)" HorizontalAlignment="Left" Margin="8,15,10,10" Click="ButtonProcess_Click" IsEnabled="False" Width="109" Height="38"/>
+                        <Button x:Name="ButtonProcess" Content="Template" HorizontalAlignment="Left" Margin="8,15,10,10" Click="ButtonProcess_Click" IsEnabled="False" Width="109" Height="38"/>
 
                     </WrapPanel>
 
@@ -169,7 +169,7 @@
             </TabControl>
         </Grid>
 
-        <Border Grid.Row="1"
+        <!--<Border Grid.Row="1"
                 Background="White"
                 x:Name="BorderStart"
                 Visibility="Visible">
@@ -183,7 +183,7 @@
                                FontFamily="Courier New"/>
                 </StackPanel>
             </Grid>
-        </Border>
+        </Border>-->
 
         <!-- Loading Overlay -->
         <Grid x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="2">

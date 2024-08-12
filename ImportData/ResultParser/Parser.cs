@@ -195,10 +195,10 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-        // Método para ajustar o valor do score
+
         private double AdjustScore(double score)
         {
-            return score > 100 ? score / 10.0 : score; // Exemplo de ajuste: se o score for maior que 100, divide por 10
+            return score > 100 ? score / 10.0 : score; // Score Adjust 
         }
 
         private List<IDResult> LoadPeaksDeNovorRegistries(string denovofileName, short fileCounter)
