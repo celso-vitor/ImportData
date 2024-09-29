@@ -24,8 +24,8 @@ namespace SequenceAssemblerLogic.Tools
             List<Fasta> MyFasta = new List<Fasta>();
 
             string line;
-            string id = null;
-            string description = null;
+            string id;
+            string description;
 
             Fasta f = new Fasta();
 

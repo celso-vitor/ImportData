@@ -406,8 +406,6 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public Dictionary<string, (List<ConsensusChar>, double)> ConsensusAndCoverage { get; set; }
-
             public ObservableCollection<ReferenceGroupViewModel> ReferenceGroups { get; set; } = new();
 
             public event PropertyChangedEventHandler PropertyChanged;
@@ -429,7 +427,7 @@ namespace SequenceAssemblerGUI
                         bool hasILinReference = false;
                         bool hasILinAligned = false;
 
-                        // Verifica se a sequência de referência tem 'I' ou 'L' nesta posição
+                        // Check if the reference sequence has 'I' or 'L' at this position
                         if (i < group.ReferenceSequence.Count)
                         {
                             var refChar = group.ReferenceSequence[i];
@@ -439,7 +437,7 @@ namespace SequenceAssemblerGUI
                             }
                         }
 
-                        // Verifica se qualquer sequência alinhada tem 'I' ou 'L' nesta posição
+                        // Check if any aligned sequence has 'I' or 'L' at this position
                         foreach (var seq in group.Seq)
                         {
                             if (i < seq.VisualAlignment.Count)
@@ -452,7 +450,7 @@ namespace SequenceAssemblerGUI
                             }
                         }
 
-                        // Atualiza a cor de fundo do caractere de consenso com base na presença de 'I' ou 'L'
+                        // Update the background color of the consensus character based on the presence of 'I' or 'L'
                         if (ColorIL && hasILinReference && hasILinAligned)
                         {
                             consensusChar.BackgroundColor = new SolidColorBrush(Colors.LightGreen);
@@ -462,20 +460,20 @@ namespace SequenceAssemblerGUI
                             consensusChar.BackgroundColor = consensusChar.OriginalBackgroundColor;
                         }
 
-                        // Atualiza a cor de fundo dos caracteres de alinhamento
+                        // Update the background color of the alignment characters
                         foreach (var seq in group.Seq)
                         {
                             if (i < seq.VisualAlignment.Count)
                             {
                                 var alignmentChar = seq.VisualAlignment[i];
 
-                                // Armazena a cor original se ainda não estiver definida
+                                // Store the original color if it is not yet defined
                                 if (alignmentChar.OriginalBackgroundColor == null)
                                 {
                                     alignmentChar.OriginalBackgroundColor = alignmentChar.BackgroundColor;
                                 }
 
-                                // Atualiza a cor de fundo com base na opção ColorIL e presença de 'I' ou 'L'
+                                // Update the background color based on the ColorIL option and presence of 'I' or 'L'
                                 if (ColorIL && (alignmentChar.Char == "I" || alignmentChar.Char == "L"))
                                 {
                                     alignmentChar.BackgroundColor = new SolidColorBrush(Colors.LightGreen);
@@ -497,7 +495,9 @@ namespace SequenceAssemblerGUI
 
         public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
         {
-            bool isFirstEntry = true; // Indicador para a primeira entrada no arquivo de log
+
+            // Store the already processed IDs to avoid duplications
+            HashSet<string> processedIds = new HashSet<string>();
 
             foreach (var (id, description, referenceSequence) in referenceSequences)
             {
@@ -508,9 +508,9 @@ namespace SequenceAssemblerGUI
                     Description = description
                 };
 
-                foreach (char letra in referenceSequence)
+                foreach (char letter in referenceSequence)
                 {
-                    groupViewModel.ReferenceSequence.Add(new AlignmentsChar { Char = letra.ToString(), BackgroundColor = Brushes.White });
+                    groupViewModel.ReferenceSequence.Add(new AlignmentsChar { Char = letter.ToString(), BackgroundColor = Brushes.White });
                 }
 
                 var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();
@@ -555,37 +555,37 @@ namespace SequenceAssemblerGUI
 
                     foreach (char seqChar in sequence.AlignedSmallSequence)
                     {
-                        SolidColorBrush corDeFundo;
+                        SolidColorBrush backgroundColor;
                         int refIndex = startPosition++;
-                        string letra;
+                        string letter;
 
                         if (seqChar == '-')
                         {
-                            corDeFundo = Brushes.LightGray;
-                            letra = " ";
+                            backgroundColor = Brushes.LightGray;
+                            letter = " ";
                         }
                         else if (refIndex < referenceSequence.Length)
                         {
                             if (seqChar == referenceSequence[refIndex])
                             {
-                                corDeFundo = Brushes.LightGreen;
+                                backgroundColor = Brushes.LightGreen;
                             }
                             else
                             {
-                                corDeFundo = Brushes.LightCoral;
+                                backgroundColor = Brushes.LightCoral;
                             }
-                            letra = seqChar.ToString();
+                            letter = seqChar.ToString();
                         }
                         else
                         {
-                            corDeFundo = Brushes.LightGray;
-                            letra = seqChar.ToString();
+                            backgroundColor = Brushes.LightGray;
+                            letter = seqChar.ToString();
                         }
 
                         var visualAlignment = new AlignmentsChar
                         {
-                            Char = letra,
-                            BackgroundColor = corDeFundo,
+                            Char = letter,
+                            BackgroundColor = backgroundColor,
                             ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Source: {sequence.SourceOrigin}"
                         };
                         sequenceViewModel.VisualAlignment.Add(visualAlignment);
@@ -617,15 +617,15 @@ namespace SequenceAssemblerGUI
                 var (consensusChars, totalCoverage) = SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.BuildConsensus(sequencesToAlign, referenceSequence);
                 groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>();
 
-                // Adicione a lógica de interface do usuário para definir cores e outras propriedades de exibição
+                // Add UI logic to set colors and other display properties
                 foreach (var (consensusChar, isFromReference, isDifferent) in consensusChars)
                 {
                     SolidColorBrush color;
-                    if (isFromReference) // Letras recuperadas da sequência de referência
+                    if (isFromReference) // Letters retrieved from the reference sequence
                     {
                         color = Brushes.White;
                     }
-                    else if (consensusChar == ' ') // Caso especial para gap
+                    else if (consensusChar == ' ') // Special case for gap
                     {
                         color = Brushes.LightGray;
                     }
@@ -646,15 +646,25 @@ namespace SequenceAssemblerGUI
                     });
                 }
 
-                // Save the consensus and reference sequence to file
-                SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.SaveConsensusToFile(referenceSequence, consensusChars.Select(c => c.Char).ToList(), id, description, isFirstEntry);
-                isFirstEntry = false; // Atualize o indicador após a primeira escrita
+
+
+                // Check if the ID has already been processed, avoiding duplication
+                if (!processedIds.Contains(id))
+                {
+                    // Save the consensus and reference sequence to file only if the ID has not been saved yet
+                    SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.SaveConsensusToFile(referenceSequence, consensusChars.Select(c => c.Char).ToList(), id, description);
+
+                    // Add the ID to the HashSet to avoid duplications
+                    processedIds.Add(id);
+                }
 
                 // Add coverage to reference group
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
             }
         }
+        
+    
 
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)

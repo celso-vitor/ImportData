@@ -53,31 +53,74 @@ namespace SequenceAssemblerLogic.AssemblyTools
                 return string.Empty;
             }
 
-            int sequenceLength = alignedSequences.First().Sequence.Length;
+            int sequenceLength = alignedSequences.First().Sequence.Length;  // Assumes all sequences have the same length
             char[] consensusSequence = new char[sequenceLength];
 
             for (int i = 0; i < sequenceLength; i++)
             {
+                // Collect characters at position i from all aligned fragments that have an aligned character at this position
                 var positionChars = alignments
                     .Where(seq => seq.StartPositions.Max() <= i && i < seq.StartPositions.Max() + seq.AlignedSmallSequence.Length)
                     .Select(seq => seq.AlignedSmallSequence[i - seq.StartPositions.Max()])
+                    .Where(c => c != '-') // Exclude gaps for consensus calculation
                     .ToArray();
 
-                var mostFrequentCharGroup = positionChars
-                    .GroupBy(c => c)
-                    .OrderByDescending(g => g.Count())
-                    .FirstOrDefault();
+                char consensusChar;
 
-                char mostFrequentChar = mostFrequentCharGroup?.Key ?? '-';
-                bool isConsensus = mostFrequentCharGroup?.Count() == alignedSequences.Count;
-                bool isDifferent = positionChars.Distinct().Count() > 1; // Check if there are different bases at the position
+                // If there are no aligned fragments at this position, check the template sequences
+                if (positionChars.Length == 0)
+                {
+                    // Collect the characters at this position from all template sequences
+                    var templateChars = alignedSequences
+                        .Where(seq => seq.Sequence.Length > i) // Ensure the sequence is long enough
+                        .Select(seq => seq.Sequence[i])
+                        .Distinct()
+                        .ToArray();
 
-                consensusSequence[i] = mostFrequentChar;
-                consensusDetails.Add((i, mostFrequentChar, isConsensus, isDifferent));
+                    // If all template sequences have the same letter, use it as the consensus character
+                    if (templateChars.Length == 1)
+                    {
+                        consensusChar = templateChars[0];
+                    }
+                    else
+                    {
+                        // If template sequences don't agree, set the consensus to 'X'
+                        consensusChar = 'X';
+                    }
+
+                    // No fragments aligned, so it's neither a consensus nor a difference
+                    consensusDetails.Add((i, consensusChar, false, false));
+                }
+                else
+                {
+                    // Find the most frequent character among aligned fragments (excluding gaps)
+                    var mostFrequentCharGroup = positionChars
+                        .GroupBy(c => c)
+                        .OrderByDescending(g => g.Count())
+                        .FirstOrDefault();
+
+                    char mostFrequentChar = mostFrequentCharGroup?.Key ?? '-';
+
+                    // Check if this character is the consensus (i.e., appears in all valid sequences at this position)
+                    bool isConsensus = mostFrequentCharGroup?.Count() == positionChars.Length;
+
+                    // Determine if there is disagreement at this position (i.e., more than one unique character)
+                    bool isDifferent = positionChars.Distinct().Count() > 1;
+
+                    // Set the consensus character for this position
+                    consensusChar = mostFrequentChar;
+
+                    // Add details for this position
+                    consensusDetails.Add((i, mostFrequentChar, isConsensus, isDifferent));
+                }
+
+                // Assign the consensus character to the consensus sequence
+                consensusSequence[i] = consensusChar;
             }
 
             return new string(consensusSequence);
         }
+
 
 
         public static double CalculateCoverage(List<(string ID, string Sequence, string Description)> alignedSequences, List<Alignment> alignments)
@@ -204,17 +247,12 @@ namespace SequenceAssemblerLogic.AssemblyTools
             return (consensusSequence, overallCoverage);
         }
 
-        public static void SaveConsensusToFile(string referenceSequence, List<char> consensusChars, string id, string description, bool isFirstEntry)
+        public static void SaveConsensusToFile(string referenceSequence, List<char> consensusChars, string id, string description)
         {
             string path = Path.Combine("..", "..", "..", "Debug", "local_consensus_log.txt");
             StringBuilder consensusString = new StringBuilder();
 
-            if (isFirstEntry)
-            {
-                File.WriteAllText(path, string.Empty); 
-                consensusString.AppendLine("Method used: Local Alignment");
-            }
-
+            // Montar o conteúdo que será salvo
             consensusString.AppendLine($"ID: {id} - Description: {description}");
             consensusString.AppendLine("Reference Sequence:");
             consensusString.AppendLine(referenceSequence);
@@ -225,8 +263,19 @@ namespace SequenceAssemblerLogic.AssemblyTools
             }
             consensusString.AppendLine();
 
+            // Verificar se o conteúdo já existe no arquivo
+            if (File.Exists(path) && File.ReadAllText(path).Contains(consensusString.ToString()))
+            {
+                // Se o conteúdo já existir, não faça nada
+                return;
+            }
+
+            // Append o novo conteúdo ao arquivo
             File.AppendAllText(path, consensusString.ToString());
         }
+
+
+
 
     }
 

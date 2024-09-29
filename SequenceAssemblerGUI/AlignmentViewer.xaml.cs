@@ -620,16 +620,26 @@ namespace SequenceAssemblerGUI
                 foreach (var detail in consensusDetails)
                 {
                     char consensusChar = detail.ConsensusChar == '-' ? 'X' : detail.ConsensusChar;
-                    Brush backgroundColor = consensusChar == 'X' ? Brushes.White : consensusAdditionColor;
-                    if (detail.IsDifferent)
+
+                    // Default background color for consensus.
+                    Brush backgroundColor = consensusAdditionColor;
+
+                    // Check if the letter comes from template sequences without aligned fragments
+                    if (!detail.IsConsensus && !detail.IsDifferent && consensusChar != 'X')
+                    {
+                        // Set background to white if the letter is from the template and no aligned fragments were found
+                        backgroundColor = Brushes.WhiteSmoke; // You can use Brushes.White here as well if you prefer
+                    }
+                    else if (detail.IsDifferent)
                     {
                         backgroundColor = differentConsensusColor;
                         if (colorIL && positionChars.ContainsKey(detail.Position) && positionChars[detail.Position].All(c => c == 'I' || c == 'L'))
                         {
-                            backgroundColor = Brushes.LightGreen; // Apply green color to 'I' or 'L' in the consensus if all chars at this position are 'I' or 'L'
+                            backgroundColor = Brushes.LightGreen; // Apply green color to 'I' or 'L' if all chars at this position are 'I' or 'L'
                         }
                     }
 
+                    // Add the consensus character with the appropriate background color to the view model.
                     viewModel.ConsensusSequence.Add(new VisualAlignment
                     {
                         Letra = consensusChar.ToString(),

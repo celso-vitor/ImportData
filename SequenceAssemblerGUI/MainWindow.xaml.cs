@@ -127,6 +127,7 @@ namespace SequenceAssemblerGUI
 
         private async void MenuItemImportResults_Click(object sender, RoutedEventArgs e)
         {
+ 
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = true;
 
@@ -430,7 +431,21 @@ namespace SequenceAssemblerGUI
             {
                 Multiselect = true,
                 Filter = "Fasta Files (*.fasta)|*.fasta"
+
             };
+
+            // Clear or delete the log file before starting the new alignment
+            string logFilePath = Path.Combine("..", "..", "..", "Debug", "local_consensus_log.txt");
+            if (File.Exists(logFilePath))
+            {
+                File.WriteAllText(logFilePath, string.Empty);
+            }
+
+            string logFilemsaPath = Path.Combine("..", "..", "..", "Debug", "msa_consensus_log.txt");
+            if (File.Exists(logFilemsaPath))
+            {
+                File.WriteAllText(logFilemsaPath, string.Empty);
+            }
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -447,6 +462,7 @@ namespace SequenceAssemblerGUI
                         else
                         {
                             LocalAlignment(lastOpenedFileNames);
+                          
                         }
                     }
                     finally
@@ -749,7 +765,7 @@ namespace SequenceAssemblerGUI
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
                 var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
-                UpdateViewLocalModel(allFastaSequences, filteredAlignments);
+                UpdateLocalModel(allFastaSequences, filteredAlignments);
 
                 int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
                 int deNovoUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("DeNovo"));
@@ -766,7 +782,7 @@ namespace SequenceAssemblerGUI
 
 
 
-        private void UpdateViewLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
+        private void UpdateLocalModel(List<Fasta> allFastaSequences, List<Alignment> alignments)
         {
             Dispatcher.Invoke(() =>
             {
@@ -839,7 +855,7 @@ namespace SequenceAssemblerGUI
                         }
                         else
                         {
-                            UpdateViewLocalModel(allFastaSequences, filteredAlignments);
+                            UpdateLocalModel(allFastaSequences, filteredAlignments);
                             UpdateLocalTable();
                         }
                     });
