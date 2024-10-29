@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
+
 namespace SequenceAssemblerLogic.ResultParser
 {
     public class Parser
@@ -78,6 +79,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
                     if (firstLine.StartsWith("#id"))
                     {
+                        // Caso para arquivos PSM do formato #id
                         var registries = LoadNovorPsmRegistries(fileName, fileCounter);
                         if (DictPsm.ContainsKey(di2.Name))
                         {
@@ -90,6 +92,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                     else if (firstLine.StartsWith("Fraction"))
                     {
+                        // Caso para arquivos DeNovo com 'Fraction' na primeira linha
                         var registries = LoadPeaksDeNovorRegistries(fileName, fileCounter);
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
@@ -100,21 +103,23 @@ namespace SequenceAssemblerLogic.ResultParser
                             DictDenovo.Add(di2.Name, registries);
                         }
                     }
-                    //else if (firstLine.StartsWith("Fraction"))
-                    //{
-                    //    var registries = LoadPeaksDeNovorRegistriesEdit(fileName, fileCounter);
-                    //    Console.WriteLine($"Loaded {registries.Count} DeNovo registries from {fileName}");
-                    //    if (DictDenovo.ContainsKey(di2.Name))
-                    //    {
-                    //        DictDenovo[di2.Name].AddRange(registries);
-                    //    }
-                    //    else
-                    //    {
-                    //        DictDenovo.Add(di2.Name, registries);
-                    //    }
-                    //}
+                    else if (firstLine.Contains("Source File"))
+                    {
+                        // Caso para o novo formato com "Source File" na primeira linha
+                        var registries = LoadPeaksAlternativeCSV(fileName, fileCounter);
+                        Console.WriteLine($"Loaded {registries.Count} Alternative CSV registries from {fileName}");
+                        if (DictDenovo.ContainsKey(di2.Name))
+                        {
+                            DictDenovo[di2.Name].AddRange(registries);
+                        }
+                        else
+                        {
+                            DictDenovo.Add(di2.Name, registries);
+                        }
+                    }
                     else
                     {
+                        // Caso genérico para DeNovo ou outros tipos de arquivos CSV
                         var registries = LoadNovorDeNovoRegistries(fileName, fileCounter);
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
@@ -127,6 +132,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                 }
 
+                // Processar arquivos .sepr2
                 foreach (string fileName in sepr2Files)
                 {
                     FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
@@ -142,6 +148,7 @@ namespace SequenceAssemblerLogic.ResultParser
                 }
             }
         }
+
 
 
         private List<IDResult> LoadNovorDeNovoRegistries(string denovofileName, short fileCounter)
@@ -162,7 +169,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     PepMass = double.Parse(cols[5], CultureInfo.InvariantCulture),
                     Err = double.Parse(cols[6], CultureInfo.InvariantCulture),
                     Score = AdjustScore(double.Parse(cols[8], CultureInfo.InvariantCulture)),
-                    Peptide = Regex.Replace(cols[9], " ", ""),
+                    Peptide = Regex.Replace(cols[9], @"\([^)]*\)", "").Replace(" ", ""),
                     AaScore = Regex.Split(cols[10], "-").Select(a => int.Parse(a)).ToList()
                 };
                 myRegistries.Add(deNovoRegistry);
@@ -228,34 +235,59 @@ namespace SequenceAssemblerLogic.ResultParser
             return myRegistries;
         }
 
-        //private List<IDResult> LoadPeaksDeNovorRegistriesEdit(string denovofileName, short fileCounter)
-        //{
-        //    var lines = File.ReadAllLines(denovofileName);
-        //    var myRegistries = new List<IDResult>();
+        private List<IDResult> LoadPeaksAlternativeCSV(string denovoFileName, short fileCounter)
+        {
+            var lines = File.ReadAllLines(denovoFileName);
+            var myRegistries = new List<IDResult>();
 
-        //    // Assuming the first line is the header, so starting from index 1
-        //    for (int i = 1; i < lines.Length; i++)
-        //    {
-        //        // Use regex to split by comma, but handle commas inside quotes correctly
-        //        var columns = Regex.Split(lines[i], ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var columns = Regex.Split(lines[i], ",");
 
-        //        var deNovoRegistry = new IDResult
-        //        {
-        //            ScanNumber = int.Parse(columns[4].Split(':')[1]), // Assuming Scan is F4:17259, we get 17259
-        //            File = fileCounter,
-        //            RT = double.Parse(columns[11]),
-        //            Mz = double.Parse(columns[9]),
-        //            Z = int.Parse(columns[10]),
-        //            PepMass = double.Parse(columns[14]),
-        //            Score = double.Parse(columns[6]),
-        //            Peptide = Regex.Replace(columns[3], " ", ""), // Removing spaces from peptide
-        //            AaScore = columns[17].Split(' ').Select(b => int.Parse(b)).ToList()
-        //        };
+                // Verificar se há dados em todas as colunas esperadas, caso contrário, continue para a próxima linha
+                if (columns.Length < 16)
+                {
+                    continue;
+                }
 
-        //        myRegistries.Add(deNovoRegistry);
-        //    }
-        //    return myRegistries;
-        //}
+                try
+                {
+                    // Limpar o peptídeo removendo parênteses e seu conteúdo
+                    string cleanPeptide = Regex.Replace(columns[2], @"\([^)]*\)", "").Replace(" ", "");
+
+                    var deNovoRegistry = new IDResult
+                    {
+                        ScanNumber = int.Parse(columns[1]),       // Coluna 1: Scan number
+                        File = fileCounter,
+                        RT = double.Parse(columns[8]),            // Coluna 8: Retention time (RT)
+                        Mz = double.Parse(columns[6]),            // Coluna 6: m/z
+                        Z = int.Parse(columns[7]),                // Coluna 7: Charge (z)
+                        PepMass = double.Parse(columns[10]),      // Coluna 10: Peptide Mass
+                        Score = AdjustScore(double.Parse(columns[4], CultureInfo.InvariantCulture)),         // Coluna 4: ALC (%)
+                        Peptide = cleanPeptide,  // Coluna 2: Peptide sequence limpa
+
+                        // Usar double para lidar com possíveis valores decimais ou longas sequências
+                        AaScore = columns[13].Split(' ').Select(b => (int)Math.Round(double.Parse(b))).ToList(),  // Arredonda os valores para o inteiro mais próximo
+                    };
+
+                    myRegistries.Add(deNovoRegistry);
+                }
+                catch (OverflowException ex)
+                {
+                    Console.WriteLine($"Erro de overflow ao converter valores no Scan {columns[1]}: {ex.Message}");
+                    continue;
+                }
+                catch (FormatException ex)
+                {
+                    Console.WriteLine($"Erro de formatação ao converter valores no Scan {columns[1]}: {ex.Message}");
+                    continue;
+                }
+            }
+            return myRegistries;
+        }
+
+
+
 
         public List<IDResult> LoadSepr2Registries(string sepr2FileName, short fileCounter)
         {

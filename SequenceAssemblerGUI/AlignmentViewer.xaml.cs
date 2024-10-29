@@ -123,11 +123,10 @@ namespace SequenceAssemblerGUI
         // Inner class representing the visual alignment of a sequence, implementing INotifyPropertyChanged for data binding.
         public class VisualAlignment : INotifyPropertyChanged
         {
-            // Private fields for the character and background color of the alignment.
             private string _letra;
             private Brush _corDeFundo;
+            private int _position;  // Nova propriedade para armazenar a posição da letra
 
-            // Public properties for the letter and background color.
             public string Letra
             {
                 get { return _letra; }
@@ -140,16 +139,22 @@ namespace SequenceAssemblerGUI
                 set { _corDeFundo = value; OnPropertyChanged(); }
             }
 
-            // Property for the tooltip content associated with the alignment.
             public string ToolTipContent { get; internal set; }
 
-            // Event for property change notification.
+            // Nova propriedade para armazenar a posição
+            public int Position
+            {
+                get { return _position; }
+                set { _position = value; OnPropertyChanged(); }
+            }
+
             public event PropertyChangedEventHandler PropertyChanged;
             protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
 
         // Inner class representing the view model for sequences, also implementing INotifyPropertyChanged.
         public class SequencesViewModel : INotifyPropertyChanged
@@ -430,6 +435,7 @@ namespace SequenceAssemblerGUI
                     var groupViewModel = new ReferenceGroupViewModel
                     {
                         ReferenceHeader = $"{fasta.ID} - {fasta.Description}",
+
                     };
 
                     // Adding the sequence characters to the visual alignment list with default background color.
@@ -440,7 +446,8 @@ namespace SequenceAssemblerGUI
                         {
                             Letra = letter.ToString(),
                             CorDeFundo = Brushes.WhiteSmoke,
-                            ToolTipContent = $"Position: {i + 1}, Letter: {letter}, ID: {fasta.ID}, Description: {fasta.Description}"
+                            ToolTipContent = $"Position: {i + 1}, Letter: {letter}, ID: {fasta.ID}, Description: {fasta.Description}",
+                            Position = i + 1 // Definir a posição aqui
                         });
                     }
 

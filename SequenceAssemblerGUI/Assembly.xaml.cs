@@ -17,6 +17,7 @@ using Microsoft.Win32;
 using SequenceAssemblerGUI;
 using static SequenceAssemblerGUI.Assembly;
 using System.Text;
+using System.Windows.Input;
 
 
 namespace SequenceAssemblerGUI
@@ -137,6 +138,7 @@ namespace SequenceAssemblerGUI
             private SolidColorBrush _backgroundColor;
             public SolidColorBrush OriginalBackgroundColor { get; set; }
 
+            public int Position { get; set; }
             public string Char
             {
                 get => _letter;
@@ -379,6 +381,36 @@ namespace SequenceAssemblerGUI
             }
         }
 
+        // Classe RelayCommand
+        public class RelayCommand : ICommand
+        {
+            private readonly Action _execute;
+            private readonly Func<bool> _canExecute;
+
+            public event EventHandler CanExecuteChanged
+            {
+                add { CommandManager.RequerySuggested += value; }
+                remove { CommandManager.RequerySuggested -= value; }
+            }
+
+            public RelayCommand(Action execute, Func<bool> canExecute = null)
+            {
+                _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+                _canExecute = canExecute;
+            }
+
+            public bool CanExecute(object parameter)
+            {
+                return _canExecute == null || _canExecute();
+            }
+
+            public void Execute(object parameter)
+            {
+                _execute();
+            }
+        }
+
+       
 
         public class SequenceViewModel : INotifyPropertyChanged
         {
@@ -508,9 +540,17 @@ namespace SequenceAssemblerGUI
                     Description = description
                 };
 
+                int position = 1;  // Inicialize a posição com 1
+
                 foreach (char letter in referenceSequence)
                 {
-                    groupViewModel.ReferenceSequence.Add(new AlignmentsChar { Char = letter.ToString(), BackgroundColor = Brushes.White });
+                    groupViewModel.ReferenceSequence.Add(new AlignmentsChar
+                    {
+                        Char = letter.ToString(),
+                        BackgroundColor = Brushes.White,
+                        Position = position // Atribua a posição
+                    });
+                    position++;  // Incrementa a posição
                 }
 
                 var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();
@@ -663,8 +703,7 @@ namespace SequenceAssemblerGUI
                 viewModel.ReferenceGroups.Add(groupViewModel);
             }
         }
-        
-    
+
 
 
         private void CompareButton_Click(object sender, RoutedEventArgs e)
@@ -727,7 +766,10 @@ namespace SequenceAssemblerGUI
             e.Row.Header = (e.Row.GetIndex() + 1).ToString();
         }
 
-      
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
     }
 
 }

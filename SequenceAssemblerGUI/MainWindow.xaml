@@ -128,7 +128,7 @@
                                         <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
                                         <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
                                         <DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
-                                        <DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="*"/>
+                                        <DataGridTextColumn Header="Score" Binding="{Binding AAScores}" Width="*"/>
                                         <DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
