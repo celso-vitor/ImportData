@@ -29,9 +29,9 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding ReferenceHeader}" FontWeight="Bold" FontSize="12"/>
 
-                                        <!-- Usando um StackPanel com orientação horizontal para alinhar posições e letras -->
+                                        <!-- Using a horizontally oriented StackPanel to align positions and letters -->
                                         <StackPanel Orientation="Horizontal">
-                                            <!-- Numerando as posições das letras de referência com rotação diagonal -->
+                                            <!-- Numbering reference letter positions with diagonal rotation -->
                                             <ItemsControl ItemsSource="{Binding ReferenceSequence}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -57,7 +57,7 @@
                                             </ItemsControl>
                                         </StackPanel>
 
-                                        <!-- Exibindo as letras das sequências de referência -->
+                                        <!-- Displaying letters of reference sequences -->
                                         <ItemsControl ItemsSource="{Binding ReferenceSequence}" HorizontalAlignment="Left" Padding="0">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>

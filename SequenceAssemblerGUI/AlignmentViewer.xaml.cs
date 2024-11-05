@@ -16,7 +16,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using SequenceAssemblerLogic;
 using SequenceAssemblerLogic.AssemblyTools;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.Tools;

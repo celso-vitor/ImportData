@@ -11,7 +11,6 @@ using SequenceAssemblerLogic.Tools;
 using System.Windows.Controls;
 using System.Data;
 using System.Diagnostics;
-using SequenceAssemblerLogic;
 using System.IO;
 using Microsoft.Win32;
 using SequenceAssemblerGUI;
@@ -32,7 +31,7 @@ namespace SequenceAssemblerGUI
             InitializeComponent();
             var viewModel = new SequenceViewModel
             {
-                ColorIL = true // Definir ColorIL como true inicialmente
+                ColorIL = true 
             };
             DataContext = viewModel;
         }
@@ -540,7 +539,7 @@ namespace SequenceAssemblerGUI
                     Description = description
                 };
 
-                int position = 1;  // Inicialize a posição com 1
+                int position = 1;  // Initialize the position with 1
 
                 foreach (char letter in referenceSequence)
                 {
@@ -548,9 +547,9 @@ namespace SequenceAssemblerGUI
                     {
                         Char = letter.ToString(),
                         BackgroundColor = Brushes.White,
-                        Position = position // Atribua a posição
+                        Position = position // Assign the position
                     });
-                    position++;  // Incrementa a posição
+                    position++;  // Increases the position
                 }
 
                 var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();

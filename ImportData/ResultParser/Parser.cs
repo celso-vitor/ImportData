@@ -79,7 +79,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
                     if (firstLine.StartsWith("#id"))
                     {
-                        // Caso para arquivos PSM do formato #id
+                        // Case for PSM files of format #id
                         var registries = LoadNovorPsmRegistries(fileName, fileCounter);
                         if (DictPsm.ContainsKey(di2.Name))
                         {
@@ -92,7 +92,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                     else if (firstLine.StartsWith("Fraction"))
                     {
-                        // Caso para arquivos DeNovo com 'Fraction' na primeira linha
+                        // Case for DeNovo files with 'Fraction' in the first line
                         var registries = LoadPeaksDeNovorRegistries(fileName, fileCounter);
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
@@ -105,7 +105,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                     else if (firstLine.Contains("Source File"))
                     {
-                        // Caso para o novo formato com "Source File" na primeira linha
+                        // Case for the new format with “Source File” in the first line
                         var registries = LoadPeaksAlternativeCSV(fileName, fileCounter);
                         Console.WriteLine($"Loaded {registries.Count} Alternative CSV registries from {fileName}");
                         if (DictDenovo.ContainsKey(di2.Name))
@@ -119,7 +119,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                     else
                     {
-                        // Caso genérico para DeNovo ou outros tipos de arquivos CSV
+                        // Generic case for DeNovo or other types of CSV files
                         var registries = LoadNovorDeNovoRegistries(fileName, fileCounter);
                         if (DictDenovo.ContainsKey(di2.Name))
                         {
@@ -132,7 +132,7 @@ namespace SequenceAssemblerLogic.ResultParser
                     }
                 }
 
-                // Processar arquivos .sepr2
+                // Process .sepr2 files
                 foreach (string fileName in sepr2Files)
                 {
                     FileDictionary.Add(++fileCounter, Path.GetFileName(fileName));
@@ -244,7 +244,7 @@ namespace SequenceAssemblerLogic.ResultParser
             {
                 var columns = Regex.Split(lines[i], ",");
 
-                // Verificar se há dados em todas as colunas esperadas, caso contrário, continue para a próxima linha
+                // Check if there is data in all the expected columns, otherwise continue to the next row
                 if (columns.Length < 16)
                 {
                     continue;
@@ -252,7 +252,7 @@ namespace SequenceAssemblerLogic.ResultParser
 
                 try
                 {
-                    // Limpar o peptídeo removendo parênteses e seu conteúdo
+                    // Clean up the peptide by removing parentheses and their content
                     string cleanPeptide = Regex.Replace(columns[2], @"\([^)]*\)", "").Replace(" ", "");
 
                     var deNovoRegistry = new IDResult
@@ -264,10 +264,10 @@ namespace SequenceAssemblerLogic.ResultParser
                         Z = int.Parse(columns[7]),                // Coluna 7: Charge (z)
                         PepMass = double.Parse(columns[10]),      // Coluna 10: Peptide Mass
                         Score = AdjustScore(double.Parse(columns[4], CultureInfo.InvariantCulture)),         // Coluna 4: ALC (%)
-                        Peptide = cleanPeptide,  // Coluna 2: Peptide sequence limpa
+                        Peptide = cleanPeptide,  // Coluna 2: Peptide sequence clean
 
-                        // Usar double para lidar com possíveis valores decimais ou longas sequências
-                        AaScore = columns[13].Split(' ').Select(b => (int)Math.Round(double.Parse(b))).ToList(),  // Arredonda os valores para o inteiro mais próximo
+                        // Use double to deal with possible decimal values or long sequences
+                        AaScore = columns[13].Split(' ').Select(b => (int)Math.Round(double.Parse(b))).ToList(),  // Rounds the values to the nearest integer
                     };
 
                     myRegistries.Add(deNovoRegistry);
@@ -285,8 +285,6 @@ namespace SequenceAssemblerLogic.ResultParser
             }
             return myRegistries;
         }
-
-
 
 
         public List<IDResult> LoadSepr2Registries(string sepr2FileName, short fileCounter)

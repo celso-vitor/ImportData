@@ -10,40 +10,40 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <!-- Linha para a ProgressBar -->
+            <!-- Line to ProgressBar -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Painel Superior com CheckBox e Botão -->
+        <!-- Top Panel with CheckBox and Button -->
         <StackPanel Orientation="Horizontal" Margin="10,0,10,10">
             <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="True" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
         </StackPanel>
 
-       
 
-        <!-- Controle de Abas -->
+
+        <!-- Tab Control -->
         <TabControl Grid.Row="1">
-            <!-- Aba "Assembly Viewer" -->
+            <!-- "Assembly Viewer" tab -->
             <TabItem Header="Assembly Viewer">
-                <!-- ScrollViewer Vertical para a lista de Expanders -->
+                <!-- Vertical ScrollViewer for Expanders list -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ReferenceGroups}" >
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- ScrollViewer Horizontal para o conteúdo de cada Expander, se necessário -->
+                                <!-- Horizontal ScrollViewer for each Expander's content if needed -->
                                 <Expander Header="{Binding DisplayHeader}" Margin="0,0,0,10">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                         <StackPanel>
                                             <Grid>
-                                                <!-- Definição das Linhas do Grid -->
+                                                <!-- Grid Line Definition -->
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
-                                                    <!-- Linha adicional para o quadrado abaixo -->
+                                                    <!-- Additional line for the square below -->
                                                 </Grid.RowDefinitions>
 
-                                                <!-- Primeira linha: Números em diagonal -->
+                                                <!-- First line: Diagonal numbers -->
                                                 <ItemsControl Grid.Row="0" ItemsSource="{Binding ReferenceSequence}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -68,7 +68,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <!-- Segunda linha: Aminoácidos da sequência -->
+                                                <!-- Second line: Amino acids of the sequence -->
                                                 <ItemsControl Grid.Row="1" ItemsSource="{Binding ReferenceSequence}" Margin="5,0,9,0">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -84,26 +84,9 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <!-- Terceira linha: Quadrado abaixo das sequências de referência -->
-                                                <ItemsControl Grid.Row="2" ItemsSource="{Binding ReferenceSequence}" Margin="5,0,0,0">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <UniformGrid Rows="1" Columns="{Binding ReferenceSequence.Count, FallbackValue=50}"/>
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <!-- Border interativo que alterna entre cores baseado no BackgroundColor -->
-                                                            <Border Width="10" Height="5" Margin="1" Background="{Binding BackgroundColor}"/>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-
-
-
                                             </Grid>
 
-                                            <!-- Alinhamentos da Sequência -->
+                                            <!-- Sequence Alignments -->
                                             <ItemsControl ItemsSource="{Binding Seq}" Padding="4">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -136,7 +119,7 @@
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
 
-                                            <!-- Grupo de Consenso da Assembly -->
+                                            <!-- Assembly Consensus Group -->
                                             <GroupBox Header="Assembly Consensus" Height="80" Margin="0,10,0,0">
                                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                                     <ItemsControl ItemsSource="{Binding ConsensusSequence}">
@@ -164,14 +147,14 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Aba "Alignments" -->
+            <!-- "Alignments" tab -->
             <TabItem Header="Alignments">
-                <!-- ScrollViewer Vertical para a lista de Expanders -->
+                <!-- Vertical ScrollViewer for Expanders list -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ReferenceGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- ScrollViewer Horizontal para o conteúdo de cada Expander, se necessário -->
+                                <!-- Horizontal ScrollViewer for each Expander's content if needed -->
                                 <Expander Header="{Binding ReferenceHeader}" Margin="0,0,0,10">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                         <StackPanel>
@@ -202,7 +185,7 @@
             
         </TabControl>
 
-        <!-- Barra de Progresso -->
+        <!-- Progress Bar -->
         <ProgressBar x:Name="progressBar" Grid.Row="2" Height="20" Margin="10" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

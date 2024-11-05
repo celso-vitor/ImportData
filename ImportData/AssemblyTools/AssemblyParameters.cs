@@ -252,7 +252,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
             string path = Path.Combine("..", "..", "..", "Debug", "local_consensus_log.txt");
             StringBuilder consensusString = new StringBuilder();
 
-            // Montar o conteúdo que será salvo
+            // Assemble the content to be saved
             consensusString.AppendLine($"ID: {id} - Description: {description}");
             consensusString.AppendLine("Reference Sequence:");
             consensusString.AppendLine(referenceSequence);
@@ -263,14 +263,14 @@ namespace SequenceAssemblerLogic.AssemblyTools
             }
             consensusString.AppendLine();
 
-            // Verificar se o conteúdo já existe no arquivo
+            // Check if the content already exists in the file
             if (File.Exists(path) && File.ReadAllText(path).Contains(consensusString.ToString()))
             {
-                // Se o conteúdo já existir, não faça nada
+                
                 return;
             }
 
-            // Append o novo conteúdo ao arquivo
+            // Append the new content to the file
             File.AppendAllText(path, consensusString.ToString());
         }
 

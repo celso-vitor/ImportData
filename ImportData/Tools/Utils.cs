@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using SequenceAssemblerLogic.ProteinAlignmentCode;
 using SequenceAssemblerLogic.ResultParser;
 
-namespace SequenceAssemblerLogic
+namespace SequenceAssemblerLogic.Tools
 {
     public static class Utils
     {

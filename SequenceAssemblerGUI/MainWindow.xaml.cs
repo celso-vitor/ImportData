@@ -23,7 +23,6 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
 using System.Text;
-using SequenceAssemblerLogic;
 
 namespace SequenceAssemblerGUI
 {
@@ -829,7 +828,7 @@ namespace SequenceAssemblerGUI
                         return;
                     }
 
-                    // Obter valores dos filtros da UI
+                    // Get UI filter values
                     int maxGaps = 0;
                     int minNormalizedIdentityScore = 0;
                     int minNormalizedSimilarity = 0;
@@ -843,7 +842,7 @@ namespace SequenceAssemblerGUI
                         minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
                     });
 
-                    // Filtrar os alinhamentos existentes com base nos critérios definidos
+                    // Filter the existing alignments based on the defined criteria
                     var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                     Dispatcher.Invoke(() =>

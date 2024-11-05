@@ -25,7 +25,7 @@ namespace ProteinAlignmentCode
             //Console.WriteLine($"Sequência Alinhada (Pequena): {result.AlignedSmallSequence}");
             //Console.WriteLine("Position: " + string.Join(", ", result.StartPositions));
 
-            //var plResult = SeproPckg2.ResultPackage.Load(@"C:\Users\celso\source\repos\ImportData\ImportData\Test\F1.sepr2");
+            //var plResult = SeproPckg2.ResultPackage.Load(@"C:\Users\celso\source\repos\ImportData\ImportData\Debug\F1.sepr2");
 
             //foreach (var psm in plResult.MyProteins.AllPSMs)
             //{
