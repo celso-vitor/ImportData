@@ -13,12 +13,11 @@ namespace SequenceAssemblerLogic.Tools
         }
 
         // Method to convert a DeNovo registry into tags
-        public static List<IDResult> DeNovoRegistryToTags(IDResult registry, int minScore, int minLength)
+        public static List<IDResult> DeNovoRegistryToTags(IDResult registry, int minLength, int maxLength, int minConfidence)
         {
-            // Find valid peptides based on minimum score and length
-            List<(string PeptideSequence, List<int> Scores)> tagPrecursors = FindValidPeptides(registry.Peptide, registry.AaScore, minScore, minLength);
+            // Aplica o filtro com base nos parâmetros
+            List<(string PeptideSequence, List<int> Scores)> tagPrecursors = FilterLocalConfidence(registry.Peptide, registry.AaScore, minConfidence, minLength, maxLength);
 
-            // If no valid peptides are found, return an empty list
             if (tagPrecursors.Count == 0)
             {
                 return new List<IDResult>();
@@ -27,7 +26,7 @@ namespace SequenceAssemblerLogic.Tools
             {
                 List<IDResult> tags = new();
 
-                // For each valid peptide found, create a new IDResult with appropriate information
+                // Cria os resultados baseados nos peptídeos filtrados
                 foreach (var pt in tagPrecursors)
                 {
                     IDResult tag = new()
@@ -40,19 +39,62 @@ namespace SequenceAssemblerLogic.Tools
                         Z = registry.Z,
                         PepMass = registry.PepMass,
                         Err = registry.Err,
-                        Score = registry.Score,
-                        Peptide = pt.PeptideSequence,
-                        AaScore = pt.Scores,
+                        Score = registry.Score,  // O score geral (não o local)
+                        Peptide = pt.PeptideSequence,  // A sequência filtrada
+                        AaScore = pt.Scores,  // Os scores locais filtrados
                         File = registry.File
                     };
 
-                    // Add the new IDResult to the list of tags
                     tags.Add(tag);
+
                 }
 
-                // Return the list of tags
                 return tags;
             }
+        
+        }
+        // Method to filter sequences based on Local Confidence (AaScore) and a minimum length of valid amino acids
+        public static List<(string PeptideSequence, List<int> Scores)> FilterLocalConfidence(string sequence, List<int> scores, int minConfidence, int minLength, int maxLength)
+        {
+            // Extrair blocos da sequência (aminoácidos)
+            List<string> blocks = ExtractBlocks(sequence);
+
+            List<(string PeptideSequence, List<int> Scores)> validPeptides = new();
+            string currentPeptide = "";
+            List<int> localScores = new List<int>();
+
+            // Iterar pelos blocos e seus scores, aplicando o filtro de confiança local
+            for (int i = 0; i < blocks.Count && i < scores.Count; i++)
+            {
+                // Se o score de confiança for maior ou igual ao valor mínimo, adiciona o bloco (aminoácido) à sequência atual
+                if (scores[i] >= minConfidence)
+                {
+                    currentPeptide += blocks[i]; // Adicionar o aminoácido atual à sequência filtrada
+                    localScores.Add(scores[i]);  // Adicionar o score atual à lista de scores locais
+                }
+                else
+                {
+                    // Usar o método CleanPeptide para remover os conteúdos entre parênteses ao verificar o comprimento
+                    if (CleanPeptide(currentPeptide).Length >= minLength && CleanPeptide(currentPeptide).Length <= maxLength)
+                    {
+
+                        validPeptides.Add((currentPeptide, localScores)); // Adiciona o peptídeo válido
+                    }
+                    // Reiniciar a sequência se a confiança local não atingir o valor mínimo
+                    currentPeptide = "";
+                    localScores = new List<int>();
+                }
+            }
+
+            // Após a iteração, verificar se há uma sequência restante que atenda ao critério de comprimento
+            if (CleanPeptide(currentPeptide).Length >= minLength && CleanPeptide(currentPeptide).Length <= maxLength)
+            {
+
+                validPeptides.Add((currentPeptide, localScores));
+            }
+
+
+            return validPeptides;
         }
 
         // Method to find valid peptides based on minimum score and length

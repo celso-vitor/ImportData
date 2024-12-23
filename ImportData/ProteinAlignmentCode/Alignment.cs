@@ -14,6 +14,8 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
         public int ID { get; set; }
         public double Length { get; set; }
         public string SourceOrigin { get; set; }
+        public string SourceType { get; set; }
+        public string SourceSeq { get; set; }
         public string TargetOrigin { get; set; }
         public double Identity { get; set; }
         public double NormalizedIdentityScore { get; set; }

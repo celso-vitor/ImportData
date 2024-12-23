@@ -180,14 +180,13 @@ namespace SequenceAssemblerLogic.AssemblyTools
         //---------------------------------------------------------------------------------------
 
         // Consenso Local Alignment
-        public static (List<(char Char, bool IsFromReference, bool IsDifferent)>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
+        public static (List<(char Char, bool IsFromReference, bool IsDifferent)>, List<char>, List<char>, double) BuildConsensus(List<Alignment> sequencesToAlign, string referenceSequence)
         {
             if (sequencesToAlign == null || !sequencesToAlign.Any())
             {
                 throw new InvalidOperationException("The list of sequences to align is empty.");
             }
 
-        
             int maxLength = Math.Max(
                 sequencesToAlign
                     .Where(seq => seq.StartPositions != null && seq.StartPositions.Any())
@@ -195,15 +194,17 @@ namespace SequenceAssemblerLogic.AssemblyTools
                 referenceSequence.Length);
 
             List<(char Char, bool IsFromReference, bool IsDifferent)> consensusSequence = new List<(char Char, bool IsFromReference, bool IsDifferent)>();
-            int totalSequences = sequencesToAlign.Count;
-            int coveredPositions = 0; 
+            List<char> consensusWithTemplateChars = new List<char>();
+            List<char> consensusWithGaps = new List<char>();
             int referenceLength = referenceSequence.Length;
+            HashSet<int> coveredPositions = new HashSet<int>(); // Usado para calcular a cobertura
 
             for (int i = 0; i < maxLength; i++)
             {
                 var column = new List<char>();
                 bool fromReferenceOnly = false;
 
+                // Adiciona o caractere da sequência de referência na posição atual
                 if (i < referenceSequence.Length)
                 {
                     column.Add(referenceSequence[i]);
@@ -225,6 +226,7 @@ namespace SequenceAssemblerLogic.AssemblyTools
                         {
                             column.Add(charToAdd);
                             fromReferenceOnly = false;
+                            coveredPositions.Add(i); // Adiciona a posição coberta no conjunto
                         }
                     }
                 }
@@ -233,47 +235,53 @@ namespace SequenceAssemblerLogic.AssemblyTools
                 bool isDifferent = column.Any(c => c != consensusChar && c != '-');
                 consensusSequence.Add((consensusChar, fromReferenceOnly, isDifferent));
 
-                if (!fromReferenceOnly)
-                {
-                    coveredPositions++; 
-                }
-
-               
+                // Adiciona o caractere correspondente para as duas versões de consenso
+                consensusWithTemplateChars.Add(fromReferenceOnly ? referenceSequence[i] : consensusChar);
+                consensusWithGaps.Add(fromReferenceOnly ? '-' : consensusChar);
             }
 
+            // Calcula a cobertura baseada nas posições cobertas e o comprimento da sequência de referência
+            double overallCoverage = (double)coveredPositions.Count / referenceLength * 100;
 
-            double overallCoverage = (double)coveredPositions / referenceLength * 100;
-
-            return (consensusSequence, overallCoverage);
+            return (consensusSequence, consensusWithTemplateChars, consensusWithGaps, overallCoverage);
         }
 
-        public static void SaveConsensusToFile(string referenceSequence, List<char> consensusChars, string id, string description)
+        public static void SaveConsensusToFile(string referenceSequence, List<char> consensusWithTemplateChars, List<char> consensusWithGaps, string id, string description)
         {
             string path = Path.Combine("..", "..", "..", "Debug", "local_consensus_log.txt");
             StringBuilder consensusString = new StringBuilder();
 
-            // Assemble the content to be saved
+            // Montar o conteúdo que será salvo
             consensusString.AppendLine($"ID: {id} - Description: {description}");
             consensusString.AppendLine("Reference Sequence:");
             consensusString.AppendLine(referenceSequence);
-            consensusString.AppendLine("Consensus Sequence:");
-            foreach (var consensusChar in consensusChars)
+
+            // Salvando o consenso com as letras do template
+            consensusString.AppendLine("Consensus with Template Characters:");
+            foreach (var consensusChar in consensusWithTemplateChars)
             {
                 consensusString.Append(consensusChar);
             }
             consensusString.AppendLine();
 
-            // Check if the content already exists in the file
+            // Salvando o consenso com gaps nos lugares não preenchidos
+            consensusString.AppendLine("Consensus with Gaps:");
+            foreach (var consensusChar in consensusWithGaps)
+            {
+                consensusString.Append(consensusChar);
+            }
+            consensusString.AppendLine();
+
+            // Verificar se o conteúdo já existe no arquivo
             if (File.Exists(path) && File.ReadAllText(path).Contains(consensusString.ToString()))
             {
-                
+                // Se o conteúdo já existir, não faça nada
                 return;
             }
 
-            // Append the new content to the file
+            // Append o novo conteúdo ao arquivo
             File.AppendAllText(path, consensusString.ToString());
         }
-
 
 
 

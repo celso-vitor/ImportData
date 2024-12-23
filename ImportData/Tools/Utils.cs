@@ -110,9 +110,13 @@ namespace SequenceAssemblerLogic.Tools
         }
 
 
-        public static List<(string folder, string sequence, string identificationMethod)> GetSourceOrigins(List<string> filteredSequences, Dictionary<string, List<IDResult>> deNovoDictTemp, Dictionary<string, List<IDResult>> psmDictTemp)
+        public static (List<(string folder, string sequence, string identificationMethod)> sourceOrigins, Dictionary<string, int> folderUsageCount) GetSourceOrigins(
+      List<string> filteredSequences,
+      Dictionary<string, List<IDResult>> deNovoDictTemp,
+      Dictionary<string, List<IDResult>> psmDictTemp)
         {
             List<(string folder, string sequence, string identificationMethod)> sourceOrigins = new();
+            Dictionary<string, int> folderUsageCount = new();
 
             foreach (var seq in filteredSequences)
             {
@@ -123,6 +127,16 @@ namespace SequenceAssemblerLogic.Tools
 
                     // Add Peptide and Folder as source Origins
                     sourceOrigins.Add((folder, peptideorigin, "DeNovo"));
+
+                    // Increment count for the folder
+                    if (folderUsageCount.ContainsKey(folder))
+                    {
+                        folderUsageCount[folder]++;
+                    }
+                    else
+                    {
+                        folderUsageCount[folder] = 1;
+                    }
                 }
                 else if (psmDictTemp.Values.SelectMany(v => v).Any(item => item.CleanPeptide == seq))
                 {
@@ -131,6 +145,16 @@ namespace SequenceAssemblerLogic.Tools
 
                     // Add Peptide and Folder as source Origins
                     sourceOrigins.Add((folder, peptideorigin, "PSM"));
+
+                    // Increment count for the folder
+                    if (folderUsageCount.ContainsKey(folder))
+                    {
+                        folderUsageCount[folder]++;
+                    }
+                    else
+                    {
+                        folderUsageCount[folder] = 1;
+                    }
                 }
                 else
                 {
@@ -139,9 +163,7 @@ namespace SequenceAssemblerLogic.Tools
                 }
             }
 
-            return sourceOrigins;
+            return (sourceOrigins, folderUsageCount);
         }
-
-
     }
 }

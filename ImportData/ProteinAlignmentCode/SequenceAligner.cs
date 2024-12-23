@@ -309,7 +309,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             int endLarge = 0;
             int endSmall = 0;
             int matchesSimilarity = 0;
-            int gapsUsed = 0;
             int similarityScore = 0;
 
             for (int i = 0; i <= largeLen; i++) dp[i, 0] = 0;
@@ -321,9 +320,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 {
                     int substitutionScore = GetSubstitutionScore(largeSeq[i - 1], smallSeq[j - 1]);
                     int match = dp[i - 1, j - 1] + substitutionScore;
-                    int delete = dp[i - 1, j] + GapPenalty;
-                    int insert = dp[i, j - 1] + GapPenalty;
-                    dp[i, j] = Math.Max(0, Math.Max(match, Math.Max(delete, insert)));
+                    dp[i, j] = Math.Max(0, match);
 
                     if (dp[i, j] > maxScore)
                     {
@@ -338,7 +335,7 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
             string alignedLarge = "";
             int startLarge = endLarge;
 
-            while (endLarge > 0 && endSmall > 0 && gapsUsed < MaxGaps)
+            while (endLarge > 0 && endSmall > 0)
             {
                 int substitutionScore = GetSubstitutionScore(largeSeq[endLarge - 1], smallSeq[endSmall - 1]);
                 if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall - 1] + substitutionScore)
@@ -350,19 +347,9 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                     endLarge--;
                     endSmall--;
                 }
-                else if (dp[endLarge, endSmall] == dp[endLarge - 1, endSmall] + GapPenalty)
-                {
-                    alignedSmall = "-" + alignedSmall;
-                    alignedLarge = largeSeq[endLarge - 1] + alignedLarge;
-                    endLarge--;
-                    gapsUsed++;
-                }
                 else
                 {
-                    alignedSmall = smallSeq[endSmall - 1] + alignedSmall;
-                    alignedLarge = "-" + alignedLarge;
-                    endSmall--;
-                    gapsUsed++;
+                    break;
                 }
             }
 
@@ -419,7 +406,6 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
                 AlignedSmallSequence = alignedSmall,
                 StartPositions = startPositions,
                 NormalizedIdentityScore = Math.Round(normalizedIdentityScore),
-                GapsUsed = gapsUsed,
                 SimilarityScore = similarityScore,
                 NormalizedSimilarity = Math.Round((similarityScore / GetMaximumSimilarity(smallSeq)) * 100),
                 AlignedAA = alignedAA,
