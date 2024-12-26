@@ -51,7 +51,7 @@
                         <GroupBox Header="DeNovo">
                             <WrapPanel Margin="0,10,13,0">
                                 <Label Content="AA Score"/>
-                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="90" Minimum="0" Maximum="100"/>
+                                <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="0" Maximum="100"/>
                                 <Label Content="MinLength"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoMinLength" Value="5" Minimum="0" Maximum="20"/>
                                 <Label Content="MaxLength"/>
@@ -91,15 +91,11 @@
 
                 <Grid Margin="980,0,35,0">
                     <Grid.ColumnDefinitions>
-                        <!-- Coluna para Statistics -->
                         <ColumnDefinition Width="Auto"/>
-                        <!-- Espaçamento entre os GroupBoxes -->
                         <ColumnDefinition Width="20"/>
-                        <!-- Coluna para Fasta Statistics -->
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- GroupBox para Estatísticas -->
                     <GroupBox Header="Statistics" VerticalAlignment="Center" Height="130" Width="200" Grid.Column="0">
                         <Grid Margin="2,0,-2,0">
                             <Grid.ColumnDefinitions>
@@ -113,16 +109,12 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <!-- Informações de contagem -->
                             <Label Content="PSMs Total: " Grid.Row="0" Grid.Column="0" Margin="0,0,0,0"/>
                             <Label x:Name="LabelPSMCount" Content="?" Grid.Row="0" Margin="93,0,208,31" Grid.ColumnSpan="3" Grid.RowSpan="2"/>
-                            <!--<Label x:Name="PSMUsedCount" Content="?" Grid.Row="0" Grid.Column="2" Margin="161,0,0,31" Grid.ColumnSpan="2" Grid.RowSpan="2"/>-->
 
                             <Label Content="DeNovo Total: " Grid.Row="1" Grid.Column="0" Margin="0,5,0,0"/>
                             <Label x:Name="LabelDeNovoCount" Content="?" Grid.Row="1" Margin="93,5,208,0" Grid.ColumnSpan="3"/>
-                            <!--<Label x:Name="DeNovoUsedCount" Content="?" Grid.Row="1" Grid.Column="2" Margin="161,5,0,0" Grid.ColumnSpan="2"/>-->
 
-                            <!-- Ícones PSM e De Novo fixos na esquerda -->
                             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,51,190,-45">
                                 <Rectangle Width="20" Height="20" Fill="Green" Stroke="Black" StrokeThickness="1" Margin="5,0"/>
                                 <TextBlock Text="PSM" VerticalAlignment="Center" Margin="5,0"/>
@@ -133,14 +125,11 @@
                     </GroupBox>
 
 
-                    <!-- Espaçamento entre os GroupBoxes -->
                     <GridSplitter Width="16" HorizontalAlignment="Center" Grid.Column="1" Margin="0,10,0,0"/>
 
                     <GroupBox Header="Loaded Folders" x:Name="FastaInfoGroupBox" VerticalAlignment="Stretch" Grid.Column="2">
-                        <!-- ScrollViewer para permitir rolagem vertical -->
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel x:Name="FastaInfoStackPanel" Margin="0,0,0,20">
-                                <!-- Informações de contagem -->
                                 <TextBlock x:Name="LabelFastaID"/>
                                 <TextBlock x:Name="LabelPSMUsedCount"/>
                                 <TextBlock x:Name="LabelDeNovoUsedCount"/>
@@ -230,7 +219,6 @@
             </Grid>
         </Border>
 
-        <!-- Loading Overlay -->
         <Grid x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.RowSpan="2">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ProgressBar IsIndeterminate="True" Width="200" Height="30"/>

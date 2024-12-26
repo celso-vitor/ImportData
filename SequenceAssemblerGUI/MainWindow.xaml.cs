@@ -344,12 +344,11 @@ namespace SequenceAssemblerGUI
             int totalPsmRegistries = newParser.psmDictTemp.Values.Sum(list => list.Count);
             int totalDenovoRegistries = newParser.deNovoDictTemp.Values.Sum(list => list.Count);
 
-            // Pegar os valores dos filtros de comprimento e confiança local
-            int denovoMinSequenceLength = (int)IntegerUpDownDeNovoMinLength.Value; // Comprimento mínimo
-            int denovoMaxSequenceLength = (int)IntegerUpDownDeNovoMaxLength.Value; // Comprimento máximo
-            int denovoMinConfidence = (int)IntegerUpDownDeNovoScore.Value;   // Confiança local mínima
+            int denovoMinSequenceLength = (int)IntegerUpDownDeNovoMinLength.Value; 
+            int denovoMaxSequenceLength = (int)IntegerUpDownDeNovoMaxLength.Value; 
+            int denovoMinConfidence = (int)IntegerUpDownDeNovoScore.Value;   
 
-            // Processa o dicionário de DeNovo
+            // Process the DeNovo dictionary
             foreach (var kvp in newParser.DictDenovo)
             {
                 List<IDResult> listNovor = (from rg in kvp.Value
@@ -359,13 +358,12 @@ namespace SequenceAssemblerGUI
                 deNovoDictTemp.Add(kvp.Key, listNovor);
             }
 
-            // Processa o dicionário de PSM
+            // Process the PSM dictionary
             foreach (var kvp in newParser.DictPsm)
             {
                 psmDictTemp.Add(kvp.Key, kvp.Value.ToList());
             }
-
-            // Aplica filtros nos dicionários filtrados
+            // Apply filters to filtered dictionaries
             Parser.FilterDictMaxLengthDeNovo(denovoMaxSequenceLength, deNovoDictTemp);
 
             int psmMinSequenceLength = (int)IntegerUpDownPSMMinLength.Value;
@@ -377,31 +375,31 @@ namespace SequenceAssemblerGUI
             double filterPsmScore = (double)IntegerUpDownPSMScore.Value;
             Parser.FilterSequencesByScorePSM(filterPsmScore, psmDictTemp);
 
-            // Contagens para os PSM e DeNovo filtrados
+            // Counts for filtered PSM and DeNovo
             int filteredPsmCount = psmDictTemp.Values.Sum(list => list.Count);
             int filteredDeNovoCount = deNovoDictTemp.Values.Sum(list => list.Count);
 
-            // Atualiza a lista de sequências filtradas
+            // Update the list of filtered sequences
             filteredSequences = deNovoDictTemp.Values.SelectMany(v => v)
                                 .Union(psmDictTemp.Values.SelectMany(v => v))
                                 .Select(seq => seq.CleanPeptide)
                                 .Distinct()
                                 .ToList();
 
-            // Recalcula os alinhamentos com base nas sequências filtradas
+            // Recalculate alignments based on filtered sequences
             myAlignment = filteredSequences.Select(seq => new Alignment()).ToList();
 
-            // Atualiza a interface gráfica (GUI)
+            // Updates the graphical user interface (GUI)
             Dispatcher.Invoke(() =>
             {
                 UpdatePlot();
                 UpdateDataView();
 
-                // Atualiza as contagens exibidas na interface
+                // Updates the counts displayed in the interface
                 LabelPSMCount.Content = filteredPsmCount.ToString();
                 LabelDeNovoCount.Content = filteredDeNovoCount.ToString();
 
-                // Atualiza as informações detalhadas sobre alinhamento
+                // Update detailed alignment information
                 FastaInfoStackPanel.Children.Clear();
 
                 var folderInfo = string.Join("\n", psmDictTemp.Keys.Union(deNovoDictTemp.Keys).Select(folder =>
@@ -472,7 +470,7 @@ namespace SequenceAssemblerGUI
 
             if (openFileDialog.ShowDialog() == true)
             {
-                // Limpa apenas os valores visuais do painel `FastaInfoGroupBox`
+                // Clear only the visual values ​​from the `FastaInfoGroupBox` panel
                 ClearFastaInfo();
 
                 ShowLoadingIndicator();
@@ -503,10 +501,10 @@ namespace SequenceAssemblerGUI
         // Multiple Alignment
         private void MultipleAlignment(string[] fileNames)
         {
-            // Carregando os arquivos FASTA
+            // Loading FASTA files
             var loadedFastaFiles = fileNames.Select(FastaFormat.LoadFasta).ToList();
 
-            // Verificando se ao menos um arquivo FASTA foi carregado corretamente
+            // Checking if at least one FASTA file was loaded correctly
             if (loadedFastaFiles == null || loadedFastaFiles.Any(fasta => fasta == null || !fasta.Any()))
             {
                 Dispatcher.Invoke(() =>
@@ -516,10 +514,10 @@ namespace SequenceAssemblerGUI
                 return;
             }
 
-            // Armazenando as sequências FASTA carregadas
+            // Storing the loaded FASTA sequences
             var allFastaSequences = loadedFastaFiles.SelectMany(fasta => fasta).ToList();
 
-            // Verificando se há pelo menos duas sequências carregadas
+            // Checking if there are at least two sequences loaded
             if (allFastaSequences.Count < 2)
             {
                 Dispatcher.Invoke(() =>
@@ -531,7 +529,7 @@ namespace SequenceAssemblerGUI
 
             Console.WriteLine($"Carregadas {allFastaSequences.Count} sequências FASTA.");
 
-            // Realizando o alinhamento múltiplo de sequências usando Clustal
+            // Performing multiple sequence alignment using Clustal
             FastaFileParser fastaFileParser = new FastaFileParser();
             foreach (var file in fileNames)
             {
@@ -545,7 +543,7 @@ namespace SequenceAssemblerGUI
             var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
             Console.WriteLine("Alinhamento múltiplo de sequências completo.");
 
-            // Concatenando as sequências para o alinhamento
+            // Concatenating sequences for alignment
             Dictionary<string, (string Sequence, string Description)> concatenatedSequences = new();
 
             foreach (var seq in msaResult.alignments)
@@ -566,13 +564,19 @@ namespace SequenceAssemblerGUI
                 .OrderBy(tuple => tuple.Key)
                 .ToList();
 
-            // Verificando se há sequências filtradas
+            // Checking for filtered sequences
             if (filteredSequences != null && filteredSequences.Any())
             {
-                // Obtendo as origens das sequências e a contagem de uso dos folders
                 var (sourceOrigins, folderUsageCount) = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
 
-                // Parâmetros de filtro
+                // Displaying the origins in the console
+                Console.WriteLine("Origens das sequências filtradas:");
+                foreach (var origin in sourceOrigins)
+                {
+                    Console.WriteLine($"Origem: {origin.folder}, Sequência: {origin.sequence}, Método de Identificação: {origin.identificationMethod}");
+                }
+
+                // Filter parameters
                 int minNormalizedIdentityScore = 0, minNormalizedSimilarity = 0, minLengthFilter = 0;
 
                 Dispatcher.Invoke(() =>
@@ -582,14 +586,17 @@ namespace SequenceAssemblerGUI
                     minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
                 });
 
-                // Filtrando sequências por comprimento normalizado
+                // Filtering sequences by normalized length
                 filteredSequences = Utils.FilterSequencesByNormalizedLength(filteredSequences,
                     string.Join("", allFastaSequences.Select(f => f.Sequence)), minLengthFilter);
 
                 SequenceAligner alignerMsa = new SequenceAligner();
                 myAlignment = new List<Alignment>();
 
-                // Realizando o alinhamento
+                // Counters for origins
+                int psmUsedCount = 0, deNovoUsedCount = 0;
+
+                // Performing the alignment
                 foreach (var sequence in alignedSequences)
                 {
                     myAlignment.AddRange(filteredSequences.Select((seq, index) =>
@@ -600,12 +607,29 @@ namespace SequenceAssemblerGUI
                             $"Identification Method: {sourceOrigins[index].identificationMethod}");
 
                         alignmentResult.TargetOrigin = sequence.ID;
+
+                        // Assigning the origin according to the identification method
+                        if (sourceOrigins[index].identificationMethod == "PSM")
+                        {
+                            alignmentResult.SourceType = "PSM";  // Assigning the origin "PSM"
+                            alignmentResult.SourceOrigin = sourceOrigins[index].folder; // Assigning the folder origin
+                            psmUsedCount++;  // Incrementing the PSM counter
+                        }
+                        else if (sourceOrigins[index].identificationMethod == "DeNovo")
+                        {
+                            alignmentResult.SourceType = "DeNovo";  // Assigning the origin "DeNovo"
+                            alignmentResult.SourceOrigin = sourceOrigins[index].folder; // Assigning the folder origin
+                            deNovoUsedCount++;  // Incrementing the DeNovo counter
+                        }
+
+                        // Printing the origin and counter to the console
+                        Console.WriteLine($"Sequência {sequence.ID} - Origem: {alignmentResult.SourceType}, Identificação: {sourceOrigins[index].identificationMethod}, PSM Contagem: {psmUsedCount}, DeNovo Contagem: {deNovoUsedCount}");
+
                         return alignmentResult;
                     }));
                 }
 
-       
-                // Atualizando a interface
+                // Updating the interface
                 Dispatcher.Invoke(() =>
                 {
                     UpdateViewMultipleModel(alignedSequences, FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter));
@@ -622,11 +646,12 @@ namespace SequenceAssemblerGUI
         }
 
 
+
         private void UpdateMultiAlignmentTable()
         {
             Dispatcher.Invoke(() =>
             {
-                // Limpando a interface antes de adicionar novas informações
+                // Cleaning up the interface before adding new information
                 FastaInfoStackPanel.Children.Clear();
 
                 // Obtendo os valores dos filtros aplicados
@@ -634,48 +659,64 @@ namespace SequenceAssemblerGUI
                 int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-                // Filtrando os alinhamentos com base nos filtros
+                // Filtering alignments based on filters
                 var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
-                // Contagem de PSMs e DeNovos usados após filtro
-                int psmUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("PSM"));
-                int deNovoUsedCount = filteredAlignments.Count(a => a.SourceOrigin.Contains("DeNovo"));
+                // Adding logs to verify the data
+                Console.WriteLine("Filtered Alignments:");
+                foreach (var alignment in filteredAlignments)
+                {
+                    Console.WriteLine($"SourceOrigin: {alignment.SourceOrigin}, SourceType: {alignment.SourceType}");
+                }
 
-                // Inicializa um dicionário para calcular o total de PSMs e DeNovos por folder
-                var folderCountsTotal = filteredAlignments
-                    .GroupBy(a => a.TargetOrigin)
-                    .ToDictionary(
-                        group => group.Key,
-                        group => (
-                            PSMCount: group.Count(a => a.SourceOrigin.Contains("PSM")),
-                            DeNovoCount: group.Count(a => a.SourceOrigin.Contains("DeNovo"))
-                        )
-                    );
+                // Count of PSMs and DeNovos used after filter (now using SourceType)
+                int psmUsedCount = filteredAlignments.Count(a => a.SourceType == "PSM");
+                int deNovoUsedCount = filteredAlignments.Count(a => a.SourceType == "DeNovo");
 
-                // Variáveis para o total geral de PSMs e DeNovos
-                int totalPsmCount = folderCountsTotal.Sum(folder => folder.Value.PSMCount);
-                int totalDeNovoCount = folderCountsTotal.Sum(folder => folder.Value.DeNovoCount);
+                Console.WriteLine($"PSM Count: {psmUsedCount}, DeNovo Count: {deNovoUsedCount}");
 
-                // Criando o bloco de texto para exibir as informações
+                // Calculating the count of PSMs and DeNovos per folder (SourceOrigin)
+                var folderCountsTotal = new Dictionary<string, (int PSMCount, int DeNovoCount)>();
+                foreach (var alignment in filteredAlignments)
+                {
+                    var folder = alignment.SourceOrigin;
+
+                    // Counting PSMs
+                    if (alignment.SourceType.Contains("PSM"))
+                    {
+                        if (!folderCountsTotal.ContainsKey(folder))
+                            folderCountsTotal[folder] = (0, 0);
+
+                        var currentCounts = folderCountsTotal[folder];
+                        folderCountsTotal[folder] = (currentCounts.PSMCount + 1, currentCounts.DeNovoCount);
+                    }
+                    // Counting DeNovo
+                    else if (alignment.SourceType.Contains("DeNovo"))
+                    {
+                        if (!folderCountsTotal.ContainsKey(folder))
+                            folderCountsTotal[folder] = (0, 0);
+
+                        var currentCounts = folderCountsTotal[folder];
+                        folderCountsTotal[folder] = (currentCounts.PSMCount, currentCounts.DeNovoCount + 1);
+                    }
+                }
+
+                // Creating the text block to display the information
                 var alignmentInfo = new TextBlock();
 
-                // Adiciona as informações principais
+                // Add the main information
                 alignmentInfo.Text = "\n" +
                                      $"Filtered PSM Count: {psmUsedCount}\n" +
                                      $"Filtered DeNovo Count: {deNovoUsedCount}\n\n";
 
-                // Adiciona as sequências individualmente
-                alignmentInfo.Text += "ID Sequences:\n";
-                foreach (var sequence in filteredAlignments.Select(a => a.TargetOrigin).Distinct())
+                // Add folder counts
+                alignmentInfo.Text += "Folders used in total:\n";
+                foreach (var folder in folderCountsTotal)
                 {
-                    alignmentInfo.Text += $"{sequence}\n";
+                    alignmentInfo.Text += $"{folder.Key}: PSM = {folder.Value.PSMCount}, DeNovo = {folder.Value.DeNovoCount}\n";
                 }
 
-                // Adiciona o total de folders utilizados
-                alignmentInfo.Text += "\nFolders used in total:\n" +
-                                      $"PSM: {totalPsmCount}, DeNovo: {totalDeNovoCount}\n";
-
-                // Exibe as informações na interface gráfica
+                // Displays the information in the graphical interface
                 FastaInfoStackPanel.Children.Add(alignmentInfo);
             });
         }
@@ -733,7 +774,6 @@ namespace SequenceAssemblerGUI
 
                 int psmUsedCount = 0;
                 int deNovoUsedCount = 0;
-                //int folder = 0;
                 var (sourceOrigins, folderUsageCount) = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
                 myAlignment = new List<Alignment>();
 
@@ -741,23 +781,23 @@ namespace SequenceAssemblerGUI
                 {
                     Console.WriteLine($"Processing fasta sequence: {fastaSequence.ID}");
 
-                    // Filtrando os alinhamentos para cada sequência FASTA
+                    // Filtering the alignments for each FASTA sequence
                     var alignments = filteredSequences.Select((seq, index) =>
                     {
                         var alignment = aligner.AlignerLocal(fastaSequence.Sequence, seq, "Sequence: " + sourceOrigins[index].sequence + " Origin: " + sourceOrigins[index].folder + " Identification Method: " + sourceOrigins[index].identificationMethod);
-                        alignment.TargetOrigin = fastaSequence.ID; // Adiciona a origem alvo ao alinhamento
+                        alignment.TargetOrigin = fastaSequence.ID; // Adds the target origin to the alignment
 
-                        // Lógica de contagem para PSM e DeNovo
+                        // Counting logic for PSM and DeNovo
                         if (sourceOrigins[index].identificationMethod == "PSM")
                         {
                             psmUsedCount++;
-                            alignment.SourceOrigin = sourceOrigins[index].folder; // Preserva a origem PSM
-                            alignment.SourceType = "PSM"; // Define o tipo de origem como "PSM"
+                            alignment.SourceOrigin = sourceOrigins[index].folder; // Preserves PSM origin
+                            alignment.SourceType = "PSM"; // Set the source type to "PSM"
 
-                            // Preserva a sequência de origem
-                            alignment.SourceSeq = sourceOrigins[index].sequence;  // Preservando a sequência do PSM
+                            // Preserves the source sequence
+                            alignment.SourceSeq = sourceOrigins[index].sequence;  // Preserving the PSM sequence
 
-                            // Atualiza a contagem de PSM para o folder específico
+                            // Update the PSM count for the specific folder
                             if (folderCounts.ContainsKey(sourceOrigins[index].folder))
                             {
                                 var currentCounts = folderCounts[sourceOrigins[index].folder];
@@ -765,19 +805,19 @@ namespace SequenceAssemblerGUI
                             }
                             else
                             {
-                                folderCounts[sourceOrigins[index].folder] = (1, 0); // Inicializa o contador para PSM
+                                folderCounts[sourceOrigins[index].folder] = (1, 0); // Initialize the counter for PSM
                             }
                         }
                         else if (sourceOrigins[index].identificationMethod == "DeNovo")
                         {
                             deNovoUsedCount++;
-                            alignment.SourceOrigin = sourceOrigins[index].folder; // Preserva a origem DeNovo
-                            alignment.SourceType = "DeNovo"; // Define o tipo de origem como "DeNovo"
+                            alignment.SourceOrigin = sourceOrigins[index].folder; // Preserves the origin DeNovo
+                            alignment.SourceType = "DeNovo"; // Set the source type to "DeNovo"
 
-                            // Preserva a sequência de origem
-                            alignment.SourceSeq = sourceOrigins[index].sequence;  // Preservando a sequência do DeNovo
+                            // Preserves the source sequence
+                            alignment.SourceSeq = sourceOrigins[index].sequence;  // Preserving the DeNovo sequence
 
-                            // Atualiza a contagem de DeNovo para o folder específico
+                            // Update the DeNovo count for the specific folder
                             if (folderCounts.ContainsKey(sourceOrigins[index].folder))
                             {
                                 var currentCounts = folderCounts[sourceOrigins[index].folder];
@@ -785,7 +825,7 @@ namespace SequenceAssemblerGUI
                             }
                             else
                             {
-                                folderCounts[sourceOrigins[index].folder] = (0, 1); // Inicializa o contador para DeNovo
+                                folderCounts[sourceOrigins[index].folder] = (0, 1); // Initialize the counter for DeNovo
                             }
                         }
 
@@ -820,33 +860,33 @@ namespace SequenceAssemblerGUI
         {
             Dispatcher.Invoke(() =>
             {
-                // Obtendo os valores dos filtros aplicados
+                // Getting the values ​​of the applied filters
                 int minNormalizedIdentityScore = IdentityUpDown.Value ?? 0;
                 int minNormalizedSimilarity = NormalizedSimilarityUpDown.Value ?? 0;
                 int minLengthFilter = IntegerUpDownMinimumLength.Value ?? 0;
 
-                // Filtrando os alinhamentos com base nos filtros
+                // Filtering alignments based on filters
                 var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
-                // Limpa o StackPanel antes de adicionar novos itens
+                // Clears StackPanel before adding new items
                 var fastaInfoStackPanel = this.FindName("FastaInfoStackPanel") as StackPanel;
                 if (fastaInfoStackPanel != null)
                 {
                     fastaInfoStackPanel.Children.Clear();
                 }
 
-                // Processamento por sequência FASTA
+                // FASTA sequence processing
                 foreach (var fastaSequence in allFastaSequences)
                 {
-                    // Inicializando contadores para cada sequência
+                    // Initializing counters for each sequence
                     int psmUsedCount = 0;
                     int deNovoUsedCount = 0;
                     var folderCounts = new Dictionary<string, (int PSMCount, int DeNovoCount)>();
-
-                    // Filtrando os alinhamentos para a sequência FASTA atual
+                     
+                    // Filtering alignments for the current FASTA sequence
                     var sequenceAlignments = filteredAlignments.Where(a => a.TargetOrigin == fastaSequence.ID);
 
-                    // Processando os alinhamentos filtrados para cada sequência FASTA
+                    // Processing the filtered alignments for each FASTA sequence
                     foreach (var alignment in sequenceAlignments)
                     {
                         var folder = alignment.SourceOrigin;
@@ -871,10 +911,10 @@ namespace SequenceAssemblerGUI
                         }
                     }
 
-                    // Atualiza os TextBlocks com os valores da sequência
+                    // Update the TextBlocks with the sequence values
                     if (fastaInfoStackPanel != null)
                     {
-                        // Cria os TextBlocks para cada sequência
+                        // Create the TextBlocks for each sequence
                         var fastaInfo = new StackPanel
                         {
                             Orientation = Orientation.Vertical,
@@ -902,29 +942,29 @@ namespace SequenceAssemblerGUI
                             Text = $"Folders Used:\n{folderInfo}"
                         };
 
-                        // Adiciona os TextBlocks ao StackPanel
+                        // Adds TextBlocks to the StackPanel
                         fastaInfo.Children.Add(labelFastaID);
                         fastaInfo.Children.Add(labelPSMUsedCount);
                         fastaInfo.Children.Add(labelDeNovoUsedCount);
                         fastaInfo.Children.Add(labelFoldersUsed);
 
-                        // Adiciona ao StackPanel principal
+                        // Adds to main StackPanel
                         fastaInfoStackPanel.Children.Add(fastaInfo);
                     }
                 }
 
-                // Atualiza o modelo local após os filtros
+                // Update local model after filters
                 UpdateLocalModel(allFastaSequences, filteredAlignments);
 
-                // Log geral de PSM e DeNovo usados
+                // General log of PSM and DeNovo used
                 int psmUsedCountTotal = filteredAlignments.Count(a => a.SourceType.Contains("PSM"));
                 int deNovoUsedCountTotal = filteredAlignments.Count(a => a.SourceType.Contains("DeNovo"));
 
-                // Log dos valores para depuração
+                // Log values ​​for debugging
                 Console.WriteLine($"PSM Used Count: {psmUsedCountTotal}");
                 Console.WriteLine($"DeNovo Used Count: {deNovoUsedCountTotal}");
 
-                // Log geral dos folders e suas contagens
+                //General log of folders and their counts
                 var folderCountsTotal = new Dictionary<string, (int PSMCount, int DeNovoCount)>();
                 foreach (var alignment in filteredAlignments)
                 {
@@ -948,7 +988,7 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Atualizando a interface com os valores totais
+                // Updating the interface with the total values
                 Console.WriteLine("Folders used in total:");
                 foreach (var folder in folderCountsTotal)
                 {
@@ -987,23 +1027,23 @@ namespace SequenceAssemblerGUI
         {
             Dispatcher.Invoke(() =>
             {
-                // Limpa os TextBlocks específicos da interface
+                //Clears interface-specific TextBlocks
                 LabelFastaID.Text = string.Empty;
                 LabelPSMUsedCount.Text = string.Empty;
                 LabelDeNovoUsedCount.Text = string.Empty;
                 LabelFoldersUsed.Text = string.Empty;
 
-                // Opcional: Limpa outras crianças do StackPanel se necessário
+                // Optional: Clears other children of the StackPanel if necessary
                 FastaInfoStackPanel.Children.Clear();
             });
         }
-        // Update Alignments
+
         // Update Alignments
         private void ButtonUpdate_Assembly(object sender, RoutedEventArgs e)
         {
             ShowLoadingIndicator();
 
-            // Inicia uma tarefa assíncrona em um thread separado
+            // Start an asynchronous task in a separate thread
             Task.Run(() =>
             {
                 try
@@ -1018,46 +1058,46 @@ namespace SequenceAssemblerGUI
                         return;
                     }
 
-                    // Obter valores dos filtros da UI
+                    // Get UI filter values
                     int minNormalizedIdentityScore = 0;
                     int minNormalizedSimilarity = 0;
                     int minLengthFilter = 0;
 
-                    // Usar o Dispatcher.Invoke para garantir que a UI tenha os valores mais recentes
+                    // Use Dispatcher.Invoke to ensure the UI has the latest values
                     Dispatcher.Invoke(() =>
                     {
                         minNormalizedIdentityScore = (int)IdentityUpDown.Value;
                         minNormalizedSimilarity = (int)NormalizedSimilarityUpDown.Value;
                         minLengthFilter = (int)IntegerUpDownMinimumLength.Value;
 
-                        // Debug: Verificar os valores dos filtros
+                        // Debug: Check filter values
                         Console.WriteLine($"minNormalizedIdentityScore: {minNormalizedIdentityScore}, minNormalizedSimilarity: {minNormalizedSimilarity}, minLengthFilter: {minLengthFilter}");
                     });
 
-                    // Filtrar os alinhamentos com base nos valores dos filtros
+                    // Filter alignments based on filter values
                     var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
-                    // Contagem de PSMs e DeNovos usados
+                    // Count of PSMs and DeNovos used
                     int psmUsedCount = filteredAlignments.Count(a => a.SourceType.Contains("PSM"));
                     int deNovoUsedCount = filteredAlignments.Count(a => a.SourceType.Contains("DeNovo"));
 
-                    // Log para depuração
+                    // Log for debugging
                     Console.WriteLine($"PSM Used Count: {psmUsedCount}");
                     Console.WriteLine($"DeNovo Used Count: {deNovoUsedCount}");
 
 
-                    // Atualizando o modelo na interface
+                    // Updating the model in the interface
                     Dispatcher.Invoke(() =>
                     {
                         if (isMultipleAlignmentMode)
                         {
-                            // Atualiza a interface para o modo de múltiplos alinhamentos
+                            // Update the interface for multiple alignment mode
                             UpdateViewMultipleModel(alignedSequences, filteredAlignments);
                             UpdateMultiAlignmentTable();
                         }
                         else
                         {
-                            // Atualiza a interface para o modo de alinhamento local
+                            // Update the interface to local alignment mode
                             UpdateLocalModel(allFastaSequences, filteredAlignments);
                             UpdateLocalTable();
                         }
@@ -1065,7 +1105,7 @@ namespace SequenceAssemblerGUI
                 }
                 finally
                 {
-                    // Esconde o indicador de carregamento
+                    //Hides the charging indicator
                     Dispatcher.Invoke(HideLoadingIndicator);
                 }
             });

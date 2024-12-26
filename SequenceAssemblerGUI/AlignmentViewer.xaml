@@ -29,9 +29,7 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding ReferenceHeader}" FontWeight="Bold" FontSize="12"/>
 
-                                        <!-- Using a horizontally oriented StackPanel to align positions and letters -->
                                         <StackPanel Orientation="Horizontal">
-                                            <!-- Numbering reference letter positions with diagonal rotation -->
                                             <ItemsControl ItemsSource="{Binding ReferenceSequence}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -57,8 +55,7 @@
                                             </ItemsControl>
                                         </StackPanel>
 
-                                        <!-- Displaying letters of reference sequences -->
-                                        <ItemsControl ItemsSource="{Binding ReferenceSequence}" HorizontalAlignment="Left" Padding="0">
+                                        <ItemsControl ItemsSource="{Binding ReferenceSequence}" HorizontalAlignment="Left" Padding="0" >
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Background="{Binding CorDeFundo}" Width="20" Height="20" Margin="1">
@@ -84,7 +81,8 @@
                                         <ItemsControl ItemsSource="{Binding VisualAlignment}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}">
+                                                    <Border Width="20" Height="20" Margin="1" Background="{Binding CorDeFundo}" 
+                                                            BorderBrush="{Binding BorderBrush}" BorderThickness="2">
                                                         <Border.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock Text="{Binding ToolTipContent}" />

@@ -124,7 +124,18 @@ namespace SequenceAssemblerGUI
         {
             private string _letra;
             private Brush _corDeFundo;
-            private int _position;  // Nova propriedade para armazenar a posição da letra
+            private int _position;  
+            private Brush _borderBrush; 
+
+            public Brush BorderBrush
+            {
+                get => _borderBrush;
+                set
+                {
+                    _borderBrush = value;
+                    OnPropertyChanged();
+                }
+            }
 
             public string Letra
             {
@@ -140,7 +151,6 @@ namespace SequenceAssemblerGUI
 
             public string ToolTipContent { get; internal set; }
 
-            // Nova propriedade para armazenar a posição
             public int Position
             {
                 get { return _position; }
@@ -444,8 +454,8 @@ namespace SequenceAssemblerGUI
                         groupViewModel.ReferenceSequence.Add(new VisualAlignment
                         {
                             Letra = letter.ToString(),
-                            CorDeFundo = Brushes.WhiteSmoke,
-                            ToolTipContent = $"Position: {i + 1}, Letter: {letter}, ID: {fasta.ID}, Description: {fasta.Description}",
+                            CorDeFundo = Brushes.White,
+                            //ToolTipContent = $"Position: {i + 1}, Letter: {letter}, ID: {fasta.ID}, Description: {fasta.Description}",
                             Position = i + 1 // Definir a posição aqui
                         });
                     }
@@ -460,7 +470,7 @@ namespace SequenceAssemblerGUI
                             {
                                 Letra = " ",
                                 CorDeFundo = Brushes.WhiteSmoke,
-                                ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}, Description: {fasta.Description}"
+                                //ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}, Description: {fasta.Description}"
                             });
                         }
                     }
@@ -482,14 +492,14 @@ namespace SequenceAssemblerGUI
                         processedAlignments.Add(alignmentKey);
 
                         // Creating view models for the sequence and data table alignment.
-                        var sequenceViewModel = new SequencesViewModel
-                        {
-                            ToolTipContent = $"Start Position: {sequence.StartPositions.Max()} - Source: {sequence.SourceOrigin}"
-                        };
+                        var sequenceViewModel = new SequencesViewModel();
+                        //{
+                        //    ToolTipContent = $"Start Position: {sequence.StartPositions.Max()} - Source: {sequence.SourceOrigin}"
+                        //};
 
                         var dataTableViewModel = new DataTableAlign
                         {
-                            ToolTipContent = $"Start Position: {sequence.StartPositions.Max()} - Source: {sequence.SourceOrigin}",
+                            //ToolTipContent = $"Start Position: {sequence.StartPositions.Max()} - Source: {sequence.SourceOrigin}",
                             StartPositions = string.Join(",", sequence.StartPositions),
                             Identity = sequence.Identity,
                             NormalizedIdentityScore = sequence.NormalizedIdentityScore,
@@ -526,7 +536,7 @@ namespace SequenceAssemblerGUI
                             {
                                 Letra = " ",
                                 CorDeFundo = Brushes.WhiteSmoke,
-                                ToolTipContent = $"Position: {i + 1}, Letter: , ID: {sequence.SourceOrigin}"
+                                //ToolTipContent = $"Position: {i + 1}, Letter: , Folder: {sequence.SourceOrigin}"
                             });
                         }
 
@@ -569,14 +579,19 @@ namespace SequenceAssemblerGUI
                             }
                             else
                             {
-                                backgroundColor = Brushes.WhiteSmoke;
+                                backgroundColor = Brushes.White;
                             }
+
+                            Brush borderBrush = sequence.SourceType == "PSM"
+                                ? new SolidColorBrush(Color.FromRgb(34, 139, 34)) 
+                                : new SolidColorBrush(Color.FromRgb(218, 165, 32)); 
 
                             sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                             {
                                 Letra = letter,
                                 CorDeFundo = backgroundColor,
-                                ToolTipContent = $"Position: {refIndex + 1}, Letter: {letter}, ID: {sequence.SourceOrigin}"
+                                ToolTipContent = $"Position: {refIndex + 1}, Sequence: {sequence.SourceSeq}, Origin: {sequence.SourceOrigin}, Type: {sequence.SourceType}",
+                                BorderBrush = borderBrush,
                             });
                         }
 
@@ -604,8 +619,9 @@ namespace SequenceAssemblerGUI
                                 sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                                 {
                                     Letra = " ",
-                                    CorDeFundo = Brushes.WhiteSmoke,
-                                    ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}"
+                                    CorDeFundo = Brushes.White,
+                                    //ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}",
+                                    BorderBrush = Brushes.White
                                 });
                             }
                         }
@@ -617,6 +633,7 @@ namespace SequenceAssemblerGUI
                         viewModel.ReferenceGroups.Add(groupViewModel);
                     }
                 }
+
 
                 // Calculating and updating the consensus sequence.
                 var consensusDetails = new List<(int Position, char ConsensusChar, bool IsConsensus, bool IsDifferent)>();
@@ -634,7 +651,7 @@ namespace SequenceAssemblerGUI
                     if (!detail.IsConsensus && !detail.IsDifferent && consensusChar != 'X')
                     {
                         // Set background to white if the letter is from the template and no aligned fragments were found
-                        backgroundColor = Brushes.WhiteSmoke; // You can use Brushes.White here as well if you prefer
+                        backgroundColor = Brushes.White; // You can use Brushes.White here as well if you prefer
                     }
                     else if (detail.IsDifferent)
                     {
@@ -650,9 +667,10 @@ namespace SequenceAssemblerGUI
                     {
                         Letra = consensusChar.ToString(),
                         CorDeFundo = backgroundColor,
-                        ToolTipContent = $"Position: {detail.Position + 1}, Letter: {consensusChar}, IsConsensus: {detail.IsConsensus}, IsDifferent: {detail.IsDifferent}"
+                        //ToolTipContent = $"Position: {detail.Position + 1}, Letter: {consensusChar}, IsConsensus: {detail.IsConsensus}, IsDifferent: {detail.IsDifferent}"
                     });
                 }
+
 
                 // Saving the consensus and reference sequences to a file for MSA logging.
                 AssemblyParameters.SaveMSALogToFile(alignedSequences, consensusSequence.Select(c => c).ToList(), "MSA Consensus", "Multiple Sequence Alignment", isFirstEntry);

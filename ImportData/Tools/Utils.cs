@@ -12,7 +12,7 @@ namespace SequenceAssemblerLogic.Tools
     {
         public static List<Alignment> EliminateDuplicatesAndSubsequences(List<Alignment> input)
         {
-            // Ordena os alinhamentos pela extensão da AlignedSmallSequence.
+            // Sort the alignments by the length of the AlignedSmallSequence.
             input.Sort((x, y) => x.AlignedSmallSequence.Length.CompareTo(y.AlignedSmallSequence.Length));
 
             var result = new List<Alignment>();
@@ -33,7 +33,7 @@ namespace SequenceAssemblerLogic.Tools
                     string existingSequence = existingAlignment.AlignedSmallSequence;
                     string existingStartPositionString = existingAlignment.StartPositionsString;
 
-                    // Verifica se a posição inicial é a mesma antes de comparar as sequências
+                    // Check if the starting position is the same before comparing the sequences
                     if (startPositionString == existingStartPositionString)
                     {
                         if (IsSubsequence(existingSequence, alignedSequence))

@@ -78,28 +78,28 @@ namespace SequenceAssemblerGUI
                 {
                     string description = descriptionValueBox.Text;
 
-                    // Variável para armazenar o fragmento da sequência consenso
+                    // Variable to store the consensus sequence fragment
                     string consensusFragment = string.Empty;
 
-                    // Recuperar a sequência consenso e adicionar o intervalo à coleção
+                    // Retrieve the consensus sequence and add the range to the collection
                     if (DataContext is SequenceViewModel viewModel)
                     {
                         foreach (var groupViewModel in viewModel.ReferenceGroups)
                         {
-                            // Construir a sequência consenso a partir de ConsensusSequence
+                            // Construct the consensus sequence from ConsensusSequence
                             string consensusSequence = new string(groupViewModel.ConsensusSequence.Select(c => c.Char[0]).ToArray());
 
-                            // Extraia o fragmento correspondente ao intervalo definido
+                            // Extract the fragment corresponding to the defined range
                             consensusFragment = consensusSequence.Substring(start, end - start);
 
                             Console.WriteLine(consensusFragment);
 
-                            // Atualizar os quadrados de intervalo para refletir o novo intervalo
+                            // Update the range squares to reflect the new range
                             UpdateIntervalSquares(groupViewModel);
                         }
                     }
 
-                    // Adicionar o intervalo à IntervalDomains com o ConsensusFragment
+                    // Add the interval to IntervalDomains with the ConsensusFragment
                     IntervalDomains.Add(new IntervalDomain
                     {
                         Start = start,
@@ -108,7 +108,7 @@ namespace SequenceAssemblerGUI
                         ConsensusFragment = consensusFragment
                     });
 
-                    // Atualize novamente os quadrados para garantir que o novo domínio seja reconhecido
+                    // Refresh the squares to ensure the new domain is recognized
                     if (DataContext is SequenceViewModel updatedViewModel)
                     {
                         foreach (var groupViewModel in updatedViewModel.ReferenceGroups)
@@ -117,7 +117,7 @@ namespace SequenceAssemblerGUI
                         }
                     }
 
-                    // Fechar o popup
+                    // Close the popup
                     popup.IsOpen = false;
                 }
                 else
@@ -212,7 +212,7 @@ namespace SequenceAssemblerGUI
             private ObservableCollection<DataTableAlign> _alignmetns;
             private ObservableCollection<AlignmentsChar> _referenceSequence;
             private ObservableCollection<ConsensusChar> _consensusSequence;
-            private ObservableCollection<AlignmentsChar> _intervalSquares; // Nova coleção de intervalos
+            private ObservableCollection<AlignmentsChar> _intervalSquares; 
 
             private double _coverage;
 
@@ -260,7 +260,6 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            // Nova propriedade para armazenar os quadrados de intervalos
             public ObservableCollection<AlignmentsChar> IntervalSquares
             {
                 get => _intervalSquares;
@@ -289,7 +288,7 @@ namespace SequenceAssemblerGUI
                 Seq = new ObservableCollection<SequencesViewModel>();
                 ReferenceSequence = new ObservableCollection<AlignmentsChar>();
                 ConsensusSequence = new ObservableCollection<ConsensusChar>();
-                IntervalSquares = new ObservableCollection<AlignmentsChar>(); // Inicialização da coleção de intervalos
+                IntervalSquares = new ObservableCollection<AlignmentsChar>(); 
 
             }
 
@@ -305,7 +304,7 @@ namespace SequenceAssemblerGUI
         {
             private string _letter;
             private SolidColorBrush _backgroundColor;
-            private Brush _borderBrush; // Nova propriedade para a cor do contorno
+            private Brush _borderBrush; 
 
             public SolidColorBrush OriginalBackgroundColor { get; set; }
 
@@ -339,7 +338,7 @@ namespace SequenceAssemblerGUI
                 }
             }
 
-            public int Position { get; set; } // Propriedade para armazenar a posição
+            public int Position { get; set; }
 
             public string ToolTipContent { get; internal set; }
 
@@ -681,7 +680,7 @@ namespace SequenceAssemblerGUI
 
         public void UpdateUIWithAlignmentAndAssembly(SequenceViewModel viewModel, List<Alignment> sequencesToAlign, List<(string ID, string Description, string Sequence)> referenceSequences)
         {
-            // Armazena os IDs já processados para evitar duplicações
+            // Stores the IDs already processed to avoid duplications
             HashSet<string> processedIds = new HashSet<string>();
 
             foreach (var (id, description, referenceSequence) in referenceSequences)
@@ -693,21 +692,21 @@ namespace SequenceAssemblerGUI
                     Description = description
                 };
 
-                int position = 1;  // Inicialize a posição com 1
+                int position = 1;  // Initialize the position with 1
 
-                // Adiciona cada caractere da sequência de referência à coleção ReferenceSequence
+                // Add each character of the reference sequence to the ReferenceSequence collection
                 foreach (char letter in referenceSequence)
                 {
                     groupViewModel.ReferenceSequence.Add(new AlignmentsChar
                     {
                         Char = letter.ToString(),
-                        BackgroundColor = Brushes.White, // Preserva o fundo branco inicialmente
-                        Position = position // Atribui a posição para cada caractere
+                        BackgroundColor = Brushes.White, 
+                        Position = position 
                     });
-                    position++;  // Incrementa a posição
+                    position++;  
                 }
 
-                // Ordena as sequências para o alinhamento
+                // Sort the sequences for alignment
                 var sortedSequences = sequencesToAlign.OrderBy(seq => seq.StartPositions.Min()).ToList();
                 Dictionary<int, int> rowEndPositions = new Dictionary<int, int>();
 
@@ -735,7 +734,7 @@ namespace SequenceAssemblerGUI
 
                     groupViewModel.Alignments.Add(dataTableViewModel);
 
-                    // Lógica para preencher o alinhamento visual
+                    // Logic to fill the visual alignment
                     int startPosition = sequence.StartPositions.Min() - 1;
                     int rowIndex = SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.FindAvailableRow(rowEndPositions, startPosition, sequence.AlignedSmallSequence.Length);
 
@@ -755,7 +754,7 @@ namespace SequenceAssemblerGUI
                         int refIndex = startPosition++;
                         string letter;
 
-                        // Define o fundo como LightGreen por padrão
+                        
                         if (seqChar == '-')
                         {
                             backgroundColor = Brushes.LightGray;
@@ -765,29 +764,27 @@ namespace SequenceAssemblerGUI
                         {
                             if (seqChar == referenceSequence[refIndex])
                             {
-                                backgroundColor = Brushes.LightGreen;  // Mantém o LightGreen para correspondência
+                                backgroundColor = Brushes.LightGreen;  
                             }
                             else
                             {
-                                backgroundColor = Brushes.LightCoral;  // Define LightCoral para discrepâncias
+                                backgroundColor = Brushes.LightCoral;  
                             }
                             letter = seqChar.ToString();
                         }
                         else
                         {
-                            backgroundColor = Brushes.LightGray;  // Para posições além da referência
+                            backgroundColor = Brushes.LightGray; 
                             letter = seqChar.ToString();
                         }
 
-                        // Define a cor da borda com base no tipo de sequência (PSM ou De Novo)
                         Brush borderBrush = sequence.SourceType == "PSM" ? new SolidColorBrush(Color.FromRgb(34, 139, 34)) : new SolidColorBrush(Color.FromRgb(218, 165, 32));
 
-                        // Criação do objeto de alinhamento visual
                         var visualAlignment = new AlignmentsChar
                         {
                             Char = letter,
-                            BackgroundColor = backgroundColor,  // LightGreen ou LightCoral conforme a condição
-                            BorderBrush = borderBrush,          // Contorno verde para PSM e laranja/dourado para De Novo
+                            BackgroundColor = backgroundColor,  
+                            BorderBrush = borderBrush,          
                             ToolTipContent = $"Start Position: {sequence.StartPositions.Min()} - Sequence: {sequence.SourceSeq}, Origin: {sequence.SourceOrigin}, Type: {sequence.SourceType}"
                         };
 
@@ -806,7 +803,6 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Preenche os espaços restantes da sequência
                 foreach (var sequenceViewModel in groupViewModel.Seq)
                 {
                     int currentLength = sequenceViewModel.VisualAlignment.Count;
@@ -819,19 +815,19 @@ namespace SequenceAssemblerGUI
                     }
                 }
 
-                // Adicionar os dados de consenso
+                // Add the consensus data
                 var (consensusChars, consensusWithTemplateChars, consensusWithGaps, totalCoverage) = SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.BuildConsensus(sequencesToAlign, referenceSequence);
                 groupViewModel.ConsensusSequence = new ObservableCollection<ConsensusChar>();
 
-                // Usando consensusChars para manter as cores originais
+                // Using consensusChars to keep original colors
                 foreach (var (consensusChar, isFromReference, isDifferent) in consensusChars)
                 {
                     SolidColorBrush color;
-                    if (isFromReference) // Letras provenientes da sequência de referência
+                    if (isFromReference) 
                     {
                         color = Brushes.White;
                     }
-                    else if (consensusChar == '-') // Caso especial para gap
+                    else if (consensusChar == '-') 
                     {
                         color = Brushes.LightGray;
                     }
@@ -852,15 +848,15 @@ namespace SequenceAssemblerGUI
                     });
                 }
 
-                // Verifica se o ID já foi processado
+                // Check if the ID has already been processed
                 if (!processedIds.Contains(id))
                 {
-                    // Salva ambas as versões do consenso (com letras do template e com gaps)
+                    // Save both versions of the consensus (with template letters and with gaps)
                     SequenceAssemblerLogic.AssemblyTools.AssemblyParameters.SaveConsensusToFile(referenceSequence, consensusWithTemplateChars, consensusWithGaps, id, description);
                     processedIds.Add(id);
                 }
 
-                // Adiciona a cobertura ao grupo de referência
+                // Add coverage to the reference group
                 groupViewModel.Coverage = totalCoverage;
                 viewModel.ReferenceGroups.Add(groupViewModel);
             }
