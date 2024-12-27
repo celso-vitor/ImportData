@@ -10,64 +10,54 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <!-- Linha para a ProgressBar -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Painel Superior com CheckBox e Botão -->
         <StackPanel Orientation="Horizontal" Margin="10,0,10,10">
             <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="True" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="200,0,10,10">
-            <!-- Botão para abrir o popup de intervalo -->
 
-            <!-- Popup para inserir os valores do intervalo -->
-            <!-- Botão para abrir o popup de intervalo -->
             <Button x:Name="InsertRangeButton" Content="Insert Domains" Width="110" Height="20" Click="OnInsertRangeClick" />
 
-            <!-- Popup para inserir os valores do intervalo -->
             <Popup x:Name="RangePopup" Placement="Mouse" IsOpen="False">
-                <StackPanel Background="White" Width="150" Height="200">
-                    <TextBlock Text="Enter range:" Margin="5"/>
+                <StackPanel Background="White" Width="200" Height="250">
+                    <TextBlock Text="Select Sequence:" Margin="5"/>
+                    <ComboBox x:Name="SequenceSelector" Width="150" Margin="5" 
+                  ItemsSource="{Binding ReferenceGroups}" 
+                  DisplayMemberPath="ReferenceHeader"
+                  SelectedValuePath="ID"
+                  SelectedValue="{Binding SelectedSequenceId}" />
                     <TextBlock Text="Starting Position:" Margin="5"/>
-                    <TextBox x:Name="StartValueBox" Width="100" Margin="5"/>
+                    <TextBox x:Name="StartValueBox" Width="150" Margin="5"/>
                     <TextBlock Text="Final Position:" Margin="5"/>
-                    <TextBox x:Name="EndValueBox" Width="100" Margin="5"/>
-                    <TextBlock Text="Description" Margin="5"/>
-                    <TextBox x:Name="DescriptionValueBox" Width="120" Margin="5" />
+                    <TextBox x:Name="EndValueBox" Width="150" Margin="5"/>
+                    <TextBlock Text="Description:" Margin="5"/>
+                    <TextBox x:Name="DescriptionValueBox" Width="150" Margin="5" />
                     <Button Content="Apply" Width="100" Margin="5" Click="OnConfirmRangeClick"/>
                 </StackPanel>
             </Popup>
 
+
         </StackPanel>
 
-
-
-
-        <!-- Controle de Abas -->
         <TabControl Grid.Row="1">
-            <!-- Aba "Assembly Viewer" -->
             <TabItem Header="Assembly Viewer">
-                <!-- ScrollViewer Vertical para a lista de Expanders -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"                               PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
                     <ItemsControl ItemsSource="{Binding ReferenceGroups}" >
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- ScrollViewer Horizontal para o conteúdo de cada Expander, se necessário -->
                                 <Expander Header="{Binding DisplayHeader}" Margin="0,0,0,10">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                         <StackPanel>
                                             <Grid>
-                                                <!-- Definição das Linhas do Grid -->
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="Auto"/>
-                                                    <!-- Linha adicional para o quadrado abaixo -->
                                                 </Grid.RowDefinitions>
 
-                                                <!-- Primeira linha: Números em diagonal -->
                                                 <ItemsControl Grid.Row="0" ItemsSource="{Binding ReferenceSequence}">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -92,7 +82,6 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <!-- Segunda linha: Aminoácidos da sequência -->
                                                 <ItemsControl Grid.Row="1" ItemsSource="{Binding ReferenceSequence}" Margin="5,0,9,0">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
@@ -108,7 +97,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}">
+                                                <ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}" Margin="5,2,1,0">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <UniformGrid Rows="1" Columns="{Binding ReferenceSequence.Count, FallbackValue=50}" />
@@ -117,16 +106,18 @@
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <Border Background="{Binding BackgroundColor}" Width="20" Height="5" Margin="1"
-                    ToolTip="{Binding ToolTipContent}">
+            ToolTip="{Binding ToolTipContent}"
+            MouseLeftButtonDown="OnIntervalClick"
+            MouseRightButtonDown="OnSingleCharacterRemoveClick">
                                                                 <TextBlock Text="" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                         </DataTemplate>
+
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
                                             </Grid>
 
-                                            <!-- Alinhamentos da Sequência -->
                                             <ItemsControl ItemsSource="{Binding Seq}" Padding="4">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -140,7 +131,6 @@
                                                                     <DataTemplate>
                                                                         <Border Width="20" Height="20" Margin="1" Background="{Binding BackgroundColor}"
                 BorderBrush="{Binding BorderBrush}" BorderThickness="2">
-                                                                            <!-- Define o contorno -->
                                                                             <Border.ToolTip>
                                                                                 <ToolTip>
                                                                                     <TextBlock Text="{Binding ToolTipContent}" />
@@ -163,7 +153,6 @@
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
 
-                                            <!-- Grupo de Consenso da Assembly -->
                                             <GroupBox Header="Assembly Consensus" Height="80" Margin="0,10,0,0">
                                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                                     <ItemsControl ItemsSource="{Binding ConsensusSequence}">
@@ -194,14 +183,11 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- Aba "Alignments" -->
             <TabItem Header="Alignments">
-                <!-- ScrollViewer Vertical para a lista de Expanders -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding ReferenceGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <!-- ScrollViewer Horizontal para o conteúdo de cada Expander, se necessário -->
                                 <Expander Header="{Binding ReferenceHeader}" Margin="0,0,0,10">
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                                         <StackPanel>
@@ -250,7 +236,6 @@
 
         </TabControl>
 
-        <!-- Barra de Progresso -->
         <ProgressBar x:Name="progressBar" Grid.Row="2" Height="20" Margin="10" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

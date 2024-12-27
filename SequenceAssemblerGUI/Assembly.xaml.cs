@@ -18,6 +18,7 @@ using static SequenceAssemblerGUI.Assembly;
 using System.Text;
 using System.Windows.Input;
 using System.Windows.Controls.Primitives;
+using System.Text.RegularExpressions;
 
 
 namespace SequenceAssemblerGUI
@@ -29,6 +30,7 @@ namespace SequenceAssemblerGUI
         {
             public int Start { get; set; }
             public int End { get; set; }
+            public string SequenceId { get; set; }
             public string Description { get; set; }
             public string ConsensusFragment { get; set; }
         }
@@ -37,23 +39,26 @@ namespace SequenceAssemblerGUI
         {
             InitializeComponent();
 
+            // Initialize the ObservableCollection to store the intervals
             IntervalDomains = new ObservableCollection<IntervalDomain>();
 
+            // Create and configure the ViewModel (if necessary)
             var viewModel = new SequenceViewModel
             {
-                ColorIL = true // Set ColorIL to true initially
+                ColorIL = true // Set ColorIL to true by default
             };
 
             DataContext = viewModel;
 
-            // Bind the DataGrid to IntervalDomains
-            // Find the DataGrid by its name and set its ItemsSource
+            // Bind the DataGrid to the IntervalDomains collection
             var intervalDataGrid = (DataGrid)FindName("IntervalsDataGrid");
             if (intervalDataGrid != null)
             {
                 intervalDataGrid.ItemsSource = IntervalDomains;
             }
         }
+
+
 
         // Method to open the Insert Range Popup
         private void OnInsertRangeClick(object sender, RoutedEventArgs e)
@@ -71,54 +76,67 @@ namespace SequenceAssemblerGUI
             var startValueBox = (TextBox)FindName("StartValueBox");
             var endValueBox = (TextBox)FindName("EndValueBox");
             var descriptionValueBox = (TextBox)FindName("DescriptionValueBox");
+            var sequenceSelector = (ComboBox)FindName("SequenceSelector");
 
-            if (startValueBox != null && endValueBox != null && descriptionValueBox != null && popup != null)
+            // Validate inputs
+            if (startValueBox != null && endValueBox != null && descriptionValueBox != null
+                && sequenceSelector != null && popup != null)
             {
                 if (int.TryParse(startValueBox.Text, out int start) && int.TryParse(endValueBox.Text, out int end) && end >= start)
                 {
                     string description = descriptionValueBox.Text;
 
-                    // Variable to store the consensus sequence fragment
-                    string consensusFragment = string.Empty;
-
-                    // Retrieve the consensus sequence and add the range to the collection
-                    if (DataContext is SequenceViewModel viewModel)
+                    // Get the selected sequence ID
+                    if (sequenceSelector.SelectedValue is string selectedSequenceId &&
+                        DataContext is SequenceViewModel viewModel)
                     {
-                        foreach (var groupViewModel in viewModel.ReferenceGroups)
+                        var groupViewModel = viewModel.ReferenceGroups.FirstOrDefault(g => g.ID == selectedSequenceId);
+
+                        if (groupViewModel != null)
                         {
-                            // Construct the consensus sequence from ConsensusSequence
+                            // Retrieve the consensus sequence
                             string consensusSequence = new string(groupViewModel.ConsensusSequence.Select(c => c.Char[0]).ToArray());
 
-                            // Extract the fragment corresponding to the defined range
-                            consensusFragment = consensusSequence.Substring(start, end - start);
+                            // Adjust indices to base 0
+                            int startIndex = start - 1;
+                            int endIndex = end - 1;
 
-                            Console.WriteLine(consensusFragment);
+                            // Ensure the interval is within bounds
+                            if (startIndex >= 0 && endIndex < consensusSequence.Length)
+                            {
+                                // Get the consensus fragment for the selected interval
+                                string consensusFragment = consensusSequence.Substring(startIndex, endIndex - startIndex + 1);
 
-                            // Update the range squares to reflect the new range
-                            UpdateIntervalSquares(groupViewModel);
+                                // Add the interval to the collection
+                                IntervalDomains.Add(new IntervalDomain
+                                {
+                                    Start = start,
+                                    End = end,
+                                    Description = description,
+                                    ConsensusFragment = consensusFragment,
+                                    SequenceId = selectedSequenceId
+                                });
+
+                                // Update the interval squares for the selected sequence
+                                UpdateIntervalSquares(groupViewModel);
+
+                                // Close the popup
+                                popup.IsOpen = false;
+                            }
+                            else
+                            {
+                                MessageBox.Show("Interval out of bounds.");
+                            }
                         }
-                    }
-
-                    // Add the interval to IntervalDomains with the ConsensusFragment
-                    IntervalDomains.Add(new IntervalDomain
-                    {
-                        Start = start,
-                        End = end,
-                        Description = description,
-                        ConsensusFragment = consensusFragment
-                    });
-
-                    // Refresh the squares to ensure the new domain is recognized
-                    if (DataContext is SequenceViewModel updatedViewModel)
-                    {
-                        foreach (var groupViewModel in updatedViewModel.ReferenceGroups)
+                        else
                         {
-                            UpdateIntervalSquares(groupViewModel);
+                            MessageBox.Show("The selected sequence could not be found.");
                         }
                     }
-
-                    // Close the popup
-                    popup.IsOpen = false;
+                    else
+                    {
+                        MessageBox.Show("No sequence selected. Please select a sequence before applying the range.");
+                    }
                 }
                 else
                 {
@@ -127,17 +145,180 @@ namespace SequenceAssemblerGUI
             }
         }
 
+        private void OnIntervalClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border clickedBorder)
+            {
+                var toolTipContent = clickedBorder.ToolTip?.ToString();
+
+                if (!string.IsNullOrEmpty(toolTipContent))
+                {
+                    // Extract the start and end positions from the tooltip
+                    var match = Regex.Match(toolTipContent, @"Positions (\d+)-(\d+):");
+
+                    if (match.Success)
+                    {
+                        int start = int.Parse(match.Groups[1].Value);
+                        int end = int.Parse(match.Groups[2].Value);
+
+                        // Find the interval to remove
+                        var intervalToRemove = IntervalDomains.FirstOrDefault(d => d.Start == start && d.End == end);
+
+                        if (intervalToRemove != null)
+                        {
+                            // Remove the interval from the collection
+                            IntervalDomains.Remove(intervalToRemove);
+
+                            // Update the interval squares for the selected sequence
+                            if (DataContext is SequenceViewModel viewModel)
+                            {
+                                var groupViewModel = viewModel.ReferenceGroups
+                                    .FirstOrDefault(g => g.ID == intervalToRemove.SequenceId);
+
+                                if (groupViewModel != null)
+                                {
+                                    UpdateIntervalSquares(groupViewModel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void OnSingleCharacterRemoveClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border clickedBorder)
+            {
+                var toolTipContent = clickedBorder.ToolTip?.ToString();
+
+                if (!string.IsNullOrEmpty(toolTipContent))
+                {
+                    // Extract the start and end positions from the tooltip
+                    var match = Regex.Match(toolTipContent, @"Positions (\d+)-(\d+):");
+
+                    if (match.Success)
+                    {
+                        int start = int.Parse(match.Groups[1].Value);
+                        int end = int.Parse(match.Groups[2].Value);
+
+                        // Determine the clicked position within the interval
+                        if (clickedBorder.DataContext is AlignmentsChar alignmentChar)
+                        {
+                            int position = alignmentChar.Position;
+
+                            // Find the interval that contains the clicked position
+                            var interval = IntervalDomains.FirstOrDefault(d => d.Start <= position && d.End >= position);
+
+                            if (interval != null)
+                            {
+                                // Adjust the interval boundaries based on the clicked position
+                                if (interval.Start == interval.End)
+                                {
+                                    // If the interval has only one character, remove it
+                                    IntervalDomains.Remove(interval);
+                                }
+                                else if (position == interval.Start)
+                                {
+                                    interval.Start++;
+                                }
+                                else if (position == interval.End)
+                                {
+                                    interval.End--;
+                                }
+                                else
+                                {
+                                    // Split the interval into two, before and after the clicked position
+                                    IntervalDomains.Add(new IntervalDomain
+                                    {
+                                        Start = interval.Start,
+                                        End = position - 1,
+                                        Description = interval.Description,
+                                        ConsensusFragment = interval.ConsensusFragment.Substring(0, position - interval.Start),
+                                        SequenceId = interval.SequenceId
+                                    });
+
+                                    interval.Start = position + 1;
+                                }
+
+                                // After modifying the interval, update the ConsensusFragment for the modified interval(s)
+                                // Ensure that both the split and modified intervals have their fragments recalculated
+                                UpdateConsensusFragments();
+
+                                // After modifying intervals, update the DataGrid and the interval squares
+                                if (DataContext is SequenceViewModel viewModel)
+                                {
+                                    var groupViewModel = viewModel.ReferenceGroups
+                                        .FirstOrDefault(g => g.ID == interval.SequenceId);
+
+                                    if (groupViewModel != null)
+                                    {
+                                        // Update interval squares to reflect changes in intervals
+                                        UpdateIntervalSquares(groupViewModel);
+                                    }
+                                }
+
+                                // Now we ensure the DataGrid is updated to reflect the new state of IntervalDomains
+                                var intervalDataGrid = (DataGrid)FindName("IntervalsDataGrid");
+                                if (intervalDataGrid != null)
+                                {
+                                    intervalDataGrid.ItemsSource = null;  // Clear the existing data source
+                                    intervalDataGrid.ItemsSource = IntervalDomains;  // Set the updated data source
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        private void UpdateConsensusFragments()
+        {
+            foreach (var interval in IntervalDomains)
+            {
+                // Retrieve the group for the current interval
+                var groupViewModel = (DataContext as SequenceViewModel)?.ReferenceGroups
+                    .FirstOrDefault(g => g.ID == interval.SequenceId);
+
+                if (groupViewModel != null)
+                {
+                    // Get the consensus sequence for the group
+                    string consensusSequence = new string(groupViewModel.ConsensusSequence.Select(c => c.Char[0]).ToArray());
+
+                    // Adjust for 0-based indexing, so subtract 1 from the Start and End positions
+                    int startIndex = interval.Start - 1;
+                    int endIndex = interval.End - 1;
+
+                    // Ensure indices are within bounds
+                    if (startIndex >= 0 && endIndex < consensusSequence.Length)
+                    {
+                        // Recalculate the consensus fragment
+                        interval.ConsensusFragment = consensusSequence.Substring(startIndex, endIndex - startIndex + 1);
+                    }
+                    else
+                    {
+                        // If the interval is out of bounds, reset the fragment
+                        interval.ConsensusFragment = string.Empty;
+                    }
+                }
+            }
+        }
+
         private void UpdateIntervalSquares(ReferenceGroupViewModel groupViewModel)
         {
+            // Clear existing interval squares
             groupViewModel.IntervalSquares.Clear();
 
-            // Preencher os quadrados com base nas posições da ReferenceSequence
+            // Loop through the positions and check for intervals
             for (int i = 1; i <= groupViewModel.ReferenceSequence.Count; i++)
             {
+                // Find an interval that matches the position
                 var domain = IntervalDomains.FirstOrDefault(d => i >= d.Start && i <= d.End);
 
                 if (domain != null)
                 {
+                    // If an interval exists for this position, update it
                     groupViewModel.IntervalSquares.Add(new AlignmentsChar
                     {
                         Position = i,
@@ -148,6 +329,7 @@ namespace SequenceAssemblerGUI
                 }
                 else
                 {
+                    // If no interval exists for this position, leave it transparent
                     groupViewModel.IntervalSquares.Add(new AlignmentsChar
                     {
                         Position = i,
@@ -158,32 +340,12 @@ namespace SequenceAssemblerGUI
                 }
             }
 
+            // Notify the UI that IntervalSquares has changed
             groupViewModel.OnPropertyChanged(nameof(groupViewModel.IntervalSquares));
         }
 
 
 
-        //private void ColorQuadradosComToolTip(ReferenceGroupViewModel groupViewModel, int start, int end, string tooltipDescription)
-        //{
-        //    // Itera sobre a sequência de visualização (os quadrados)
-        //    foreach (var sequenceViewModel in groupViewModel.Seq)
-        //    {
-        //        for (int i = 0; i < sequenceViewModel.VisualAlignment.Count; i++)
-        //        {
-        //            var alignmentChar = sequenceViewModel.VisualAlignment[i];
-
-        //            // Se o índice atual está dentro do intervalo definido
-        //            if (i >= start - 1 && i <= end - 1)
-        //            {
-        //                // Altera a cor do quadrado
-        //                alignmentChar.BackgroundColor = Brushes.LightSteelBlue;
-
-        //                // Adiciona o ToolTip com a descrição do intervalo
-        //                alignmentChar.ToolTipContent = tooltipDescription;
-        //            }
-        //        }
-        //    }
-        //}
 
 
         private void OnColorILChecked(object sender, RoutedEventArgs e)
