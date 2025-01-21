@@ -18,29 +18,25 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="200,0,10,10">
-
-            <Button x:Name="InsertRangeButton" Content="Insert Domains" Width="110" Height="20" Click="OnInsertRangeClick" />
+            <Button x:Name="InsertRangeButton" Content="Search Domains" Width="110" Height="20" Click="OnInsertRangeClick" />
 
             <Popup x:Name="RangePopup" Placement="Mouse" IsOpen="False">
-                <StackPanel Background="White" Width="200" Height="250">
-                    <TextBlock Text="Select Sequence:" Margin="5"/>
+                <StackPanel Background="White" Width="160" Height="100">
+                    <!-- Adicionando botão de Fechar -->
+                    <Button Content="X" Width="20" Height="20" HorizontalAlignment="Right" Click="ClosePopupButton_Click"/>
+
+                    <TextBlock Text="Select Sequence:" Margin="3,0,0,0"/>
                     <ComboBox x:Name="SequenceSelector" Width="150" Margin="5" 
-                  ItemsSource="{Binding ReferenceGroups}" 
-                  DisplayMemberPath="ReferenceHeader"
-                  SelectedValuePath="ID"
-                  SelectedValue="{Binding SelectedSequenceId}" />
-                    <TextBlock Text="Starting Position:" Margin="5"/>
-                    <TextBox x:Name="StartValueBox" Width="150" Margin="5"/>
-                    <TextBlock Text="Final Position:" Margin="5"/>
-                    <TextBox x:Name="EndValueBox" Width="150" Margin="5"/>
-                    <TextBlock Text="Description:" Margin="5"/>
-                    <TextBox x:Name="DescriptionValueBox" Width="150" Margin="5" />
+                      ItemsSource="{Binding ReferenceGroups}" 
+                      DisplayMemberPath="ReferenceHeader"
+                      SelectedValuePath="ID"
+                      SelectedValue="{Binding SelectedSequenceId}"/>
                     <Button Content="Apply" Width="100" Margin="5" Click="OnConfirmRangeClick"/>
                 </StackPanel>
             </Popup>
-
-
         </StackPanel>
+
+
 
         <TabControl Grid.Row="1">
             <TabItem Header="Assembly Viewer">
@@ -106,9 +102,7 @@
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <Border Background="{Binding BackgroundColor}" Width="20" Height="5" Margin="1"
-            ToolTip="{Binding ToolTipContent}"
-            MouseLeftButtonDown="OnIntervalClick"
-            MouseRightButtonDown="OnSingleCharacterRemoveClick">
+            ToolTip="{Binding ToolTipContent}">
                                                                 <TextBlock Text="" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                         </DataTemplate>
@@ -184,7 +178,8 @@
             </TabItem>
 
             <TabItem Header="Alignments">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
                     <ItemsControl ItemsSource="{Binding ReferenceGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -216,14 +211,14 @@
 
             <TabItem Header="Domains">
                 <DataGrid 
-        x:Name="IntervalsDataGrid" 
-        AutoGenerateColumns="False" 
-        CanUserAddRows="False" 
-        CanUserResizeRows="False"
-        Margin="10" 
-        HeadersVisibility="Column"
-        VerticalScrollBarVisibility="Auto"
-        HorizontalScrollBarVisibility="Auto">
+x:Name="IntervalsDataGrid" 
+AutoGenerateColumns="False" 
+CanUserAddRows="False" 
+CanUserResizeRows="False"
+Margin="10" 
+HeadersVisibility="Column"
+VerticalScrollBarVisibility="Auto"
+HorizontalScrollBarVisibility="Auto">
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Start" Binding="{Binding Start}" Width="*" />
