@@ -386,8 +386,6 @@ namespace SequenceAssemblerGUI
             }
         }
 
-
-
         public class ConsensusChar : INotifyPropertyChanged
         {
             private string _char;

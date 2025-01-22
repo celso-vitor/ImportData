@@ -90,63 +90,20 @@ namespace SequenceAssemblerLogic.ProteinAlignmentCode
 
         public int GetSubstitutionScore(char a, char b)
         {
-            if (IgnoreDifference)
+            // Apenas tratar 'I' e 'L' como equivalentes
+            if ((a == 'I' && b == 'L') || (a == 'L' && b == 'I'))
             {
-                if ((a == 'I' && b == 'L') || (a == 'L' && b == 'I') ||
-                    (a == 'V' && (b == 'I' || b == 'L')) || (b == 'V' && (a == 'I' || a == 'L')))
-                {
-                    return SubstitutionMatrix.TryGetValue("ILV", out int ilvScore) ? ilvScore : 0;
-                }
-                else if ((a == 'M' && b == 'I') || (a == 'I' && b == 'M'))
-                {
-                    return SubstitutionMatrix.TryGetValue("MI", out int miScore) ? miScore : 0;
-                }
-                else if ((a == 'M' && b == 'L') || (a == 'L' && b == 'M'))
-                {
-                    return SubstitutionMatrix.TryGetValue("ML", out int mlScore) ? mlScore : 0;
-                }
-                else if ((a == 'F' && b == 'Y') || (a == 'Y' && b == 'F'))
-                {
-                    return SubstitutionMatrix.TryGetValue("FY", out int fyScore) ? fyScore : 0;
-                }
-                else if ((a == 'N' && b == 'D') || (a == 'D' && b == 'N'))
-                {
-                    return SubstitutionMatrix.TryGetValue("ND", out int ndScore) ? ndScore : 0;
-                }
-                else if ((a == 'E' && b == 'D') || (a == 'D' && b == 'E'))
-                {
-                    return SubstitutionMatrix.TryGetValue("ED", out int edScore) ? edScore : 0;
-                }
-                else if ((a == 'S' && b == 'T') || (a == 'T' && b == 'S'))
-                {
-                    return SubstitutionMatrix.TryGetValue("ST", out int stScore) ? stScore : 0;
-                }
-                else if ((a == 'K' && b == 'R') || (a == 'R' && b == 'K'))
-                {
-                    return SubstitutionMatrix.TryGetValue("KR", out int krScore) ? krScore : 0;
-                }
-                else if ((a == 'Q' && b == 'N') || (a == 'N' && b == 'Q'))
-                {
-                    return SubstitutionMatrix.TryGetValue("QN", out int qnScore) ? qnScore : 0;
-                }
-                else if ((a == 'C' && b == 'S') || (a == 'S' && b == 'C'))
-                {
-                    return SubstitutionMatrix.TryGetValue("CS", out int csScore) ? csScore : 0;
-                }
-                else if ((a == 'A' && b == 'V') || (a == 'V' && b == 'A') ||
-                         (a == 'A' && b == 'L') || (a == 'L' && b == 'A') ||
-                         (a == 'A' && b == 'I') || (a == 'I' && b == 'A') ||
-                         (a == 'V' && b == 'L') || (a == 'L' && b == 'V') ||
-                         (a == 'I' && b == 'L') || (a == 'L' && b == 'I') ||
-                         (a == 'V' && b == 'I') || (a == 'I' && b == 'V'))
-                {
-                    return SubstitutionMatrix.TryGetValue("ALIV", out int alivScore) ? alivScore : 0;
-                }
+                // Verifica uma pontuação específica para 'IL'
+                return SubstitutionMatrix.TryGetValue("IL", out int ilScore) ? ilScore : 0;
             }
+
+            // Substituição padrão baseada na matriz
             if (SubstitutionMatrix.TryGetValue($"{a}{b}", out int defaultScore))
             {
                 return defaultScore;
             }
+
+            // Penalidade padrão para caracteres não reconhecidos
             return -1;
         }
 
