@@ -222,13 +222,16 @@ namespace SequenceAssemblerLogic.AssemblyTools
                     if (pos >= 0 && pos < seq.AlignedSmallSequence.Length)
                     {
                         char charToAdd = seq.AlignedSmallSequence[pos];
-                        if (charToAdd != '-')
+                        int refIndex = seq.StartPositions.Min() - 1 + pos; // Posição na referência
+
+                        if (charToAdd != '-' && refIndex >= 0 && refIndex < referenceLength)
                         {
                             column.Add(charToAdd);
                             fromReferenceOnly = false;
-                            coveredPositions.Add(i); // Adiciona a posição coberta no conjunto
+                            coveredPositions.Add(refIndex); // ✅ Correto: Usa 'refIndex' para mapear corretamente a referência
                         }
                     }
+
                 }
 
                 char consensusChar = column.GroupBy(c => c).OrderByDescending(g => g.Count()).Select(g => g.Key).FirstOrDefault();

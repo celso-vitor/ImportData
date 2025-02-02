@@ -48,7 +48,7 @@
                             </WrapPanel>
                         </GroupBox>
 
-                        <GroupBox Header="DeNovo">
+                        <GroupBox Header="De Novo">
                             <WrapPanel Margin="0,10,13,0">
                                 <Label Content="AA Score"/>
                                 <toolkit:IntegerUpDown x:Name="IntegerUpDownDeNovoScore" Value="80" Minimum="0" Maximum="100"/>

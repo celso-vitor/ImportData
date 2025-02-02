@@ -17,12 +17,12 @@
             <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="True" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Margin="200,0,10,10">
+        <!--<StackPanel Orientation="Horizontal" Margin="200,0,10,10">
             <Button x:Name="InsertRangeButton" Content="Search Domains" Width="110" Height="20" Click="OnInsertRangeClick" />
 
             <Popup x:Name="RangePopup" Placement="Mouse" IsOpen="False">
                 <StackPanel Background="White" Width="160" Height="100">
-                    <!-- Adicionando botão de Fechar -->
+                    --><!-- Adicionando botão de Fechar --><!--
                     <Button Content="X" Width="20" Height="20" HorizontalAlignment="Right" Click="ClosePopupButton_Click"/>
 
                     <TextBlock Text="Select Sequence:" Margin="3,0,0,0"/>
@@ -34,7 +34,7 @@
                     <Button Content="Apply" Width="100" Margin="5" Click="OnConfirmRangeClick"/>
                 </StackPanel>
             </Popup>
-        </StackPanel>
+        </StackPanel>-->
 
 
 
@@ -93,7 +93,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}" Margin="5,2,1,0">
+                                                <!--<ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}" Margin="5,2,1,0">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <UniformGrid Rows="1" Columns="{Binding ReferenceSequence.Count, FallbackValue=50}" />
@@ -108,7 +108,7 @@
                                                         </DataTemplate>
 
                                                     </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
+                                                </ItemsControl>-->
 
                                             </Grid>
 

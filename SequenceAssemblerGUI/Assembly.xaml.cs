@@ -34,8 +34,8 @@ namespace SequenceAssemblerGUI
         {
             InitializeComponent();
 
-            // Initialize the ObservableCollection to store the intervals
-            IntervalDomains = new ObservableCollection<IntervalDomain>();
+            //// Initialize the ObservableCollection to store the intervals
+            //IntervalDomains = new ObservableCollection<IntervalDomain>();
 
             // Create and configure the ViewModel (if necessary)
             var viewModel = new SequenceViewModel
@@ -45,182 +45,182 @@ namespace SequenceAssemblerGUI
 
             DataContext = viewModel;
 
-            // Bind the DataGrid to the IntervalDomains collection
-            var intervalDataGrid = (DataGrid)FindName("IntervalsDataGrid");
-            if (intervalDataGrid != null)
-            {
-                intervalDataGrid.ItemsSource = IntervalDomains;
-            }
+            //// Bind the DataGrid to the IntervalDomains collection
+            //var intervalDataGrid = (DataGrid)FindName("IntervalsDataGrid");
+            //if (intervalDataGrid != null)
+            //{
+            //    intervalDataGrid.ItemsSource = IntervalDomains;
+            //}
         }
 
-        private static readonly HttpClient client = new HttpClient();
+        //private static readonly HttpClient client = new HttpClient();
 
-        public async Task<List<IntervalDomain>> GetDomainsFromUniProt(string proteinId, string consensusSequence)
-        {
-            string url = $"https://www.uniprot.org/uniprot/{proteinId}.json"; 
+        //public async Task<List<IntervalDomain>> GetDomainsFromUniProt(string proteinId, string consensusSequence)
+        //{
+        //    string url = $"https://www.uniprot.org/uniprot/{proteinId}.json"; 
 
-            try
-            {
-                var response = await client.GetStringAsync(url);
+        //    try
+        //    {
+        //        var response = await client.GetStringAsync(url);
 
-                var proteinData = JsonConvert.DeserializeObject<SequenceAssemblerGUI.UniprotApi.ProteinData>(response);
+        //        var proteinData = JsonConvert.DeserializeObject<SequenceAssemblerGUI.UniprotApi.ProteinData>(response);
 
-                if (proteinData?.Features == null || !proteinData.Features.Any())
-                {
-                    throw new Exception("No domain data found.");
-                }
+        //        if (proteinData?.Features == null || !proteinData.Features.Any())
+        //        {
+        //            throw new Exception("No domain data found.");
+        //        }
 
-                var domains = proteinData.Features
-                    .Where(f => f.Type == "Domain")  
-                    .Select(f => new IntervalDomain
-                    {
-                        Start = f.Location.Start.Value,  
-                        End = f.Location.End.Value,      
-                        Description = f.Description,     
-                        ConsensusFragment = GetConsensusFragment(consensusSequence, f.Location.Start.Value, f.Location.End.Value), 
-                        SequenceId = proteinId          
-                    })
-                    .ToList();
+        //        var domains = proteinData.Features
+        //            .Where(f => f.Type == "Domain")  
+        //            .Select(f => new IntervalDomain
+        //            {
+        //                Start = f.Location.Start.Value,  
+        //                End = f.Location.End.Value,      
+        //                Description = f.Description,     
+        //                ConsensusFragment = GetConsensusFragment(consensusSequence, f.Location.Start.Value, f.Location.End.Value), 
+        //                SequenceId = proteinId          
+        //            })
+        //            .ToList();
 
-                return domains;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error accessing UniProt API data: {ex.Message}");
-            }
-        }
+        //        return domains;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"Error accessing UniProt API data: {ex.Message}");
+        //    }
+        //}
 
-        private string GetConsensusFragment(string consensusSequence, int start, int end)
-        {
-            int startIndex = start - 1;  
-            int endIndex = end - 1;      
+        //private string GetConsensusFragment(string consensusSequence, int start, int end)
+        //{
+        //    int startIndex = start - 1;  
+        //    int endIndex = end - 1;      
 
-            if (startIndex >= 0 && endIndex < consensusSequence.Length)
-            {
-                return consensusSequence.Substring(startIndex, endIndex - startIndex + 1); 
-            }
+        //    if (startIndex >= 0 && endIndex < consensusSequence.Length)
+        //    {
+        //        return consensusSequence.Substring(startIndex, endIndex - startIndex + 1); 
+        //    }
 
-            return string.Empty; 
-        }
-
-
-        // Method to open the Insert Range Popup
-        private void OnInsertRangeClick(object sender, RoutedEventArgs e)
-        {
-            var popup = (Popup)FindName("RangePopup");
-            if (popup != null)
-            {
-                popup.IsOpen = true;
-            }
-        }
-
-        private async void OnConfirmRangeClick(object sender, RoutedEventArgs e)
-        {
-            if (SequenceSelector.SelectedValue is string selectedSequenceId)
-            {
-                try
-                {
-                    var sequenceIdParts = selectedSequenceId.Split('|');
-                    string proteinId = sequenceIdParts.Length > 1 ? sequenceIdParts[1] : selectedSequenceId;
-
-                    var sequenceViewModel = (DataContext as SequenceViewModel);
-                    var groupViewModel = sequenceViewModel?.ReferenceGroups.FirstOrDefault(g => g.ID == selectedSequenceId);
-
-                    if (groupViewModel != null)
-                    {
-                        string consensusSequence = new string(groupViewModel.ConsensusSequence.Select(c => c.Char[0]).ToArray());
-
-                        var domains = await GetDomainsFromUniProt(proteinId, consensusSequence);
-
-                        if (domains.Any())
-                        {
-                            foreach (var domain in domains)
-                            {
-                                if (!IntervalDomains.Any(d => d.Start == domain.Start && d.End == domain.End && d.SequenceId == domain.SequenceId))
-                                {
-                                    IntervalDomains.Add(domain);  
-                                }
-                            }
-
-                            UpdateIntervalSquares(groupViewModel);
-
-                            var popup = (Popup)FindName("RangePopup");
-                            if (popup != null)
-                            {
-                                popup.IsOpen = false;
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("No domains found for the selected sequence.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("The selected sequence could not be found.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error retrieving domains: {ex.Message}");
-                }
-            }
-            else
-            {
-                MessageBox.Show("No sequence selected. Please select a sequence before applying the range.");
-            }
-        }
-
-        private void UpdateIntervalSquares(ReferenceGroupViewModel groupViewModel)
-        {
-            // Clear existing interval squares
-            groupViewModel.IntervalSquares.Clear();
-
-            // Loop through the positions and check for intervals
-            for (int i = 1; i <= groupViewModel.ReferenceSequence.Count; i++)
-            {
-                // Find an interval that matches the position
-                var domain = IntervalDomains.FirstOrDefault(d => i >= d.Start && i <= d.End);
-
-                if (domain != null)
-                {
-                    // If an interval exists for this position, update it
-                    groupViewModel.IntervalSquares.Add(new AlignmentsChar
-                    {
-                        Position = i,
-                        BackgroundColor = Brushes.LightSteelBlue,
-                        Char = " ",
-                        ToolTipContent = $"Positions {domain.Start}-{domain.End}: {domain.Description} - Fragment: {domain.ConsensusFragment}"
-                    });
-                }
-                else
-                {
-                    // If no interval exists for this position, leave it transparent
-                    groupViewModel.IntervalSquares.Add(new AlignmentsChar
-                    {
-                        Position = i,
-                        BackgroundColor = Brushes.Transparent,
-                        Char = " ",
-                        ToolTipContent = null
-                    });
-                }
-            }
-
-            // Notify the UI that IntervalSquares has changed
-            groupViewModel.OnPropertyChanged(nameof(groupViewModel.IntervalSquares));
-        }
+        //    return string.Empty; 
+        //}
 
 
+        //// Method to open the Insert Range Popup
+        //private void OnInsertRangeClick(object sender, RoutedEventArgs e)
+        //{
+        //    var popup = (Popup)FindName("RangePopup");
+        //    if (popup != null)
+        //    {
+        //        popup.IsOpen = true;
+        //    }
+        //}
 
-        public ObservableCollection<IntervalDomain> IntervalDomains { get; set; }
-        public class IntervalDomain
-        {
-            public int Start { get; set; }
-            public int End { get; set; }
-            public string SequenceId { get; set; }
-            public string Description { get; set; }
-            public string ConsensusFragment { get; set; }
-        }
+        //private async void OnConfirmRangeClick(object sender, RoutedEventArgs e)
+        //{
+        //    if (SequenceSelector.SelectedValue is string selectedSequenceId)
+        //    {
+        //        try
+        //        {
+        //            var sequenceIdParts = selectedSequenceId.Split('|');
+        //            string proteinId = sequenceIdParts.Length > 1 ? sequenceIdParts[1] : selectedSequenceId;
+
+        //            var sequenceViewModel = (DataContext as SequenceViewModel);
+        //            var groupViewModel = sequenceViewModel?.ReferenceGroups.FirstOrDefault(g => g.ID == selectedSequenceId);
+
+        //            if (groupViewModel != null)
+        //            {
+        //                string consensusSequence = new string(groupViewModel.ConsensusSequence.Select(c => c.Char[0]).ToArray());
+
+        //                var domains = await GetDomainsFromUniProt(proteinId, consensusSequence);
+
+        //                if (domains.Any())
+        //                {
+        //                    foreach (var domain in domains)
+        //                    {
+        //                        if (!IntervalDomains.Any(d => d.Start == domain.Start && d.End == domain.End && d.SequenceId == domain.SequenceId))
+        //                        {
+        //                            IntervalDomains.Add(domain);  
+        //                        }
+        //                    }
+
+        //                    UpdateIntervalSquares(groupViewModel);
+
+        //                    var popup = (Popup)FindName("RangePopup");
+        //                    if (popup != null)
+        //                    {
+        //                        popup.IsOpen = false;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    MessageBox.Show("No domains found for the selected sequence.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                MessageBox.Show("The selected sequence could not be found.");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            MessageBox.Show($"Error retrieving domains: {ex.Message}");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("No sequence selected. Please select a sequence before applying the range.");
+        //    }
+        //}
+
+        //private void UpdateIntervalSquares(ReferenceGroupViewModel groupViewModel)
+        //{
+        //    // Clear existing interval squares
+        //    groupViewModel.IntervalSquares.Clear();
+
+        //    // Loop through the positions and check for intervals
+        //    for (int i = 1; i <= groupViewModel.ReferenceSequence.Count; i++)
+        //    {
+        //        // Find an interval that matches the position
+        //        var domain = IntervalDomains.FirstOrDefault(d => i >= d.Start && i <= d.End);
+
+        //        if (domain != null)
+        //        {
+        //            // If an interval exists for this position, update it
+        //            groupViewModel.IntervalSquares.Add(new AlignmentsChar
+        //            {
+        //                Position = i,
+        //                BackgroundColor = Brushes.LightSteelBlue,
+        //                Char = " ",
+        //                ToolTipContent = $"Positions {domain.Start}-{domain.End}: {domain.Description} - Fragment: {domain.ConsensusFragment}"
+        //            });
+        //        }
+        //        else
+        //        {
+        //            // If no interval exists for this position, leave it transparent
+        //            groupViewModel.IntervalSquares.Add(new AlignmentsChar
+        //            {
+        //                Position = i,
+        //                BackgroundColor = Brushes.Transparent,
+        //                Char = " ",
+        //                ToolTipContent = null
+        //            });
+        //        }
+        //    }
+
+        //    // Notify the UI that IntervalSquares has changed
+        //    groupViewModel.OnPropertyChanged(nameof(groupViewModel.IntervalSquares));
+        //}
+
+
+
+        //public ObservableCollection<IntervalDomain> IntervalDomains { get; set; }
+        //public class IntervalDomain
+        //{
+        //    public int Start { get; set; }
+        //    public int End { get; set; }
+        //    public string SequenceId { get; set; }
+        //    public string Description { get; set; }
+        //    public string ConsensusFragment { get; set; }
+        //}
 
 
         private void OnColorILChecked(object sender, RoutedEventArgs e)
@@ -972,11 +972,11 @@ namespace SequenceAssemblerGUI
             // Marcar o evento como tratado para evitar propagação desnecessária.
             e.Handled = true;
         }
-        private void ClosePopupButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Fecha o Popup ao clicar no botão X
-            RangePopup.IsOpen = false;
-        }
+        //private void ClosePopupButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    // Fecha o Popup ao clicar no botão X
+        //    RangePopup.IsOpen = false;
+        //}
     }
 
 }
