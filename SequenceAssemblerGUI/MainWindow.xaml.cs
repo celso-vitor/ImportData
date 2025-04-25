@@ -509,7 +509,7 @@ namespace SequenceAssemblerGUI
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show("Falha ao carregar um ou mais arquivos FASTA. Alguns arquivos estão vazios ou não são válidos.", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Failed to load one or more FASTA files. Some files are empty or invalid.", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
                 return;
             }
@@ -522,12 +522,12 @@ namespace SequenceAssemblerGUI
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show("Você deve selecionar ao menos duas sequências FASTA para o alinhamento múltiplo.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("You must select at least two FASTA sequences for multiple alignment.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 });
                 return;
             }
 
-            Console.WriteLine($"Carregadas {allFastaSequences.Count} sequências FASTA.");
+            Console.WriteLine($"Loaded {allFastaSequences.Count} FASTA sequences.");
 
             // Performing multiple sequence alignment using Clustal
             FastaFileParser fastaFileParser = new FastaFileParser();
@@ -541,7 +541,7 @@ namespace SequenceAssemblerGUI
 
             ClustalMultiAligner clustalMultiAligner = new ClustalMultiAligner();
             var msaResult = clustalMultiAligner.AlignSequences(fastaFileParser.MyItems);
-            Console.WriteLine("Alinhamento múltiplo de sequências completo.");
+            Console.WriteLine("Complete multiple sequence alignment.");
 
             // Concatenating sequences for alignment
             Dictionary<string, (string Sequence, string Description)> concatenatedSequences = new();
@@ -570,11 +570,11 @@ namespace SequenceAssemblerGUI
                 var (sourceOrigins, folderUsageCount) = Utils.GetSourceOrigins(filteredSequences, deNovoDictTemp, psmDictTemp);
 
                 // Displaying the origins in the console
-                Console.WriteLine("Origens das sequências filtradas:");
-                foreach (var origin in sourceOrigins)
-                {
-                    Console.WriteLine($"Origem: {origin.folder}, Sequência: {origin.sequence}, Método de Identificação: {origin.identificationMethod}");
-                }
+                //Console.WriteLine("Origins of filtered sequences:");
+                //foreach (var origin in sourceOrigins)
+                //{
+                //    Console.WriteLine($"Origin: {origin.folder}, Sequence: {origin.sequence}, Identification Method: {origin.identificationMethod}");
+                //}
 
                 // Filter parameters
                 int minNormalizedIdentityScore = 0, minNormalizedSimilarity = 0, minLengthFilter = 0;
@@ -622,9 +622,7 @@ namespace SequenceAssemblerGUI
                             deNovoUsedCount++;  // Incrementing the DeNovo counter
                         }
 
-                        // Printing the origin and counter to the console
-                        Console.WriteLine($"Sequência {sequence.ID} - Origem: {alignmentResult.SourceType}, Identificação: {sourceOrigins[index].identificationMethod}, PSM Contagem: {psmUsedCount}, DeNovo Contagem: {deNovoUsedCount}");
-
+                    
                         return alignmentResult;
                     }));
                 }
@@ -640,7 +638,7 @@ namespace SequenceAssemblerGUI
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show("Não há sequências para alinhar. Filtre as sequências antes de tentar processar.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("There are no sequences to align. Filter sequences before attempting to process.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
                 });
             }
         }
@@ -663,17 +661,17 @@ namespace SequenceAssemblerGUI
                 var filteredAlignments = FilterAlignments(myAlignment, minNormalizedIdentityScore, minNormalizedSimilarity, minLengthFilter);
 
                 // Adding logs to verify the data
-                Console.WriteLine("Filtered Alignments:");
-                foreach (var alignment in filteredAlignments)
-                {
-                    Console.WriteLine($"SourceOrigin: {alignment.SourceOrigin}, SourceType: {alignment.SourceType}");
-                }
+                //Console.WriteLine("Filtered Alignments:");
+                //foreach (var alignment in filteredAlignments)
+                //{
+                //    Console.WriteLine($"SourceOrigin: {alignment.SourceOrigin}, SourceType: {alignment.SourceType}");
+                //}
 
                 // Count of PSMs and DeNovos used after filter (now using SourceType)
                 int psmUsedCount = filteredAlignments.Count(a => a.SourceType == "PSM");
                 int deNovoUsedCount = filteredAlignments.Count(a => a.SourceType == "DeNovo");
 
-                Console.WriteLine($"PSM Count: {psmUsedCount}, DeNovo Count: {deNovoUsedCount}");
+                //Console.WriteLine($"PSM Count: {psmUsedCount}, DeNovo Count: {deNovoUsedCount}");
 
                 // Calculating the count of PSMs and DeNovos per folder (SourceOrigin)
                 var folderCountsTotal = new Dictionary<string, (int PSMCount, int DeNovoCount)>();
@@ -704,12 +702,12 @@ namespace SequenceAssemblerGUI
                 // Creating the text block to display the information
                 var alignmentInfo = new TextBlock();
 
-                // Add the main information
+                //// Add the main information
                 alignmentInfo.Text = "\n" +
                                      $"Filtered PSM Count: {psmUsedCount}\n" +
                                      $"Filtered DeNovo Count: {deNovoUsedCount}\n\n";
 
-                // Add folder counts
+                //Add folder counts
                 alignmentInfo.Text += "Folders used in total:\n";
                 foreach (var folder in folderCountsTotal)
                 {
@@ -748,7 +746,7 @@ namespace SequenceAssemblerGUI
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show("Falha ao carregar um ou mais arquivos FASTA. Alguns arquivos estão vazios ou não são válidos.", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Failed to load one or more FASTA files. Some files are empty or invalid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
                 return;
             }

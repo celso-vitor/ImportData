@@ -124,8 +124,8 @@ namespace SequenceAssemblerGUI
         {
             private string _letra;
             private Brush _corDeFundo;
-            private int _position;  
-            private Brush _borderBrush; 
+            private int _position;
+            private Brush _borderBrush;
 
             public Brush BorderBrush
             {
@@ -417,9 +417,9 @@ namespace SequenceAssemblerGUI
                 viewModel.GlobalAlignments.Clear();
 
                 // Defining colors for various alignment scenarios.
-                Brush correctAlignmentColor = Brushes.LightGreen;
+                Brush correctAlignmentColor = Brushes.LightCyan;
                 Brush incorrectAlignmentColor = Brushes.LightCoral;
-                Brush consensusAdditionColor = Brushes.LightGreen;
+                Brush consensusAdditionColor = Brushes.LightCyan;
                 Brush gapColor = Brushes.White;
                 Brush differentConsensusColor = Brushes.Orange;
 
@@ -573,7 +573,7 @@ namespace SequenceAssemblerGUI
                                     backgroundColor = incorrectAlignmentColor;
                                     if (colorIL && (positionChars[refIndex].All(c => c == 'I' || c == 'L')))
                                     {
-                                        backgroundColor = Brushes.LightGreen; // Color 'I' or 'L' green if all chars at this position are 'I' or 'L'
+                                        backgroundColor = Brushes.LightCyan; // Color 'I' or 'L' cyan  if all chars at this position are 'I' or 'L'
                                     }
                                 }
                             }
@@ -583,8 +583,8 @@ namespace SequenceAssemblerGUI
                             }
 
                             Brush borderBrush = sequence.SourceType == "PSM"
-                                ? new SolidColorBrush(Color.FromRgb(34, 139, 34)) 
-                                : new SolidColorBrush(Color.FromRgb(218, 165, 32)); 
+                                ? new SolidColorBrush(Color.FromRgb(34, 139, 34))
+                                : new SolidColorBrush(Color.FromRgb(218, 165, 32));
 
                             sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                             {
@@ -618,14 +618,14 @@ namespace SequenceAssemblerGUI
                             {
                                 sequenceViewModel.VisualAlignment.Add(new VisualAlignment
                                 {
-                                    Letra = " ",
-                                    CorDeFundo = Brushes.White,
-                                    //ToolTipContent = $"Position: {i + 1}, Letter: , ID: {fasta.ID}",
-                                    BorderBrush = Brushes.White
+                                    Letra = " ", // Mantém como espaço em branco
+                                    CorDeFundo = Brushes.WhiteSmoke, // Agora usa WhiteSmoke, igual aos quadrados vazios
                                 });
                             }
                         }
                     }
+
+
 
                     // Adding the reference group to the view model if it contains sequences or alignments.
                     if (groupViewModel.ReferenceSequence.Any() || groupViewModel.Alignments.Any())
@@ -658,7 +658,7 @@ namespace SequenceAssemblerGUI
                         backgroundColor = differentConsensusColor;
                         if (colorIL && positionChars.ContainsKey(detail.Position) && positionChars[detail.Position].All(c => c == 'I' || c == 'L'))
                         {
-                            backgroundColor = Brushes.LightGreen; // Apply green color to 'I' or 'L' if all chars at this position are 'I' or 'L'
+                            backgroundColor = Brushes.LightCyan; // Apply cyan color to 'I' or 'L' if all chars at this position are 'I' or 'L'
                         }
                     }
 

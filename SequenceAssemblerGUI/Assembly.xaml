@@ -6,7 +6,7 @@
              xmlns:sequenceassemblergui="clr-namespace:SequenceAssemblerGUI"
              mc:Ignorable="av"
              FontFamily="Courier New" Background="WhiteSmoke" MinWidth="400" MinHeight="400">
-    <Grid Margin="10">
+    <Grid Margin="3">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -17,25 +17,59 @@
             <CheckBox x:Name="colorILCheckBox" Content="Ignore difference I/L" IsChecked="True" Checked="OnColorILChecked" Unchecked="OnColorILUnchecked" VerticalAlignment="Center" />
         </StackPanel>
 
-        <!--<StackPanel Orientation="Horizontal" Margin="200,0,10,10">
-            <Button x:Name="InsertRangeButton" Content="Search Domains" Width="110" Height="20" Click="OnInsertRangeClick" />
+        <StackPanel Orientation="Horizontal" Margin="200,0,10,10">
+
+            <Button x:Name="InsertRangeButton" Content="Domains Protein Map" Width="185" Height="20" Click="OnInsertRangeClick" />
 
             <Popup x:Name="RangePopup" Placement="Mouse" IsOpen="False">
                 <StackPanel Background="White" Width="160" Height="100">
-                    --><!-- Adicionando botão de Fechar --><!--
+                    <!-- Adicionando botão de Fechar -->
                     <Button Content="X" Width="20" Height="20" HorizontalAlignment="Right" Click="ClosePopupButton_Click"/>
 
                     <TextBlock Text="Select Sequence:" Margin="3,0,0,0"/>
                     <ComboBox x:Name="SequenceSelector" Width="150" Margin="5" 
-                      ItemsSource="{Binding ReferenceGroups}" 
-                      DisplayMemberPath="ReferenceHeader"
-                      SelectedValuePath="ID"
-                      SelectedValue="{Binding SelectedSequenceId}"/>
+                 ItemsSource="{Binding ReferenceGroups}" 
+                 DisplayMemberPath="ReferenceHeader"
+                 SelectedValuePath="ID"
+                 SelectedValue="{Binding SelectedSequenceId}"/>
                     <Button Content="Apply" Width="100" Margin="5" Click="OnConfirmRangeClick"/>
                 </StackPanel>
             </Popup>
-        </StackPanel>-->
+        </StackPanel>
 
+        <StackPanel Orientation="Vertical" Margin="5">
+            <!-- ProgressBar -->
+            <ProgressBar x:Name="BlastProgressBar" Minimum="0" Maximum="100" Value="0" Height="10" IsIndeterminate="True" Visibility="Collapsed" Margin="0,40,0,0"/>
+
+            <!-- Status Label -->
+            <TextBlock x:Name="BlastStatusLabel" Text="Loading..." Visibility="Collapsed" Foreground="Blue"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="200,0,100,10">
+            <!-- Botão principal para abrir o Popup -->
+
+            <!-- Popup para seleção da sequência e confirmação -->
+            <Popup x:Name="BlastPopup" Placement="Mouse" IsOpen="False">
+                <StackPanel Background="White" Width="160" Height="100">
+                    <!-- Botão de fechar o Popup -->
+                    <Button Content="X" Width="20" Height="20" HorizontalAlignment="Right" Click="CloseBlastPopupButton_Click" />
+
+                    <!-- Texto de instrução -->
+                    <TextBlock Text="Select Sequence:" Margin="3,0,0,0" />
+
+                    <!-- ComboBox para seleção da sequência -->
+                    <ComboBox x:Name="BlastSequenceSelector" Width="150" Margin="5" 
+                      ItemsSource="{Binding ReferenceGroups}" 
+                      DisplayMemberPath="ReferenceHeader"
+                      SelectedValuePath="ID"
+                      SelectedValue="{Binding SelectedSequenceId}" />
+
+                    <!-- Botão para confirmar a seleção -->
+                    <Button Content="Apply" Width="100" Margin="5" Click="OnConfirmBlastRangeClick" />
+                </StackPanel>
+            </Popup>
+            <Button x:Name="BlastSearchButton" Content="Immunoglobulin Domain Map" Width="225" Height="20" Click="OnBlastSearchClick" RenderTransformOrigin="1.22,0.495" Margin="200,0,0,0"/>
+        </StackPanel>
 
 
         <TabControl Grid.Row="1">
@@ -50,8 +84,12 @@
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
+                                                    <!-- Números das posições -->
                                                     <RowDefinition Height="Auto"/>
+                                                    <!-- Sequência principal -->
                                                     <RowDefinition Height="Auto"/>
+                                                    <!-- Domínios (IntervalSquares) -->
+
                                                 </Grid.RowDefinitions>
 
                                                 <ItemsControl Grid.Row="0" ItemsSource="{Binding ReferenceSequence}">
@@ -93,7 +131,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <!--<ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}" Margin="5,2,1,0">
+                                                <ItemsControl Grid.Row="2" ItemsSource="{Binding IntervalSquares}" Margin="1,1,10,1">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
                                                             <UniformGrid Rows="1" Columns="{Binding ReferenceSequence.Count, FallbackValue=50}" />
@@ -102,13 +140,15 @@
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <Border Background="{Binding BackgroundColor}" Width="20" Height="5" Margin="1"
-            ToolTip="{Binding ToolTipContent}">
+                ToolTip="{Binding ToolTipContent}"
+                Panel.ZIndex="2">
+                                                                <!-- Garante que fique acima das PTMs -->
                                                                 <TextBlock Text="" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                         </DataTemplate>
-
                                                     </ItemsControl.ItemTemplate>
-                                                </ItemsControl>-->
+                                                </ItemsControl>
+
 
                                             </Grid>
 
@@ -210,6 +250,7 @@
             </TabItem>
 
             <TabItem Header="Domains">
+
                 <DataGrid 
 x:Name="IntervalsDataGrid" 
 AutoGenerateColumns="False" 
@@ -218,8 +259,8 @@ CanUserResizeRows="False"
 Margin="10" 
 HeadersVisibility="Column"
 VerticalScrollBarVisibility="Auto"
-HorizontalScrollBarVisibility="Auto">
-
+HorizontalScrollBarVisibility="Auto"
+ItemsSource="{Binding IntervalDomains}" Visibility="Hidden">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Start" Binding="{Binding Start}" Width="*" />
                         <DataGridTextColumn Header="End" Binding="{Binding End}" Width="*" />
