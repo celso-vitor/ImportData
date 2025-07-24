@@ -156,27 +156,37 @@
 
                         <TabControl Grid.Row="1" Grid.RowSpan="2">
                             <TabItem Header="DeNovo">
-                                <DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow" AutoGenerateColumns="False">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="IsTag" Binding="{Binding IsTag}" Width="40"/>
-                                        <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
-                                        <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
-                                        <DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
-                                        <DataGridTextColumn Header="AA Score" Binding="{Binding AAScores}" Width="*"/>
-                                        <DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
+								<DataGrid x:Name="DataGridDeNovo" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridDeNovo_LoadingRow" AutoGenerateColumns="False">
+									<DataGrid.ContextMenu>
+										<ContextMenu>
+											<MenuItem Header="Export to TSV" Click="ExportDeNovoToTSV_Click"/>
+										</ContextMenu>
+									</DataGrid.ContextMenu>
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="IsTag" Binding="{Binding IsTag}" Width="40"/>
+										<DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
+										<DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
+										<DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
+										<DataGridTextColumn Header="AA Score" Binding="{Binding AAScores}" Width="*"/>
+										<DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
+									</DataGrid.Columns>
+								</DataGrid>
                             </TabItem>
                             <TabItem Header="PSM">
-                                <DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" AutoGenerateColumns="False">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
-                                        <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
-                                        <DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
-                                        <DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="*"/>
-                                        <DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
+								<DataGrid x:Name="DataGridPSM" AlternatingRowBackground="WhiteSmoke" IsReadOnly="True" LoadingRow="DataGridPSM_LoadingRow" AutoGenerateColumns="False">
+									<DataGrid.ContextMenu>
+										<ContextMenu>
+											<MenuItem Header="Export to TSV" Click="ExportPSMToTSV_Click"/>
+										</ContextMenu>
+									</DataGrid.ContextMenu>
+									<DataGrid.Columns>
+										<DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="50"/>
+										<DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
+										<DataGridTextColumn Header="Sequence" Binding="{Binding Sequence}" Width="*"/>
+										<DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="*"/>
+										<DataGridTextColumn Header="ScanNumber" Binding="{Binding ScanNumber}" Width="*"/>
+									</DataGrid.Columns>
+								</DataGrid>
                             </TabItem>
                         </TabControl>
                     </Grid>

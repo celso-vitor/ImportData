@@ -82,7 +82,50 @@ namespace SequenceAssemblerGUI
             IntegerUpDownPSMMaxLength.ValueChanged += (s, e) => RestartTimer();
             IntegerUpDownPSMScore.ValueChanged += (s, e) => RestartTimer();
         }
+        private void ExportDeNovoToTSV_Click(object sender, RoutedEventArgs e)
+        {
+            ExportDataTableToTSV(dtDenovo, "DeNovo_Export");
+        }
 
+        private void ExportPSMToTSV_Click(object sender, RoutedEventArgs e)
+        {
+            ExportDataTableToTSV(dtPSM, "PSM_Export");
+        }
+        //Import table .TSV
+        private void ExportDataTableToTSV(DataTable dataTable, string defaultFileName)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "TSV files (.tsv)|.tsv|All files (.)|.",
+                FileName = $"{defaultFileName}_{DateTime.Now:yyyyMMdd_HHmmss}.tsv"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var writer = new StreamWriter(saveFileDialog.FileName, false, Encoding.UTF8))
+                    {
+                        // Write headers
+                        var headers = dataTable.Columns.Cast<DataColumn>().Select(column => column.ColumnName);
+                        writer.WriteLine(string.Join("\t", headers));
+
+                        // Write data rows
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            var fields = row.ItemArray.Select(field => field?.ToString() ?? string.Empty);
+                            writer.WriteLine(string.Join("\t", fields));
+                        }
+                    }
+
+                    MessageBox.Show($"Data exported successfully to {saveFileDialog.FileName}", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error exporting data: {ex.Message}", "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
         // Event handler for the DispatcherTimer
         private async void UpdateTimer_Tick(object sender, EventArgs e)
         {
